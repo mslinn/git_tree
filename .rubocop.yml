@@ -20,14 +20,13 @@ Gemspec/DeprecatedAttributeAssignment:
 Gemspec/RequireMFA:
   Enabled: false
 
+Layout/HashAlignment:
+  EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table
+
 Layout/InitialIndentation:
   Exclude:
     - README.md
-
-Layout/HashAlignment:
-  EnforcedColonStyle: table
-  Exclude:
-    - replicate_git_tree.gemspec
 
 Layout/LineLength:
   Max: 150
