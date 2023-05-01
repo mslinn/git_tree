@@ -11,7 +11,10 @@ end
 def help(msg = nil)
   puts msg if msg
   puts <<~END_HELP
-    Replicates tree of git repos
+    Replicates tree of git repos and writes a bash script to STDOUT that clones the repos in the tree.
+    Adds upstream remotes as required.
+
+    Directories containing a file called .ignore are ignored.
   END_HELP
   exit 1
 end
