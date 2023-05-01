@@ -11,7 +11,6 @@
 
 
 ## Usage
-
 The program requires only one parameter:
 the name of the top-level directory to replicate.
 
@@ -45,12 +44,15 @@ More information is available on
 
 
 ## Development
-
 After checking out the repo, run `bin/setup` to install dependencies.
 
 Run `bin/make_test_directory` to create a directory tree for testing.
 
 You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```
+$ bin/console
+irb(main):001:0> ReplicateGitTree.run 'demo'
+```
 
 
 ### Build and Install Locally
