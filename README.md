@@ -31,7 +31,7 @@ $ ssh machine2 bash work.sh
 
 
 ## Installation
-Type the following at a shell prompt
+Type the following at a shell prompt:
 
 ```ruby
 $ gem install replicate_git_tree

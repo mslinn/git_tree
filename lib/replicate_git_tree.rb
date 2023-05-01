@@ -75,6 +75,7 @@ module ReplicateGitTree
 
   def self.run(root = ARGV[0])
     help "Error: Please specify the subdirectory to traverse.\n\n" if root.empty?
+
     base = expand_env root
     dirs = directories_to_process base
     result = dirs.map { |dir| do_one(dir) }
