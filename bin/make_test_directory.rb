@@ -4,11 +4,13 @@ require 'rugged'
 ROOT = 'demo'.freeze
 
 def make_repo(path)
-  puts "Making git repo at #{ROOT}/#{path}"
-  basename = File.basename path
   git_dir = "#{ROOT}/#{path}"
+  puts "Making git repo at #{git_dir}"
+
   FileUtils.mkdir_p git_dir
   repo = Rugged::Repository.init_at git_dir
+
+  basename = File.basename path
   repo.remotes.create 'origin', "git@github.com:mslinn/#{basename}.git"
 end
 
