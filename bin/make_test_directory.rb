@@ -1,6 +1,6 @@
 require 'fileutils'
 
-ROOT = demo
+ROOT = 'demo'
 
 def make_repo(path)
   git_dir = "#{ROOT}/#{path}/.git"
