@@ -2,15 +2,32 @@
 [![Gem Version](https://badge.fury.io/rb/git_urls.svg)](https://badge.fury.io/rb/git_urls)
 ===========
 
-`git_urls` scans a git directory tree and writes out a script that clones the repos in the tree, 
-and adds upstream remotes as required. 
+`git_urls` scans a git directory tree and writes out a script that clones the repos in the tree,
+and adds upstream remotes as required.
 Directories containing a file called .ignore are ignored.
 
 
 ## Usage
 
+The program requires one parameters:
+ - The name of the top-level directory to replicate.
+
+If the directory parameter is specified as an environment variable,
+it must be defined on both the source and target machines,
+and it must be single-quoted,
+so it does not expand prior to being passed to `gitUrls`.
+
+The following creates a script in the current directory called `work.sh`,
+which replicates the directory tree under `$work`:
+```shell
+$ gitUrls '$work' > work.sh
 ```
-$ gitUrls $work
+
+When complete, copy the script to the target machine and run it:
+```shell
+$ scp work.sh my_target:
+
+$ ssh my_target work.sh
 ```
 
 

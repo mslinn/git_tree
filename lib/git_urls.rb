@@ -17,29 +17,31 @@ def help(msg = nil)
 end
 
 def do_one(clone_dir)
+  output = []
   Dir.chdir(clone_dir) do
     project_dir = File.basename clone_dir
     repo = Rugged::Repository.new('.')
     origin_url = repo.config['remote.origin.url']
     parent_dir = File.expand_path('..', clone_dir)
-    puts "mkdir -p '#{parent_dir}'"
-    puts "pushd '#{parent_dir}' > /dev/null"
-    puts "git clone #{origin_url}"
+    output << "mkdir -p '#{parent_dir}'"
+    output << "pushd '#{parent_dir}' > /dev/null"
+    output << "git clone #{origin_url}"
 
     upstream_url = repo.config['remote.upstream.url']
     if upstream_url && origin_url != 'no_push'
-      puts "cd #{project_dir}"
-      puts "git remote add upstream '#{upstream_url}'"
+      output << "cd #{project_dir}"
+      output << "git remote add upstream '#{upstream_url}'"
     end
 
-    puts 'popd > /dev/null'
+    output << 'popd > /dev/null'
 
     git_dir_name = File.basename Dir.pwd
     if git_dir_name != project_dir
-      puts '# Git project directory was renamed, renaming this copy to match original directory structure'
-      puts "mv #{git_dir_name} #{project_dir}"
+      output << '# Git project directory was renamed, renaming this copy to match original directory structure'
+      output << "mv #{git_dir_name} #{project_dir}"
     end
-    puts
+    output << ''
+    output
   end
 end
 
@@ -48,5 +50,5 @@ base = expand_env ARGV[0]
 dirs = Dir["#{base}/**/.git"]
 dirs.each do |dir|
   clone_dir = File.expand_path '..', dir
-  do_one clone_dir
+  do_one clone_dir.join "\n"
 end
