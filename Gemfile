@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-# Specify the gem's dependencies in jekyll_nth.gemspec
+# Specify the gem's dependencies in git_urls.gemspec
 gemspec
 
 gem 'debase', '0.2.5.beta2', require: false

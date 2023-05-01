@@ -1,12 +1,8 @@
 require:
-  # - rubocop-jekyll
   - rubocop-md
   - rubocop-performance
   - rubocop-rake
   - rubocop-rspec
-
-# inherit_gem:
-#  rubocop-jekyll: .rubocop.yml
 
 AllCops:
   Exclude:
@@ -14,7 +10,7 @@ AllCops:
     - exe/**/*
     - vendor/**/*
     - Gemfile*
-    - jekyll_nth.gemspec
+    - git_urls.gemspec
   NewCops: enable
   TargetRubyVersion: 2.6
 
@@ -31,7 +27,7 @@ Layout/InitialIndentation:
 Layout/HashAlignment:
   EnforcedColonStyle: table
   Exclude:
-    - jekyll_nth.gemspec
+    - git_urls.gemspec
 
 Layout/LineLength:
   Max: 150
@@ -41,14 +37,14 @@ Layout/MultilineMethodCallIndentation:
 
 Lint/RedundantCopDisableDirective:
   Exclude:
-    - jekyll_nth.gemspec
+    - git_urls.gemspec
 
 Metrics/AbcSize:
   Max: 45
 
 Metrics/BlockLength:
   Exclude:
-    - jekyll_nth.gemspec
+    - git_urls.gemspec
     - spec/**/*
 
 Metrics/ClassLength:

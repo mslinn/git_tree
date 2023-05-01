@@ -1,5 +1,4 @@
-require 'jekyll'
-require_relative '../lib/jekyll_nth'
+require_relative '../lib/git_urls'
 
 RSpec.configure do |config|
   config.filter_run :focus

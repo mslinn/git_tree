@@ -6,8 +6,8 @@ Gem::Specification.new do |spec|
   spec.authors = ['Mike Slinn']
   spec.bindir = 'exe'
   spec.description = <<~END_OF_DESC
-    Scans a git directory tree and writes out a script that clones the repos in the tree, 
-    and adds upstream remotes as required. 
+    Scans a git directory tree and writes out a script that clones the repos in the tree,
+    and adds upstream remotes as required.
     Directories containing a file called .ignore are ignored.
   END_OF_DESC
   spec.email = ['mslinn@mslinn.com']
@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 2.6.0'
   spec.summary = 'Scans a git directory tree and writes out a script that clones the repos in the tree.'
   spec.test_files = spec.files.grep(%r!^(test|spec|features)/!)
-  spec.version = JekyllNthVersion::VERSION
+  spec.version = GitUrlsVersion::VERSION
 
   spec.add_dependency 'rugged'
 end
