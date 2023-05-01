@@ -49,6 +49,8 @@ More information is available on
 
 After checking out the repo, run `bin/setup` to install dependencies.
 
+Run `bin/make_test_directory` to create a directory tree for testing.
+
 You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 

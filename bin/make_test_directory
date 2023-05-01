@@ -1,17 +1,28 @@
 #!/bin/bash
 
+ROOT=demo
+
 function make_repo {
-  mkdir -p "$1/.git"
-  touch "$1/.git/.gitkeep"
+  BASENAME="$( basename "$1" )"
+  mkdir -p "$ROOT/$1/.git"
+  touch "$ROOT/$1/.git/.gitkeep"
+  cat <<EOF > "$ROOT/$1/.git/config"
+[core]
+      repositoryformatversion = 0
+      filemode = true
+      bare = false
+      logallrefupdates = true
+[remote "origin"]
+        url = git@github.com:mslinn/$BASENAME.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+EOF
 }
 
-
-mkdir -f demo
 
 for X in a b c; do
   make_repo "proj_$X"
 done
-touch proj_c/.ignore
+touch "$ROOT/proj_c/.ignore"
 
 for X in d e f; do
   make_repo "sub1/proj_$X"
@@ -20,4 +31,4 @@ done
 for X in g h i; do
   make_repo "sub2/proj_$X"
 done
-touch "sub2/.ignore"
+touch "$ROOT/sub2/.ignore"
