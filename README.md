@@ -15,7 +15,7 @@ The program requires one parameter:
 The following creates a script in the current directory called `work.sh`,
 which creates a script that replicates the desired portions of the directory tree under `$work`:
 ```shell
-$ gitUrls '$work' > work.sh
+$ replicate_git_tree '$work' > work.sh
 ```
 
 When complete, copy the script to the target machine and run it:
@@ -59,7 +59,7 @@ Examine the newly built gem:
 $ gem info replicate_git_tree
 
 *** LOCAL GEMS ***
-replicate_git_tree (1.0.0)
+replicate_git_tree (0.1.0)
     Author: Mike Slinn
     Homepage:
     https://github.com/mslinn/replicate_git_tree
@@ -89,5 +89,4 @@ To release a new version,
 
 
 ## License
-
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
