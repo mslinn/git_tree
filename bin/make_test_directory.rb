@@ -5,13 +5,12 @@ begin
   ROOT = 'demo'.freeze
 
   def make_repo(path)
-    puts "Making git repo at #{path}"
+    puts "Making git repo at #{ROOT}/#{path}"
     basename = File.basename path
     git_dir = "#{ROOT}/#{path}"
     FileUtils.mkdir_p git_dir
     repo = Rugged::Repository.init_at git_dir
     repo.remotes.create 'origin', "git@github.com:mslinn/#{basename}.git"
-    puts "Git repo at #{path} created"
   end
 
   %w[a b c].each do |x|
