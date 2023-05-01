@@ -26,23 +26,25 @@ module ReplicateGitTree
     repo = Rugged::Repository.new dir
     origin_url = repo.config['remote.origin.url']
 
-    output << "mkdir -p '#{parent_dir}'"
-    output << "pushd '#{parent_dir}' > /dev/null"
-    output << "git clone #{origin_url}"
+    output << "if [ ! -d \"#{dir}/.git\" ]; then"
+    output << "  mkdir -p '#{parent_dir}'"
+    output << "  pushd '#{parent_dir}' > /dev/null"
+    output << "  git clone #{origin_url}"
 
     repo.remotes.each do |remote|
       next if remote.name == 'origin' || remote.url == 'no_push'
 
-      output << "git remote add #{remote.name} '#{remote.url}'"
+      output << "  git remote add #{remote.name} '#{remote.url}'"
     end
 
-    output << 'popd > /dev/null'
+    output << '  popd > /dev/null'
 
     # git_dir_name = File.basename Dir.pwd
     # if git_dir_name != project_dir
-    #   output << '# Git project directory was renamed, renaming this copy to match original directory structure'
-    #   output << "mv #{git_dir_name} #{project_dir}"
+    #   output << '  # Git project directory was renamed, renaming this copy to match original directory structure'
+    #   output << "  mv #{git_dir_name} #{project_dir}"
     # end
+    output << "fi"
     output << ''
     output
   end
@@ -71,9 +73,11 @@ module ReplicateGitTree
     result.map { |x| x.delete_prefix "#{parent_fq}/" }
   end
 
-  help "Error: Please specify the subdirectory to traverse.\n\n" if ARGV.empty?
-  base = expand_env ARGV[0]
-  dirs = directories_to_process base
-  result = dirs.map { |dir| do_one(dir) }
-  puts result.join "\n"
+  def self.run(root = ARGV[0])
+    help "Error: Please specify the subdirectory to traverse.\n\n" if root.empty?
+    base = expand_env root
+    dirs = directories_to_process base
+    result = dirs.map { |dir| do_one(dir) }
+    puts result.join "\n"
+  end
 end

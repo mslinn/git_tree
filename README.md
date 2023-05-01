@@ -1,28 +1,33 @@
-`replicate_git_tree`
+`Replicate_git_tree`
 [![Gem Version](https://badge.fury.io/rb/replicate_git_tree.svg)](https://badge.fury.io/rb/replicate_git_tree)
 ===========
 
-`replicate_git_tree` scans a git directory tree and writes out a script that clones the repos in the tree,
-and adds upstream remotes as required.
-Directories containing a file called .ignore are ignored.
+`Replicate_git_tree` scans a git directory tree and writes out a script that clones the repos in the tree.
+
+ - All remotes are replicated.
+ - Subdirectory trees containing a file called `.ignore` are ignored.
+ - Any git repos that have already been cloned into the target directory tree are skipped.
+   This means you can rerun `replicate_git_tree` as many times as you want, without ill effects.
 
 
 ## Usage
 
-The program requires one parameter:
- - The name of the top-level directory to replicate.
+The program requires only one parameter:
+the name of the top-level directory to replicate.
 
 The following creates a script in the current directory called `work.sh`,
-which creates a script that replicates the desired portions of the directory tree under `$work`:
+that replicates the desired portions of the directory tree of git repos under `top_level`:
 ```shell
-$ replicate_git_tree '$work' > work.sh
+$ replicate_git_tree top_level > work.sh
 ```
 
-When complete, copy the script to the target machine and run it:
+When `replicate_git_tree` completes,
+copy the generated script to the target machine and run it.
+The following example copies the script to `machine2` and runs it:
 ```shell
-$ scp work.sh my_target:
+$ scp work.sh machine2:
 
-$ ssh my_target bash work.sh
+$ ssh machine2 bash work.sh
 ```
 
 
