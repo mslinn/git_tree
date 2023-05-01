@@ -23,7 +23,7 @@ def do_one(clone_dir)
   output = []
   Dir.chdir(clone_dir) do
     project_dir = File.basename clone_dir
-    repo = Rugged::Repository.new('.')
+    repo = Rugged::Repository.new(clone_dir)
     origin_url = repo.config['remote.origin.url']
     parent_dir = File.expand_path('..', clone_dir)
     output << "mkdir -p '#{parent_dir}'"
