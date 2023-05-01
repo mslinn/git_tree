@@ -11,9 +11,7 @@
       "remoteHost": "localhost",
       "remotePort": "1234",
       "remoteWorkspaceRoot": "/",
-      "restart": true,
       "showDebuggerOutput": true,
-      "stopOnEntry": true,
       "type": "Ruby",
     },
     {
@@ -27,7 +25,7 @@
       "request": "launch",
       "showDebuggerOutput": false,
       "type": "Ruby",
-      // "useBundler": true,
+      "useBundler": true,
     },
     {
       "args": [
@@ -41,7 +39,7 @@
       "request": "launch",
       "showDebuggerOutput": false,
       "type": "Ruby",
-      // "useBundler": true,
+      "useBundler": true,
     }
   ]
 }

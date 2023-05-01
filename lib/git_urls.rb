@@ -21,7 +21,7 @@ def do_one(clone_dir)
     project_dir = File.basename clone_dir
     repo = Rugged::Repository.new('.')
     origin_url = repo.config['remote.origin.url']
-    parent_dir = File.expand_path("..", clone_dir)
+    parent_dir = File.expand_path('..', clone_dir)
     puts "mkdir -p '#{parent_dir}'"
     puts "pushd '#{parent_dir}' > /dev/null"
     puts "git clone #{origin_url}"

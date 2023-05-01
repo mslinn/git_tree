@@ -1,9 +1,8 @@
 #!/usr/bin/env ruby
 
-require "bundler/setup"
-require "fileutils"
-require "irb"
-require "jekyll_nth"
-require "liquid"
+require 'bundler/setup'
+require 'fileutils'
+require 'irb'
+require 'git_urls'
 
 IRB.start(__FILE__)
