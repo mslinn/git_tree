@@ -1,0 +1,23 @@
+#!/bin/bash
+
+function make_repo {
+  mkdir -p "$1/.git"
+  touch "$1/.git/.gitkeep"
+}
+
+
+mkdir -f demo
+
+for X in a b c; do
+  make_repo "proj_$X"
+done
+touch proj_c/.ignore
+
+for X in d e f; do
+  make_repo "sub1/proj_$X"
+done
+
+for X in g h i; do
+  make_repo "sub2/proj_$X"
+done
+touch "sub2/.ignore"
