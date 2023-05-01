@@ -10,7 +10,7 @@ AllCops:
     - exe/**/*
     - vendor/**/*
     - Gemfile*
-    - git_urls.gemspec
+    - replicate_git_tree.gemspec
   NewCops: enable
   TargetRubyVersion: 2.6
 
@@ -27,7 +27,7 @@ Layout/InitialIndentation:
 Layout/HashAlignment:
   EnforcedColonStyle: table
   Exclude:
-    - git_urls.gemspec
+    - replicate_git_tree.gemspec
 
 Layout/LineLength:
   Max: 150
@@ -37,14 +37,14 @@ Layout/MultilineMethodCallIndentation:
 
 Lint/RedundantCopDisableDirective:
   Exclude:
-    - git_urls.gemspec
+    - replicate_git_tree.gemspec
 
 Metrics/AbcSize:
   Max: 45
 
 Metrics/BlockLength:
   Exclude:
-    - git_urls.gemspec
+    - replicate_git_tree.gemspec
     - spec/**/*
 
 Metrics/ClassLength:

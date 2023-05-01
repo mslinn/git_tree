@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "args": [ "demo" ],
+      "name": "Debug replicate_git_tree",
+      "type": "Ruby",
+      "request": "launch",
+      "program": "${workspaceRoot}/lib/replicate_git_tree.rb"
+    },
+    {
       "cwd": "${workspaceRoot}",
       "name": "Attach rdebug-ide",
       "request": "attach",

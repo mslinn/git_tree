@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-# Specify the gem's dependencies in git_urls.gemspec
+# Specify the gem's dependencies in replicate_git_tree.gemspec
 gemspec
 
 gem 'debase', '0.2.5.beta2', require: false

@@ -1,7 +1,7 @@
-require_relative 'lib/git_urls/version'
+require_relative 'lib/replicate_git_tree/version'
 
-Gem::Specification.new do |spec|
-  github = 'https://github.com/mslinn/git_urls'
+Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
+  github = 'https://github.com/mslinn/replicate_git_tree'
 
   spec.authors = ['Mike Slinn']
   spec.bindir = 'exe'
@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
     'homepage_uri'      => spec.homepage,
     'source_code_uri'   => github,
   }
-  spec.name = 'git_urls'
+  spec.name = 'replicate_git_tree'
   spec.post_install_message = <<~END_MESSAGE
 
     Thanks for installing #{spec.name}!

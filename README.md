@@ -1,24 +1,19 @@
-`git_urls`
-[![Gem Version](https://badge.fury.io/rb/git_urls.svg)](https://badge.fury.io/rb/git_urls)
+`replicate_git_tree`
+[![Gem Version](https://badge.fury.io/rb/replicate_git_tree.svg)](https://badge.fury.io/rb/replicate_git_tree)
 ===========
 
-`git_urls` scans a git directory tree and writes out a script that clones the repos in the tree,
+`replicate_git_tree` scans a git directory tree and writes out a script that clones the repos in the tree,
 and adds upstream remotes as required.
 Directories containing a file called .ignore are ignored.
 
 
 ## Usage
 
-The program requires one parameters:
+The program requires one parameter:
  - The name of the top-level directory to replicate.
 
-If the directory parameter is specified as an environment variable,
-it must be defined on both the source and target machines,
-and it must be single-quoted,
-so it does not expand prior to being passed to `gitUrls`.
-
 The following creates a script in the current directory called `work.sh`,
-which replicates the directory tree under `$work`:
+which creates a script that replicates the desired portions of the directory tree under `$work`:
 ```shell
 $ gitUrls '$work' > work.sh
 ```
@@ -27,16 +22,15 @@ When complete, copy the script to the target machine and run it:
 ```shell
 $ scp work.sh my_target:
 
-$ ssh my_target work.sh
+$ ssh my_target bash work.sh
 ```
 
 
 ## Installation
-
 Type the following at a shell prompt
 
 ```ruby
-gem install git_urls
+$ gem install replicate_git_tree
 ```
 
 
@@ -62,13 +56,13 @@ $ bundle exec rake install
 
 Examine the newly built gem:
 ```
-$ gem info git_urls
+$ gem info replicate_git_tree
 
 *** LOCAL GEMS ***
-git_urls (1.0.0)
+replicate_git_tree (1.0.0)
     Author: Mike Slinn
     Homepage:
-    https://github.com/mslinn/git_urls
+    https://github.com/mslinn/replicate_git_tree
     License: MIT
     Installed at: /home/mslinn/.gems
 ```

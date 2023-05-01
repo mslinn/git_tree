@@ -3,6 +3,6 @@
 require 'bundler/setup'
 require 'fileutils'
 require 'irb'
-require 'git_urls'
+require 'replicate_git_tree'
 
 IRB.start(__FILE__)
