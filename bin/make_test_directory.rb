@@ -12,6 +12,9 @@ def make_repo(path)
 
   basename = File.basename path
   repo.remotes.create 'origin', "git@github.com:mslinn/#{basename}.git"
+  return unless path.end_with?('a', 'b')
+
+  repo.remotes.create 'upstream', "git@github.com:mslinn/#{basename}_upstream.git"
 end
 
 %w[a b c].each do |x|

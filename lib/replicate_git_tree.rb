@@ -29,10 +29,10 @@ def do_one(dir)
   output << "pushd '#{parent_dir}' > /dev/null"
   output << "git clone #{origin_url}"
 
-  upstream_url = repo.config['remote.upstream.url']
-  if upstream_url && origin_url != 'no_push'
-    output << "cd #{project_dir}"
-    output << "git remote add upstream '#{upstream_url}'"
+  repo.remotes.each do |remote|
+    next if remote.name == 'origin' || remote.url == 'no_push'
+
+    output << "git remote add #{remote.name} '#{remote.url}'"
   end
 
   output << 'popd > /dev/null'
@@ -74,4 +74,4 @@ help "Error: Please specify the subdirectory to traverse.\n\n" if ARGV.empty?
 base = expand_env ARGV[0]
 dirs = directories_to_process base
 result = dirs.map { |dir| do_one(dir) }
-result.join "\n"
+puts result.join "\n"
