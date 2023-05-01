@@ -48,7 +48,8 @@ end
 help "Error: Please specify the subdirectory to traverse.\n\n" if ARGV.empty?
 base = expand_env ARGV[0]
 dirs = Dir["#{base}/**/.git"]
-dirs.each do |dir|
+result = dirs.map do |dir|
   clone_dir = File.expand_path '..', dir
-  do_one clone_dir.join "\n"
+  do_one(clone_dir)
 end
+result.join("\n")
