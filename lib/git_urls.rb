@@ -53,6 +53,6 @@ base = expand_env ARGV[0]
 dirs = Dir["#{base}/**/.git"]
 result = dirs.map do |dir|
   clone_dir = File.expand_path '..', dir
-  do_one(clone_dir)
+  do_one(clone_dir) unless File.exist? "clone_dir/.ignore"
 end
-result.join("\n")
+result.join "\n"
