@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "fileutils"
+require "irb"
+require "jekyll_nth"
+require "liquid"
+
+IRB.start(__FILE__)
