@@ -23,7 +23,7 @@ end
 %w[a b c].each do |x|
   make_repo "proj_#{x}"
 end
-File.touch "#{ROOT}/proj_c/.ignore"
+FileUtils.touch "#{ROOT}/proj_c/.ignore"
 
 %w[d e f].each do |x|
   make_repo "sub1/proj_#{x}"
@@ -32,4 +32,4 @@ end
 %w[g h i].each do |x|
   make_repo "sub2/proj_#{x}"
 end
-File.touch "#{ROOT}/sub2/.ignore"
+FileUtils.touch "#{ROOT}/sub2/.ignore"
