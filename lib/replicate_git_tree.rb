@@ -54,11 +54,13 @@ module ReplicateGitTree
     "#{string}#{suffix}"
   end
 
+  # @return array containing directory names to process
+  #   Each directory name ends with a slash, to ensure symlinks are dereferences
   def self.directories_to_process(root)
     root_fq = File.expand_path root
     abort "Error: #{root_fq} is a file, instead of a directory. Cannote recurse." if File.file? root_fq
 
-    root_fq = ensure_ends_with(root_fq, '/') if File.directory?(root_fq) # force symlinks to expand
+    root_fq = deref_symlink(root_fq)
     abort "Error: #{root_fq} does not exist. Halting." unless Dir.exist? root_fq
 
     result = []
@@ -72,7 +74,7 @@ module ReplicateGitTree
         Find.prune
       end
     end
-    result.map { |x| x.delete_prefix "#{root_fq}/" }
+    result.map { |x| x.delete_prefix(root_fq) + '/' } # rubocop:disable Style/StringConcatenation
   end
 
   def self.make_script(root, base, dirs)
@@ -86,6 +88,11 @@ module ReplicateGitTree
 
   def self.make_env_var(name, value)
     puts "export #{name}=#{value}"
+  end
+
+  def self.deref_symlink(symlink)
+    require 'pathname'
+    Pathname.new(symlink).realpath
   end
 
   def self.make_env_vars(base, dirs)
