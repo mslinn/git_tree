@@ -1,3 +1,6 @@
+## 0.1.2 / 2023-05-01
+  * Fussing with gem executable
+
 ## 0.1.1 / 2023-05-01
   * Added missing file
 

@@ -4,7 +4,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   github = 'https://github.com/mslinn/replicate_git_tree'
 
   spec.authors = ['Mike Slinn']
-  spec.bindir = 'bin'
+  spec.bindir = 'bindir'
   spec.description = <<~END_OF_DESC
     Scans a git directory tree and writes out a script that clones the repos in the tree,
     and adds upstream remotes as required.
@@ -13,8 +13,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.email = ['mslinn@mslinn.com']
   spec.executables << 'replicate_git_tree'
   spec.files = Dir[
-    'bin/replicate_git_tree',
-    '{lib,spec}/**/*',
+    '{bindir,lib}/**/*',
     '.rubocop.yml',
     'LICENSE.*',
     'Rakefile',
@@ -36,10 +35,8 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     Thanks for installing #{spec.name}!
 
   END_MESSAGE
-  spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 2.6.0'
   spec.summary = 'Scans a git directory tree and writes out a script that clones the repos in the tree.'
-  spec.test_files = spec.files.grep(%r!^(test|spec|features)/!)
   spec.version = GitUrlsVersion::VERSION
 
   spec.add_dependency 'rugged'
