@@ -29,6 +29,43 @@ $ scp work.sh machine2:
 $ ssh machine2 bash work.sh
 ```
 
+### Generated Script
+The generated script has 2 parts:
+
+ 1. Git repo cloning.
+ 2. Environment variable definitions, one for each cloned git repo.
+
+Following is a sample of a git clone:
+
+```shell
+if [ ! -d "sinatra/sinatras-skeleton/.git" ]; then
+  mkdir -p 'sinatra'
+  pushd 'sinatra' > /dev/null
+  git clone git@github.com:mslinn/sinatras-skeleton.git
+  git remote add upstream 'https://github.com/simonneutert/sinatras-skeleton.git'
+  popd > /dev/null
+fi
+```
+
+Following is a sample of environment variable definitions:
+```shell
+export git_root=/mnt/_/work/ruby
+```
+
+The environment variable definitions are meant to be saved into a file that is `source`d upon boot.
+While you could place them in a file like `~/.bashrc`, the author's preference is to instead place them in `$work/.evars`, and add the following to `~/.bashrc`:
+```shell
+source "$work/.evars"
+```
+
+Thus each time you log in, the environment variable definitions will have been re-established.
+You can therefore change directory to any of the cloned projects, like this:
+```shell
+$ cd $git_root
+
+$ cd $my_project
+```
+
 
 ## Installation
 Type the following at a shell prompt:

@@ -71,14 +71,33 @@ module ReplicateGitTree
     result.map { |x| x.delete_prefix "#{root_fq}/" }
   end
 
-  def self.run(root = ARGV[0])
+  def self.make_script(root, base, dirs)
     help "Error: Please specify the subdirectory to traverse.\n\n" if root.to_s.empty?
 
-    base = expand_env root
-    dirs = directories_to_process base
     Dir.chdir(base) do
       result = dirs.map { |dir| do_one(dir) }
       puts result.join "\n"
     end
+  end
+
+  def self.make_env_var(name, value)
+    puts "export #{name}=#{value}"
+  end
+
+  def self.make_env_vars(base, dirs)
+    puts "cat <<EOF > #{base}/.evars"
+    make_env_var 'git_root', base
+    dirs.each do |dir|
+      next
+    end
+    puts "EOF"
+  end
+
+  def self.run(root = ARGV[0])
+    base = expand_env root
+    dirs = directories_to_process base
+
+    make_script root, base, dirs
+    make_env_vars base, dirs
   end
 end

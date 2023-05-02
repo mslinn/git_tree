@@ -1,5 +1,8 @@
+## 0.1.4 / 2023-05-02
+  * Added `.evars` support
+
 ## 0.1.3 / 2023-05-01
-  * Fussing with directory path
+  * Fussing with directory path (works!!!)
 
 ## 0.1.2 / 2023-05-01
   * Fussing with gem executable (did not work)

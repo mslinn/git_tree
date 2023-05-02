@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# In order to place breakpoints using Visual Studio Code,
+# the installed gem source must be loaded.
+#
+# Be sure to build the gem as follows before invoking this script:
+#  rake install
+
+code -a "$( gem which replicate_git_tree )"/../..
