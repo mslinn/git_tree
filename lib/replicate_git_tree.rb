@@ -49,7 +49,7 @@ module ReplicateGitTree
     output
   end
 
-  def ensure_ends_with(string, suffix)
+  def self.ensure_ends_with(string, suffix)
     string = string.delete_suffix suffix
     "#{string}#{suffix}"
   end
@@ -58,7 +58,7 @@ module ReplicateGitTree
     root_fq = File.expand_path root
     abort "Error: #{root_fq} is a file, instead of a directory. Cannote recurse." if File.file? root_fq
 
-    root_fq = ensure_ends_with(root_fq, '/') # force symlinks to expand
+    root_fq = ensure_ends_with(root_fq, '/') if File.directory?(root_fq) # force symlinks to expand
     abort "Error: #{root_fq} does not exist. Halting." unless Dir.exist? root_fq
 
     result = []
