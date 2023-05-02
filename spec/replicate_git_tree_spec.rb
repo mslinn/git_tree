@@ -17,9 +17,6 @@ RSpec.describe('Replicate Git Tree') do
   it 'finds git repos under a symlinked directory' do
     base = ReplicateGitTree.expand_env '$work'
     dirs = ReplicateGitTree.directories_to_process base
-    expect(dirs).to eq(
-      [
-      ]
-    )
+    expect(dirs.length).to be > 5
   end
 end
