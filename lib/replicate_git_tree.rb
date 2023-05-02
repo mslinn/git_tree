@@ -49,23 +49,27 @@ module ReplicateGitTree
     output
   end
 
+  def ensure_ends_with(string, suffix)
+    string = string.delete_suffix suffix
+    "#{string}#{suffix}"
+  end
+
   def self.directories_to_process(root)
     root_fq = File.expand_path root
-    abort "Error: #{root_fq} does not exist" unless File.exist? root_fq
+    abort "Error: #{root_fq} is a file, instead of a directory. Cannote recurse." if File.file? root_fq
+
+    root_fq = ensure_ends_with(root_fq, '/') # force symlinks to expand
+    abort "Error: #{root_fq} does not exist. Halting." unless Dir.exist? root_fq
 
     result = []
     Find.find(root_fq) do |path|
-      next unless File.directory? path
+      next if File.file? path
 
-      ignore_path = "#{path}/.ignore"
-      if File.exist?(ignore_path)
+      Find.prune if File.exist?("#{path}/.ignore")
+
+      if Dir.exist?("#{path}/.git")
+        result << path
         Find.prune
-      else
-        git_path = "#{path}/.git"
-        if File.exist? git_path
-          result << path
-          Find.prune
-        end
       end
     end
     result.map { |x| x.delete_prefix "#{root_fq}/" }
