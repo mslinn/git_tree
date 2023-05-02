@@ -68,6 +68,7 @@ export braintreeTutorial=$work/ancientWarmth/braintreeTutorial
 export survey_analytics=$work/ancientWarmth/survey-analytics
 export survey_creator=$work/ancientWarmth/survey-creator
 export django=$work/django/django
+export frobshop=$work/django/frobshop
 EOF
 ```
 
