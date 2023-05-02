@@ -74,7 +74,7 @@ module ReplicateGitTree
   end
 
   def self.run(root = ARGV[0])
-    help "Error: Please specify the subdirectory to traverse.\n\n" if root.empty?
+    help "Error: Please specify the subdirectory to traverse.\n\n" if root.to_s.empty?
 
     base = expand_env root
     dirs = directories_to_process base

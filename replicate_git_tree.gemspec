@@ -11,7 +11,15 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     Directories containing a file called .ignore are ignored.
   END_OF_DESC
   spec.email = ['mslinn@mslinn.com']
-  spec.files = Dir['.rubocop.yml', 'LICENSE.*', 'Rakefile', '{lib,spec}/**/*', '*.gemspec', '*.md']
+  spec.files = Dir[
+    '{lib,spec}/**/*',
+    '.rubocop.yml',
+    'bin/replicate_git_tree',
+    'LICENSE.*',
+    'Rakefile',
+    '*.gemspec',
+    '*.md'
+  ]
   spec.homepage = 'https://www.mslinn.com/git/1100-git-tree.html'
   spec.license = 'MIT'
   spec.metadata = {
