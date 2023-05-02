@@ -68,9 +68,7 @@ module ReplicateGitTree
         end
       end
     end
-
-    parent_fq = File.dirname root_fq
-    result.map { |x| x.delete_prefix "#{parent_fq}/" }
+    result.map { |x| x.delete_prefix "#{root_fq}/" }
   end
 
   def self.run(root = ARGV[0])
@@ -78,7 +76,9 @@ module ReplicateGitTree
 
     base = expand_env root
     dirs = directories_to_process base
-    result = dirs.map { |dir| do_one(dir) }
-    puts result.join "\n"
+    Dir.chdir(base) do
+      result = dirs.map { |dir| do_one(dir) }
+      puts result.join "\n"
+    end
   end
 end
