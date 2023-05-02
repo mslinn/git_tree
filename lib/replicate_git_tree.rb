@@ -2,21 +2,10 @@ module ReplicateGitTree
   require 'find'
   require 'rugged'
 
-  def self.expand_env(str)
-    str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) do
-      ENV.fetch(Regexp.last_match(1), nil)
-    end
-  end
-
-  def self.help(msg = nil)
-    puts msg if msg
-    puts <<~END_HELP
-      Replicates tree of git repos and writes a bash script to STDOUT that clones the repos in the tree.
-      Adds upstream remotes as required.
-
-      Directories containing a file called .ignore are ignored.
-    END_HELP
-    exit 1
+  # @return Path
+  def self.deref_symlink(symlink)
+    require 'pathname'
+    Pathname.new(symlink).realpath
   end
 
   def self.do_one(dir)
@@ -49,18 +38,13 @@ module ReplicateGitTree
     output
   end
 
-  def self.ensure_ends_with(string, suffix)
-    string = string.delete_suffix suffix
-    "#{string}#{suffix}"
-  end
-
   # @return array containing directory names to process
   #   Each directory name ends with a slash, to ensure symlinks are dereferences
   def self.directories_to_process(root)
     root_fq = File.expand_path root
-    abort "Error: #{root_fq} is a file, instead of a directory. Cannote recurse." if File.file? root_fq
+    abort "Error: #{root_fq} is a file, instead of a directory. Cannot recurse." if File.file? root_fq
 
-    root_fq = deref_symlink(root_fq)
+    root_fq = deref_symlink(root_fq).to_s
     abort "Error: #{root_fq} does not exist. Halting." unless Dir.exist? root_fq
 
     result = []
@@ -70,11 +54,33 @@ module ReplicateGitTree
       Find.prune if File.exist?("#{path}/.ignore")
 
       if Dir.exist?("#{path}/.git")
-        result << path
+        result << path.to_s
         Find.prune
       end
     end
-    result.map { |x| x.delete_prefix(root_fq) + '/' } # rubocop:disable Style/StringConcatenation
+    result.map { |x| x.delete_prefix("#{root_fq}/") }
+  end
+
+  def self.ensure_ends_with(string, suffix)
+    string = string.delete_suffix suffix
+    "#{string}#{suffix}"
+  end
+
+  def self.expand_env(str)
+    str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) do
+      ENV.fetch(Regexp.last_match(1), nil)
+    end
+  end
+
+  def self.help(msg = nil)
+    puts msg if msg
+    puts <<~END_HELP
+      Replicates tree of git repos and writes a bash script to STDOUT that clones the repos in the tree.
+      Adds upstream remotes as required.
+
+      Directories containing a file called .ignore are ignored.
+    END_HELP
+    exit 1
   end
 
   def self.make_script(root, base, dirs)
@@ -88,11 +94,6 @@ module ReplicateGitTree
 
   def self.make_env_var(name, value)
     puts "export #{name}=#{value}"
-  end
-
-  def self.deref_symlink(symlink)
-    require 'pathname'
-    Pathname.new(symlink).realpath
   end
 
   def self.make_env_vars(base, dirs)

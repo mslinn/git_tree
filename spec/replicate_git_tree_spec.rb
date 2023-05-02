@@ -5,11 +5,11 @@ RSpec.describe('Replicate Git Tree') do
     dirs = ReplicateGitTree.directories_to_process 'demo'
     expect(dirs).to eq(
       [
-        'proj_a/',
-        'proj_b/',
-        'sub1/proj_d/',
-        'sub1/proj_e/',
-        'sub1/proj_f/'
+        'proj_a',
+        'proj_b',
+        'sub1/proj_d',
+        'sub1/proj_e',
+        'sub1/proj_f'
       ]
     )
   end
