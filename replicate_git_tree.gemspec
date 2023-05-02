@@ -4,17 +4,18 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   github = 'https://github.com/mslinn/replicate_git_tree'
 
   spec.authors = ['Mike Slinn']
-  spec.bindir = 'exe'
+  spec.bindir = 'bin'
   spec.description = <<~END_OF_DESC
     Scans a git directory tree and writes out a script that clones the repos in the tree,
     and adds upstream remotes as required.
     Directories containing a file called .ignore are ignored.
   END_OF_DESC
   spec.email = ['mslinn@mslinn.com']
+  spec.executables << 'replicate_git_tree'
   spec.files = Dir[
+    'bin/replicate_git_tree',
     '{lib,spec}/**/*',
     '.rubocop.yml',
-    'bin/replicate_git_tree',
     'LICENSE.*',
     'Rakefile',
     '*.gemspec',
