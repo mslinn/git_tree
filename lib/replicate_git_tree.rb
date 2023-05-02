@@ -83,33 +83,40 @@ module ReplicateGitTree
     exit 1
   end
 
+  def self.make_env_var(name, value)
+    "export #{env_var_name(name)}=#{value}"
+  end
+
+  def self.env_var_name(path)
+    name = path.include?('/') ? File.basename(path) : path
+    name.tr(' ', '_')
+  end
+
+  def self.make_env_vars(base, dirs)
+    result = []
+    result << "cat <<EOF > #{base}/.evars"
+    result << make_env_var(env_var_name(base), deref_symlink(base))
+    dirs.each do |dir|
+      result << make_env_var(env_var_name(dir), "$#{base}/#{dir}")
+    end
+    result << "EOF\n"
+    result.join "\n"
+  end
+
   def self.make_script(root, base, dirs)
     help "Error: Please specify the subdirectory to traverse.\n\n" if root.to_s.empty?
 
     Dir.chdir(base) do
       result = dirs.map { |dir| do_one(dir) }
-      puts result.join "\n"
+      result.join "\n"
     end
-  end
-
-  def self.make_env_var(name, value)
-    puts "export #{name}=#{value}"
-  end
-
-  def self.make_env_vars(base, dirs)
-    puts "cat <<EOF > #{base}/.evars"
-    make_env_var 'git_root', base
-    dirs.each do |dir|
-      next
-    end
-    puts "EOF"
   end
 
   def self.run(root = ARGV[0])
     base = expand_env root
     dirs = directories_to_process base
 
-    make_script root, base, dirs
-    make_env_vars base, dirs
+    puts make_script root, base, dirs
+    puts make_env_vars base, dirs
   end
 end
