@@ -20,13 +20,21 @@ that replicates the desired portions of the directory tree of git repos under `t
 $ replicate_git_tree top_level > work.sh
 ```
 
+If you want to pass an environment variable to `replicate_git_tree`, enclose it in single quotes, which will prevent the shell from expanding it before invoking `replicate_git_tree`:
+```shell
+$ replicate_git_tree '$work' > work.sh
+```
+The benefit of doing that is that the generated environment variables will all be relative to the env var you provided.
+You will understand what this means once you try it and look at the generated script.
+
 When `replicate_git_tree` completes,
-copy the generated script to the target machine and run it.
+edit the generated script to suit, then
+copy it to the target machine and run it.
 The following example copies the script to `machine2` and runs it:
 ```shell
 $ scp work.sh machine2:
 
-$ ssh machine2 bash work.sh
+$ ssh machine2 work.sh
 ```
 
 ### Generated Script
@@ -47,9 +55,20 @@ if [ ! -d "sinatra/sinatras-skeleton/.git" ]; then
 fi
 ```
 
-Following is a sample of environment variable definitions:
+Following is a sample of environment variable definitions.
+Please edit it to suit.
+Notice that it appends these environment variable definitions to `$work/.evars`.
+You could cause it to replace the contents of that file by changing the `>>` to `>`.
 ```shell
-export git_root=/mnt/_/work/ruby
+cat <<EOF >> $work/.evars
+export work=/mnt/c/work
+export ancientWarmth=$work/ancientWarmth/ancientWarmth
+export ancientWarmthBackend=$work/ancientWarmth/ancientWarmthBackend
+export braintreeTutorial=$work/ancientWarmth/braintreeTutorial
+export survey_analytics=$work/ancientWarmth/survey-analytics
+export survey_creator=$work/ancientWarmth/survey-creator
+export django=$work/django/django
+EOF
 ```
 
 The environment variable definitions are meant to be saved into a file that is `source`d upon boot.

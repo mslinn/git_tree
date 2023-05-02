@@ -89,15 +89,15 @@ module ReplicateGitTree
 
   def self.env_var_name(path)
     name = path.include?('/') ? File.basename(path) : path
-    name.tr(' ', '_')
+    name.tr(' ', '_').tr('-', '_')
   end
 
-  def self.make_env_vars(base, dirs)
+  def self.make_env_vars(root, base, dirs)
     result = []
-    result << "cat <<EOF > #{base}/.evars"
+    result << "cat <<EOF >> #{root}/.evars"
     result << make_env_var(env_var_name(base), deref_symlink(base))
     dirs.each do |dir|
-      result << make_env_var(env_var_name(dir), "$#{base}/#{dir}")
+      result << make_env_var(env_var_name(dir), "#{root}/#{dir}")
     end
     result << "EOF\n"
     result.join "\n"
@@ -116,7 +116,8 @@ module ReplicateGitTree
     base = expand_env root
     dirs = directories_to_process base
 
+    puts "# root=#{root}, base=#{base}"
     puts make_script root, base, dirs
-    puts make_env_vars base, dirs
+    puts make_env_vars root, base, dirs
   end
 end

@@ -1,5 +1,6 @@
 ## 0.1.4 / 2023-05-02
   * Added `.evars` support
+  * Added support for symlinked root directory
 
 ## 0.1.3 / 2023-05-01
   * Fussing with directory path (works!!!)
