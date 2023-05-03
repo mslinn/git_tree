@@ -9,14 +9,12 @@ RSpec.describe(GitTree) do
 
     demo = MslinnUtil.deref_symlink MslinnUtil.expand_env("$demo")
     expected = <<~END_STR
-      cat <<EOF >> $demo/.evars
       export demo=#{demo}
       export proj_a=$demo/proj_a
       export proj_b=$demo/proj_b
       export proj_d=$demo/sub1/proj_d
       export proj_e=$demo/sub1/proj_e
       export proj_f=$demo/sub1/proj_f
-      EOF
     END_STR
     expect(result).to eq expected
   end

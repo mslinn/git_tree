@@ -20,8 +20,10 @@ the name of the top-level directory to scan.
 
 You must pass an environment variable to both commands.
 Enclosing the name of the env var in single quotes,
-which will prevent the shell from expanding it before invoking either command:
+which will prevent the shell from expanding it before invoking either command.
 
+
+## `Git_tree_replicate` Usage
 The following creates a script in the current directory called `work.sh`,
 that replicates the desired portions of the directory tree of git repos pointed to by `$work`:
 ```shell
@@ -58,14 +60,24 @@ if [ ! -d "sinatra/sinatras-skeleton/.git" ]; then
 fi
 ```
 
+## `Git_tree_evars` Usage
+The `git_tree_evars` command should be run on the target computer.
+The command requires only one parameter:
+an environment variable reference, pointing to the top-level directory to replicate.
+The environment variable reference must be contained within single quotes to prevent expansion by the shell.
+
+The following appends to any script in the `$work` directory called `.evars`.
+The script defines environment variables that point to each git repos pointed to by `$work`:
+```shell
+$ git_tree_evars '$work' >> $work/.evars
+```
+
+
 ### Generated Script from `git_tree_evars`
 Following is a sample of environment variable definitions.
 You can edit it to suit.
-Notice that it appends these environment variable definitions to `$work/.evars`.
-You could cause it to replace the contents of that file by changing the `>>` to `>`.
 
 ```shell
-cat <<EOF >> $work/.evars
 export work=/mnt/c/work
 export ancientWarmth=$work/ancientWarmth/ancientWarmth
 export ancientWarmthBackend=$work/ancientWarmth/ancientWarmthBackend
@@ -74,7 +86,6 @@ export survey_analytics=$work/ancientWarmth/survey-analytics
 export survey_creator=$work/ancientWarmth/survey-creator
 export django=$work/django/django
 export frobshop=$work/django/frobshop
-EOF
 ```
 
 The environment variable definitions are meant to be saved into a file that is `source`d upon boot.

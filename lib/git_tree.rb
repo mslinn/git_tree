@@ -68,21 +68,19 @@ module GitTree
     "export #{env_var_name(name)}=#{value}"
   end
 
-  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  # @param root should be an "$envar" that points to the root of a directory tree containing git repos.
   # @param base a fully qualified directory name ("/a/b/c")
   # @param dirs directory list to process
   def self.make_env_vars(root, base, dirs)
     result = []
-    result << "cat <<EOF >> #{root}/.evars"
     result << make_env_var(env_var_name(base), MslinnUtil.deref_symlink(base))
     dirs.each do |dir|
       result << make_env_var(env_var_name(dir), "#{root}/#{dir}")
     end
-    result << "EOF\n"
-    result.join "\n"
+    result.join("\n") + "\n" # rubocop:disable Style/StringConcatenation
   end
 
-  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  # @param root should be an "$envar" that points to the root of a directory tree containing git repos.
   # @param base a fully qualified directory name ("/a/b/c")
   # @param dirs directory list to process
   def self.make_replicate_script(root, base, dirs)

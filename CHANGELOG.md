@@ -1,4 +1,7 @@
-## 0.2.0 / 2023-05-02
+## 0.2.1 / 2023-05-03
+  * Removed the here document wrapper from the output of `git_tree_evars`.
+
+## 0.2.0 / 2023-05-03
   * Renamed gem to `git_tree`
   * Renamed `replicate_git_tree` command to `git_tree_replicate`.
   * Added `.evars` support with new executable: `git_tree_evars`
