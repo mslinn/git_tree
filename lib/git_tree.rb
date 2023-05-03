@@ -12,7 +12,7 @@ module GitTree
     puts make_env_vars root, base, dirs
   end
 
-# @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
   def self.command_replicate(root = ARGV[0])
     base = MslinnUtil.expand_env root
     dirs = directories_to_process base
@@ -72,7 +72,7 @@ module GitTree
     result << "cat <<EOF >> #{root}/.evars"
     result << make_env_var(env_var_name(base), MslinnUtil.deref_symlink(base))
     dirs.each do |dir|
-      result << make_env_var(env_var_name(dir), dir)
+      result << make_env_var(env_var_name(dir), "#{root}/#{dir}")
     end
     result << "EOF\n"
     result.join "\n"
