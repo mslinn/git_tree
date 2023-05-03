@@ -18,19 +18,17 @@ Directories containing a file called `.ignore` are ignored.
 Both commands requires only one parameter:
 the name of the top-level directory to scan.
 
-The following creates a script in the current directory called `work.sh`,
-that replicates the desired portions of the directory tree of git repos under `top_level`:
-```shell
-$ git_tree_replicate top_level > work.sh
-```
+You must pass an environment variable to both commands.
+Enclosing the name of the env var in single quotes,
+which will prevent the shell from expanding it before invoking either command:
 
-If you want to pass an environment variable to `git_tree_replicate`, enclose it in single quotes,
-which will prevent the shell from expanding it before invoking `git_tree_replicate`:
+The following creates a script in the current directory called `work.sh`,
+that replicates the desired portions of the directory tree of git repos pointed to by `$work`:
 ```shell
 $ git_tree_replicate '$work' > work.sh
 ```
 
-The benefit of doing that is that the generated environment variables will all be relative to the
+The generated environment variables will all be relative to the
 env var you provided.
 You will understand what this means once you try it and look at the generated script.
 
@@ -80,7 +78,9 @@ EOF
 ```
 
 The environment variable definitions are meant to be saved into a file that is `source`d upon boot.
-While you could place them in a file like `~/.bashrc`, the author's preference is to instead place them in `$work/.evars`, and add the following to `~/.bashrc`:
+While you could place them in a file like `~/.bashrc`,
+the author's preference is to instead place them in `$work/.evars`,
+and add the following to `~/.bashrc`:
 ```shell
 source "$work/.evars"
 ```
