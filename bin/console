@@ -5,15 +5,16 @@ require 'fileutils'
 require 'irb'
 require_relative '../lib/git_tree'
 
-puts <<END_HELP
+puts <<~END_HELP
 
-1) Generate the test data before entering irb:
-  $ ruby bin/make_test_directory.rb
+  1) Generate the test data before entering irb:
+    $ ruby bin/make_test_directory.rb
 
-2) Run the scripts from within irb:
-  > GitTree.command_replicate 'demo'
-  > GitTree.command_evars 'demo'
+  2) Run the scripts from within irb:
+    > GitTree.command_replicate '$demo'
+    > GitTree.command_evars '$demo'
 
 END_HELP
 
+ENV['demo'] = "#{Dir.pwd}/demo"
 IRB.start

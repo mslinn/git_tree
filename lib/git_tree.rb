@@ -5,19 +5,23 @@ module GitTree
 
   # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
   def self.command_evars(root = ARGV[0])
+    abort "Error: Argument must start with a dollar sign ($)" unless root.start_with? '$'
+
     base = MslinnUtil.expand_env root
     dirs = directories_to_process base
 
-    puts "# root=#{root}, base=#{base}"
+    # puts "# root=#{root}, base=#{base}"
     puts make_env_vars root, base, dirs
   end
 
   # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
   def self.command_replicate(root = ARGV[0])
+    abort "Error: Argument must start with a dollar sign ($)" unless root.start_with? '$'
+
     base = MslinnUtil.expand_env root
     dirs = directories_to_process base
 
-    puts "# root=#{root}, base=#{base}"
+    # puts "# root=#{root}, base=#{base}"
     puts make_replicate_script root, base, dirs
   end
 
