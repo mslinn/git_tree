@@ -10,7 +10,7 @@ AllCops:
     - exe/**/*
     - vendor/**/*
     - Gemfile*
-    - replicate_git_tree.gemspec
+    - git_tree.gemspec
   NewCops: enable
   TargetRubyVersion: 2.6
 
@@ -36,14 +36,14 @@ Layout/MultilineMethodCallIndentation:
 
 Lint/RedundantCopDisableDirective:
   Exclude:
-    - replicate_git_tree.gemspec
+    - git_tree.gemspec
 
 Metrics/AbcSize:
   Max: 45
 
 Metrics/BlockLength:
   Exclude:
-    - replicate_git_tree.gemspec
+    - git_tree.gemspec
     - spec/**/*
 
 Metrics/ClassLength:

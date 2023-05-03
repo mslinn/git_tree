@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'replicate_git_tree'
+require 'git_tree'
 
-GitTree.replicate
+GitTree.command_replicate

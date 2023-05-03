@@ -1,49 +1,54 @@
-`Replicate_git_tree`
-[![Gem Version](https://badge.fury.io/rb/replicate_git_tree.svg)](https://badge.fury.io/rb/replicate_git_tree)
+`Git_tree`
+[![Gem Version](https://badge.fury.io/rb/git_tree.svg)](https://badge.fury.io/rb/git_tree)
 ===========
 
-`Replicate_git_tree` scans a git directory tree and writes out a script that clones the repos in the tree.
+This Ruby gem installs two commands that scan a git directory tree and write out scripts.
+Directories containing a file called `.ignore` are ignored.
 
- - All remotes are replicated.
- - Subdirectory trees containing a file called `.ignore` are ignored.
- - Any git repos that have already been cloned into the target directory tree are skipped.
-   This means you can rerun `replicate_git_tree` as many times as you want, without ill effects.
+ - The `git_tree_replicate` command writes a script that clones the repos in the tree,
+   and adds any defined remotes.
+   - Any git repos that have already been cloned into the target directory tree are skipped.
+     This means you can rerun `git_tree_replicate` as many times as you want, without ill effects.
+   - All remotes in each repo are replicated.
+
+ - The `git_tree_evars` command writes a script that defines environment variables pointing to git repos.
 
 
 ## Usage
-The program requires only one parameter:
-the name of the top-level directory to replicate.
+Both commands requires only one parameter:
+the name of the top-level directory to scan.
 
 The following creates a script in the current directory called `work.sh`,
 that replicates the desired portions of the directory tree of git repos under `top_level`:
 ```shell
-$ replicate_git_tree top_level > work.sh
+$ git_tree_replicate top_level > work.sh
 ```
 
-If you want to pass an environment variable to `replicate_git_tree`, enclose it in single quotes, which will prevent the shell from expanding it before invoking `replicate_git_tree`:
+If you want to pass an environment variable to `git_tree_replicate`, enclose it in single quotes,
+which will prevent the shell from expanding it before invoking `git_tree_replicate`:
 ```shell
-$ replicate_git_tree '$work' > work.sh
+$ git_tree_replicate '$work' > work.sh
 ```
-The benefit of doing that is that the generated environment variables will all be relative to the env var you provided.
+
+The benefit of doing that is that the generated environment variables will all be relative to the
+env var you provided.
 You will understand what this means once you try it and look at the generated script.
 
-When `replicate_git_tree` completes,
+When `git_tree_replicate` completes,
 edit the generated script to suit, then
 copy it to the target machine and run it.
 The following example copies the script to `machine2` and runs it:
+
 ```shell
 $ scp work.sh machine2:
 
 $ ssh machine2 work.sh
 ```
 
-### Generated Script
-The generated script has 2 parts:
 
- 1. Git repo cloning.
- 2. Environment variable definitions, one for each cloned git repo.
-
-Following is a sample of a git clone:
+### Generated Script from `git_tree_replicate`
+Following is a sample of one section, which is repeated for every git repo that is processed:
+You can edit them to suit.
 
 ```shell
 if [ ! -d "sinatra/sinatras-skeleton/.git" ]; then
@@ -55,10 +60,12 @@ if [ ! -d "sinatra/sinatras-skeleton/.git" ]; then
 fi
 ```
 
+### Generated Script from `git_tree_evars`
 Following is a sample of environment variable definitions.
-Please edit it to suit.
+You can edit it to suit.
 Notice that it appends these environment variable definitions to `$work/.evars`.
 You could cause it to replace the contents of that file by changing the `>>` to `>`.
+
 ```shell
 cat <<EOF >> $work/.evars
 export work=/mnt/c/work
@@ -91,7 +98,7 @@ $ cd $my_project
 Type the following at a shell prompt:
 
 ```ruby
-$ gem install replicate_git_tree
+$ gem install git_tree
 ```
 
 
@@ -103,12 +110,17 @@ More information is available on
 ## Development
 After checking out the repo, run `bin/setup` to install dependencies.
 
-Run `bin/make_test_directory` to create a directory tree for testing.
+Run the following to create a directory tree for testing.
+```shell
+$ ruby bin/make_test_directory.rb
+```
 
-You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+You can run `bin/console` for an interactive prompt that will allow you to experiment.
 ```
 $ bin/console
-irb(main):001:0> GitTree.run 'demo'
+irb(main):001:0> GitTree.command_replicate 'demo'
+
+irb(main):002:0> GitTree.command_evars 'demo'
 ```
 
 
@@ -120,13 +132,13 @@ $ bundle exec rake install
 
 Examine the newly built gem:
 ```
-$ gem info replicate_git_tree
+$ gem info git_tree
 
 *** LOCAL GEMS ***
-replicate_git_tree (0.1.0)
+git_tree (0.2.0)
     Author: Mike Slinn
     Homepage:
-    https://github.com/mslinn/replicate_git_tree
+    https://github.com/mslinn/git_tree_replicate
     License: MIT
     Installed at: /home/mslinn/.gems
 ```
@@ -135,7 +147,8 @@ replicate_git_tree (0.1.0)
 ### Build and Push to RubyGems
 To release a new version,
   1. Update the version number in `version.rb`.
-  2. Commit all changes to git; if you don't the next step might fail with an unexplainable error message.
+  2. Commit all changes to git; if you don't the next step might fail with an
+     unexplainable error message.
   3. Run the following:
      ```shell
      $ bundle exec rake release

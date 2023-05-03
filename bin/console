@@ -3,8 +3,17 @@
 require 'bundler/setup'
 require 'fileutils'
 require 'irb'
-require 'replicate_git_tree'
+require_relative '../lib/git_tree'
 
-IRB.start(__FILE__)
+puts <<END_HELP
 
-# irb(main):001:0> GitTree.run 'demo'
+1) Generate the test data before entering irb:
+  $ ruby bin/make_test_directory.rb
+
+2) Run the scripts from within irb:
+  > GitTree.command_replicate 'demo'
+  > GitTree.command_evars 'demo'
+
+END_HELP
+
+IRB.start

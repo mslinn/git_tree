@@ -1,11 +1,24 @@
 module GitTree
   require 'find'
   require 'rugged'
+  require_relative 'util'
 
-  # @return Path to symlink
-  def self.deref_symlink(symlink)
-    require 'pathname'
-    Pathname.new(symlink).realpath
+  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  def self.command_evars(root = ARGV[0])
+    base = MslinnUtil.expand_env root
+    dirs = directories_to_process base
+
+    puts "# root=#{root}, base=#{base}"
+    puts make_env_vars root, base, dirs
+  end
+
+# @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  def self.command_replicate(root = ARGV[0])
+    base = MslinnUtil.expand_env root
+    dirs = directories_to_process base
+
+    puts "# root=#{root}, base=#{base}"
+    puts make_replicate_script root, base, dirs
   end
 
   # @return array containing directory names to process
@@ -14,7 +27,7 @@ module GitTree
     root_fq = File.expand_path root
     abort "Error: #{root_fq} is a file, instead of a directory. Cannot recurse." if File.file? root_fq
 
-    root_fq = deref_symlink(root_fq).to_s
+    root_fq = MslinnUtil.deref_symlink(root_fq).to_s
     abort "Error: #{root_fq} does not exist. Halting." unless Dir.exist? root_fq
 
     result = []
@@ -31,15 +44,9 @@ module GitTree
     result.map { |x| x.delete_prefix("#{root_fq}/") }
   end
 
-  def self.ensure_ends_with(string, suffix)
-    string = string.delete_suffix suffix
-    "#{string}#{suffix}"
-  end
-
-  def self.expand_env(str)
-    str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) do
-      ENV.fetch(Regexp.last_match(1), nil)
-    end
+  def self.env_var_name(path)
+    name = path.include?('/') ? File.basename(path) : path
+    name.tr(' ', '_').tr('-', '_')
   end
 
   def self.help(msg = nil)
@@ -57,20 +64,15 @@ module GitTree
     "export #{env_var_name(name)}=#{value}"
   end
 
-  def self.env_var_name(path)
-    name = path.include?('/') ? File.basename(path) : path
-    name.tr(' ', '_').tr('-', '_')
-  end
-
   # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
   # @param base a fully qualified directory name ("/a/b/c")
   # @param dirs directory list to process
   def self.make_env_vars(root, base, dirs)
     result = []
     result << "cat <<EOF >> #{root}/.evars"
-    result << make_env_var(env_var_name(base), deref_symlink(base))
+    result << make_env_var(env_var_name(base), MslinnUtil.deref_symlink(base))
     dirs.each do |dir|
-      result << make_env_var(env_var_name(dir), "#{root}/#{dir}")
+      result << make_env_var(env_var_name(dir), dir)
     end
     result << "EOF\n"
     result.join "\n"
@@ -86,15 +88,6 @@ module GitTree
       result = dirs.map { |dir| replicate_one(dir) }
       result.join "\n"
     end
-  end
-
-  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
-  def self.replicate(root = ARGV[0])
-    base = expand_env root
-    dirs = directories_to_process base
-
-    puts "# root=#{root}, base=#{base}"
-    puts make_replicate_script root, base, dirs
   end
 
   def self.replicate_one(dir)
@@ -125,14 +118,5 @@ module GitTree
     output << "fi"
     output << ''
     output
-  end
-
-  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
-  def self.command_evars(root = ARGV[0])
-    base = expand_env root
-    dirs = directories_to_process base
-
-    puts "# root=#{root}, base=#{base}"
-    puts make_env_vars root, base, dirs
   end
 end
