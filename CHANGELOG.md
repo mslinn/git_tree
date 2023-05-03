@@ -1,6 +1,6 @@
 ## 0.1.4 / 2023-05-02
-  * Added `.evars` support
   * Added support for symlinked root directory
+  * Added `.evars` support
   * Added new executables: `git_tree_evars`, and `replicate_git_tree_and_evars`
 
 ## 0.1.3 / 2023-05-01
