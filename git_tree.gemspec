@@ -1,17 +1,19 @@
-require_relative 'lib/replicate_git_tree/version'
+require_relative 'lib/git_tree/version'
 
 Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
-  github = 'https://github.com/mslinn/replicate_git_tree'
+  github = 'https://github.com/mslinn/git_tree'
 
   spec.authors = ['Mike Slinn']
   spec.bindir = 'bindir'
   spec.description = <<~END_OF_DESC
-    Scans a git directory tree and writes out a script that clones the repos in the tree,
-    and adds upstream remotes as required.
+    Installs two commands that scan a git directory tree and write out scripts.
     Directories containing a file called .ignore are ignored.
+    The git_tree_replicate command writes a script that clones the repos in the tree,
+    and adds any defined remotes.
+    The git_tree_evars command writes a script that defines environment variables pointing to git repos.
   END_OF_DESC
   spec.email = ['mslinn@mslinn.com']
-  spec.executables = ['replicate_git_tree']
+  spec.executables = %w[git_tree_evars git_tree_replicate]
   spec.files = Dir[
     '{bindir,lib}/**/*',
     '.rubocop.yml',
@@ -29,14 +31,14 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     'homepage_uri'      => spec.homepage,
     'source_code_uri'   => github,
   }
-  spec.name = 'replicate_git_tree'
+  spec.name = 'git_tree'
   spec.post_install_message = <<~END_MESSAGE
 
     Thanks for installing #{spec.name}!
 
   END_MESSAGE
   spec.required_ruby_version = '>= 2.6.0'
-  spec.summary = 'Scans a git directory tree and writes out a script that clones the repos in the tree.'
+  spec.summary = 'Installs two commands, that scan a git directory tree and writes out scripts.'
   spec.version = GitUrlsVersion::VERSION
 
   spec.add_dependency 'rugged'

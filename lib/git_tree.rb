@@ -1,41 +1,11 @@
-module ReplicateGitTree
+module GitTree
   require 'find'
   require 'rugged'
 
-  # @return Path
+  # @return Path to symlink
   def self.deref_symlink(symlink)
     require 'pathname'
     Pathname.new(symlink).realpath
-  end
-
-  def self.do_one(dir)
-    output = []
-    project_dir = File.basename dir
-    parent_dir = File.dirname dir
-    repo = Rugged::Repository.new dir
-    origin_url = repo.config['remote.origin.url']
-
-    output << "if [ ! -d \"#{dir}/.git\" ]; then"
-    output << "  mkdir -p '#{parent_dir}'"
-    output << "  pushd '#{parent_dir}' > /dev/null"
-    output << "  git clone #{origin_url}"
-
-    repo.remotes.each do |remote|
-      next if remote.name == 'origin' || remote.url == 'no_push'
-
-      output << "  git remote add #{remote.name} '#{remote.url}'"
-    end
-
-    output << '  popd > /dev/null'
-
-    # git_dir_name = File.basename Dir.pwd
-    # if git_dir_name != project_dir
-    #   output << '  # Git project directory was renamed, renaming this copy to match original directory structure'
-    #   output << "  mv #{git_dir_name} #{project_dir}"
-    # end
-    output << "fi"
-    output << ''
-    output
   end
 
   # @return array containing directory names to process
@@ -92,6 +62,9 @@ module ReplicateGitTree
     name.tr(' ', '_').tr('-', '_')
   end
 
+  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  # @param base a fully qualified directory name ("/a/b/c")
+  # @param dirs directory list to process
   def self.make_env_vars(root, base, dirs)
     result = []
     result << "cat <<EOF >> #{root}/.evars"
@@ -103,21 +76,63 @@ module ReplicateGitTree
     result.join "\n"
   end
 
-  def self.make_script(root, base, dirs)
+  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  # @param base a fully qualified directory name ("/a/b/c")
+  # @param dirs directory list to process
+  def self.make_replicate_script(root, base, dirs)
     help "Error: Please specify the subdirectory to traverse.\n\n" if root.to_s.empty?
 
     Dir.chdir(base) do
-      result = dirs.map { |dir| do_one(dir) }
+      result = dirs.map { |dir| replicate_one(dir) }
       result.join "\n"
     end
   end
 
-  def self.run(root = ARGV[0])
+  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  def self.replicate(root = ARGV[0])
     base = expand_env root
     dirs = directories_to_process base
 
     puts "# root=#{root}, base=#{base}"
-    puts make_script root, base, dirs
+    puts make_replicate_script root, base, dirs
+  end
+
+  def self.replicate_one(dir)
+    output = []
+    project_dir = File.basename dir
+    parent_dir = File.dirname dir
+    repo = Rugged::Repository.new dir
+    origin_url = repo.config['remote.origin.url']
+
+    output << "if [ ! -d \"#{dir}/.git\" ]; then"
+    output << "  mkdir -p '#{parent_dir}'"
+    output << "  pushd '#{parent_dir}' > /dev/null"
+    output << "  git clone #{origin_url}"
+
+    repo.remotes.each do |remote|
+      next if remote.name == 'origin' || remote.url == 'no_push'
+
+      output << "  git remote add #{remote.name} '#{remote.url}'"
+    end
+
+    output << '  popd > /dev/null'
+
+    # git_dir_name = File.basename Dir.pwd
+    # if git_dir_name != project_dir
+    #   output << '  # Git project directory was renamed, renaming this copy to match original directory structure'
+    #   output << "  mv #{git_dir_name} #{project_dir}"
+    # end
+    output << "fi"
+    output << ''
+    output
+  end
+
+  # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
+  def self.command_evars(root = ARGV[0])
+    base = expand_env root
+    dirs = directories_to_process base
+
+    puts "# root=#{root}, base=#{base}"
     puts make_env_vars root, base, dirs
   end
 end

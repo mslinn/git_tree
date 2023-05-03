@@ -7,4 +7,4 @@ require 'replicate_git_tree'
 
 IRB.start(__FILE__)
 
-# irb(main):001:0> ReplicateGitTree.run 'demo'
+# irb(main):001:0> GitTree.run 'demo'

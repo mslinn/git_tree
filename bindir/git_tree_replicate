@@ -2,4 +2,4 @@
 
 require 'replicate_git_tree'
 
-ReplicateGitTree.run
+GitTree.replicate

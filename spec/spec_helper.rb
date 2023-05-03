@@ -1,4 +1,4 @@
-require_relative '../lib/replicate_git_tree'
+require_relative '../lib/git_tree'
 
 RSpec.configure do |config|
   config.filter_run :focus

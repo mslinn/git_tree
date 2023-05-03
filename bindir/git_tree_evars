@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'replicate_git_tree'
+
+GitTree.command_evars

@@ -108,7 +108,7 @@ Run `bin/make_test_directory` to create a directory tree for testing.
 You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 ```
 $ bin/console
-irb(main):001:0> ReplicateGitTree.run 'demo'
+irb(main):001:0> GitTree.run 'demo'
 ```
 
 

@@ -1,7 +1,8 @@
-## 0.1.4 / 2023-05-02
-  * Added support for symlinked root directory
-  * Added `.evars` support
-  * Added new executables: `git_tree_evars`, and `replicate_git_tree_and_evars`
+## 0.2.0 / 2023-05-02
+  * Renamed gem to `git_tree`
+  * Renamed `replicate_git_tree` command to `git_tree_replicate`.
+  * Added `.evars` support with new executable: `git_tree_evars`
+  * Added support for a symlinked root directory
 
 ## 0.1.3 / 2023-05-01
   * Fussing with directory path (works!!!)

@@ -6,4 +6,4 @@
 # Be sure to build the gem as follows before invoking this script:
 #  rake install
 
-code -a "$( gem which replicate_git_tree )"/../..
+code -a "$( gem which git_tree )"/../..

@@ -1,13 +1,15 @@
-require_relative '../lib/replicate_git_tree'
+require_relative '../lib/git_tree'
 
-RSpec.describe('Replicate Git Tree') do
+RSpec.describe(GitTree) do
   it 'makes env vars' do
     base = 'demo'
-    dirs = ReplicateGitTree.directories_to_process base
-    result = ReplicateGitTree.make_env_vars(base, dirs)
-    expect(result).to eq <<~END_STR
+    dirs = described_class.directories_to_process base
+    result = described_class.make_env_vars('$work', base, dirs)
+
+    work = described_class.expand_env("$work")
+    expected = <<~END_STR
       cat <<EOF > demo/.evars
-      export demo=/mnt/c/work/git/replicate_git_tree/demo
+      export demo=#{work}/git/git_tree/demo
       export proj_a=$demo/proj_a
       export proj_b=$demo/proj_b
       export proj_d=$demo/sub1/proj_d
@@ -15,10 +17,11 @@ RSpec.describe('Replicate Git Tree') do
       export proj_f=$demo/sub1/proj_f
       EOF
     END_STR
+    expect(result).to eq expected
   end
 
   it 'finds git repos under a normal directory' do
-    dirs = ReplicateGitTree.directories_to_process 'demo'
+    dirs = described_class.directories_to_process 'demo'
     expect(dirs).to eq(
       [
         'proj_a',
@@ -31,8 +34,8 @@ RSpec.describe('Replicate Git Tree') do
   end
 
   it 'finds git repos under a symlinked directory' do
-    base = ReplicateGitTree.expand_env '$work'
-    dirs = ReplicateGitTree.directories_to_process base
+    base = described_class.expand_env '$work'
+    dirs = described_class.directories_to_process base
     expect(dirs.length).to be > 5
   end
 end
