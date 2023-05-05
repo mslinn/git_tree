@@ -37,7 +37,7 @@ class Evars
 
   # Return the longest path prefix that is a prefix of all paths in array.
   # If array is empty, return the empty string ('').
-  def self.common_prefix(paths)
+  def self.common_prefix(paths, allow_root_match: false)
     return '' if paths.empty?
 
     return paths.first.split('/').slice(0...-1).join('/') if paths.length <= 1
@@ -47,7 +47,9 @@ class Evars
     last = arr.last.split('/')
     i = 0
     i += 1 while first[i] == last[i] && i <= first.length
-    first.slice(0, i).join('/')
+    result = first.slice(0, i).join('/')
+
+    result.empty? && allow_root_match ? '/' : result
   end
 
   # TODO: make this more useful

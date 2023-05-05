@@ -20,6 +20,9 @@ RSpec.describe(Evars) do
       '/root2/sub3/sub1'
     ]
     actual = described_class.common_prefix strings
+    expect(actual).to eq ''
+
+    actual = described_class.common_prefix(strings, allow_root_match: true)
     expect(actual).to eq '/'
   end
 end
