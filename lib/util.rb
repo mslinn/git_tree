@@ -4,7 +4,10 @@ module MslinnUtil
   def self.common_prefix(paths, allow_root_match: false)
     return '' if paths.empty?
 
-    return paths.first.split('/').slice(0...-1).join('/') if paths.length <= 1
+    if paths.length <= 1
+      result = paths.first.split('/').slice(0...-1).join('/')
+      return result.empty? && allow_root_match ? '/' : result
+    end
 
     arr = paths.sort
     first = arr.first.split('/')
@@ -14,6 +17,31 @@ module MslinnUtil
     result = first.slice(0, i).join('/')
 
     result.empty? && allow_root_match ? '/' : result
+  end
+
+  # @param level specifies minimum # of leading directory names in result
+  def self.roots(paths, level, allow_root_match: false)
+    return [] if paths.empty?
+
+    abort("Error: level parameter must be positive, #{level} was supplied instead.") if level <= 0
+
+    if paths.length == 1
+      result = paths.first.split('/').slice(0...-level).join('/')
+      if result.empty?
+        return ['/'] if allow_root_match
+
+        return []
+      end
+      [result]
+    end
+
+    result = paths.map do |x|
+      elements = x.split('/')
+      elements[0..level]
+        .map { |y| y.empty? ? '/' : y }
+        .join
+    end
+    result.sort.uniq
   end
 
   # @return Path to symlink
