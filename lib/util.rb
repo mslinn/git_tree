@@ -32,5 +32,4 @@ module MslinnUtil
       ENV.fetch(Regexp.last_match(1), nil)
     end
   end
-
 end

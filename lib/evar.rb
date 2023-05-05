@@ -26,8 +26,8 @@ class Evars
   attr_accessor :root
 
   def initialize(root, allow_root_match: false)
-    @allow_root_match = allow_root_match
     @root = root
+    @allow_root_match = allow_root_match
     @evars = [] # all evars
     @nodes = [] # array of lists of nodes
   end
