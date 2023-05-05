@@ -8,7 +8,7 @@ RSpec.describe(Evars) do
       '/root/sub1',
       '/root/sub3/sub1'
     ]
-    actual = described_class.common_prefix strings
+    actual = MslinnUtil.common_prefix strings
     expect(actual).to eq '/root'
   end
 
@@ -19,10 +19,10 @@ RSpec.describe(Evars) do
       '/root/sub1',
       '/root2/sub3/sub1'
     ]
-    actual = described_class.common_prefix strings
+    actual = MslinnUtil.common_prefix strings
     expect(actual).to eq ''
 
-    actual = described_class.common_prefix(strings, allow_root_match: true)
+    actual = MslinnUtil.common_prefix(strings, allow_root_match: true)
     expect(actual).to eq '/'
   end
 end

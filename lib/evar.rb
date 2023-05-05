@@ -25,7 +25,8 @@ end
 class Evars
   attr_accessor :root
 
-  def initialize(root)
+  def initialize(root, allow_root_match: false)
+    @allow_root_match = allow_root_match
     @root = root
     @evars = [] # all evars
     @nodes = [] # array of lists of nodes
@@ -33,23 +34,6 @@ class Evars
 
   def add(evar)
     @evars << evar
-  end
-
-  # Return the longest path prefix that is a prefix of all paths in array.
-  # If array is empty, return the empty string ('').
-  def self.common_prefix(paths, allow_root_match: false)
-    return '' if paths.empty?
-
-    return paths.first.split('/').slice(0...-1).join('/') if paths.length <= 1
-
-    arr = paths.sort
-    first = arr.first.split('/')
-    last = arr.last.split('/')
-    i = 0
-    i += 1 while first[i] == last[i] && i <= first.length
-    result = first.slice(0, i).join('/')
-
-    result.empty? && allow_root_match ? '/' : result
   end
 
   # TODO: make this more useful
@@ -63,9 +47,5 @@ class Evars
   def organize_nodes
     @nodes = []
     @evars.each { |evar| @nodes[evar.node_count] << evar }
-  end
-
-  def common_prefix(evars)
-
   end
 end
