@@ -5,7 +5,7 @@ RSpec.describe(MslinnUtil) do
     strings = [
       '/root/sub3/sub1'
     ]
-    actual = described_class.roots strings, 1
+    actual = described_class.roots(strings, 1)
     expect(actual).to eq ['/root/sub3']
   end
 
@@ -13,7 +13,7 @@ RSpec.describe(MslinnUtil) do
     strings = [
       '/root'
     ]
-    actual = described_class.roots strings, 1
+    actual = described_class.roots(strings, 1)
     expect(actual).to eq []
 
     actual = described_class.roots(strings, 1, allow_root_match: true)
@@ -25,7 +25,7 @@ RSpec.describe(MslinnUtil) do
       '/root/sub1/sub2/blah',
       '/root/sub3/sub1'
     ]
-    actual = described_class.roots strings, 1
+    actual = described_class.roots(strings, 1)
     expect(actual).to eq ['/root']
   end
 
@@ -36,7 +36,7 @@ RSpec.describe(MslinnUtil) do
       '/root/sub1',
       '/root/sub3/sub1'
     ]
-    actual = described_class.roots strings, 1
+    actual = described_class.roots(strings, 1)
     expect(actual).to eq ['/root']
   end
 end
