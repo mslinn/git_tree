@@ -88,8 +88,7 @@ Style/RegexpLiteral:
   Enabled: false
 
 Style/StringConcatenation:
-  Exclude:
-    - spec/**/*
+  Enabled: false
 
 Style/StringLiterals:
   Enabled: false
