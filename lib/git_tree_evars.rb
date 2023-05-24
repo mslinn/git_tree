@@ -1,9 +1,12 @@
+require 'shellwords'
 require_relative 'git_tree'
 
 module GitTree
+  using Rainbow
+
   # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
   def self.command_evars(root = ARGV[0])
-    abort "Error: Argument must start with a dollar sign ($)" unless root.start_with? '$'
+    abort "Error: Argument must start with a dollar sign ($)".red unless root.start_with? '$'
 
     base = MslinnUtil.expand_env root
     dirs = directories_to_process base
@@ -21,6 +24,7 @@ module GitTree
     puts msg if msg
     puts <<~END_HELP
       Examines a tree of git repos and writes a bash script to STDOUT that defines environment variables that point to the repos in the tree.
+      Does not redefine existing environment variables.
 
       Directories containing a file called .ignore are ignored.
     END_HELP
@@ -40,7 +44,13 @@ module GitTree
     result = []
     result << make_env_var(env_var_name(base), MslinnUtil.deref_symlink(base))
     dirs.each do |dir|
-      result << make_env_var(env_var_name(dir), "#{root}/#{dir}")
+      ename = env_var_name dir
+      ename_value = MslinnUtil.expand_env("$#{ename}")
+      if ename_value.to_s.empty?
+        result << make_env_var(ename, "#{root}/#{dir}".shellescape)
+      else
+        puts "#{ename} was previously defined as #{ename_value}".yellow
+      end
     end
     result.map { |x| "#{x}\n" }.join
   end
