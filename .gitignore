@@ -33,4 +33,5 @@ target/
 tmp/
 ~*
 Gemfile.lock
+work.sh
 spec/status_persistence.txt
