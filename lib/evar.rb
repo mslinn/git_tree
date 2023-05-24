@@ -81,7 +81,7 @@ class Evars
 
   def process_nodes
     # @evars[0] is empty if !allow_root_match, else only contains node for '/'
-    @evars[1].each do |node|
+    @evars[1].each do |node| # TODO: finish me
       unique_sibling_names(1).find
     end
   end

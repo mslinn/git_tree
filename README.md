@@ -108,7 +108,7 @@ $ cd $my_project
 ## Installation
 Type the following at a shell prompt:
 
-```ruby
+```shell
 $ gem install git_tree
 ```
 

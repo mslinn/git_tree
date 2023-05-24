@@ -1,10 +1,16 @@
 module MslinnUtil
-  # Return the longest path prefix that is a prefix of all paths in array.
-  # If array is empty, return the empty string ('').
+  # @param paths [Array[String]] all start with a leading '/' (they are assumed to be absolute paths).
+  # @return [String] the longest path prefix that is a prefix of all paths in array.
+  #   If array is empty, return ''.
+  #   If only the leading slash matches, and allow_root_match is true, return '/', else return ''.
   def self.common_prefix(paths, allow_root_match: false)
     return '' if paths.empty?
 
-    if paths.length <= 1
+    relative_paths = paths.reject { |x| x.start_with? '/' }
+    abort "Error: common_prefix received relative paths:" + relative_paths.map { |x| "  #{x}\n" } \
+      unless relative_paths.empty?
+
+    if paths.length == 1
       result = paths.first.split('/').slice(0...-1).join('/')
       return result.empty? && allow_root_match ? '/' : result
     end
@@ -19,27 +25,38 @@ module MslinnUtil
     result.empty? && allow_root_match ? '/' : result
   end
 
-  # @param level specifies minimum # of leading directory names in result
+  # @param paths [Array[String]] absolute paths to examine
+  # @param level [Int] minimum # of leading directory names in result, origin 1
   def self.roots(paths, level, allow_root_match: false)
-    return [] if paths.empty?
+    abort "Error: level must be positive, but it is #{level}." unless level.positive?
+    return allow_root_match ? '/' : '' if paths.empty?
 
     abort("Error: level parameter must be positive, #{level} was supplied instead.") if level <= 0
 
     if paths.length == 1
-      result = paths.first.split('/').slice(0...-level).join('/')
-      if result.empty?
-        return ['/'] if allow_root_match
+      root = File.dirname(paths.first)
+      return allow_root_match ? '/' : '' if root == '/'
 
-        return []
-      end
-      [result]
+      return root
     end
 
+    loop do
+      paths = trim_to_level(paths, level) # does this change paths in the caller?
+      return paths.first if paths.length == 1
+
+      level -= 1
+      break if level.zero?
+    end
+
+    allow_root_match ? '/' : ''
+  end
+
+  # @param paths [Array[String]] absolute paths to examine
+  # @param level is origin 1
+  def self.trim_to_level(paths, level)
     result = paths.map do |x|
-      elements = x.split('/')
-      elements[0..level]
-        .map { |y| y.empty? ? '/' : y }
-        .join
+      elements = x.split('/').reject(&:empty?)
+      '/' + elements[0..level - 1].join('/')
     end
     result.sort.uniq
   end

@@ -77,7 +77,7 @@ module GitTree
     dirs.each do |dir|
       result << make_env_var(env_var_name(dir), "#{root}/#{dir}")
     end
-    result.join("\n") + "\n" # rubocop:disable Style/StringConcatenation
+    result.map { |x| "#{x}\n" }.join
   end
 
   # @param root should be an "$envar" that points to the root of a directory tree containing git repos.
