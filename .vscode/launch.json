@@ -6,10 +6,17 @@
   "configurations": [
     {
       "args": [ "$work" ],
-      "name": "Debug replicate_git_tree",
+      "name": "Debug git_tree_evars",
       "type": "Ruby",
       "request": "launch",
-      "program": "${workspaceRoot}/bindir/replicate_git_tree"
+      "program": "${workspaceRoot}/bindir/git_tree_evars"
+    },
+    {
+      "args": [ "$work" ],
+      "name": "Debug git_tree_replicate",
+      "type": "Ruby",
+      "request": "launch",
+      "program": "${workspaceRoot}/bindir/git_tree_replicate"
     },
     {
       "cwd": "${workspaceRoot}",
