@@ -103,11 +103,15 @@ $ cd $my_project
 
 
 ## Installation
-Type the following at a shell prompt:
+Type the following at a shell prompt on the machine you are copying the git tree from, and on the machine that you are copying the git tree to:
 
 ```shell
+$ yes | sudo apt install cmake libgit2-dev libssh2-1-dev pkg-config
+
 $ gem install git_tree
 ```
+
+To register the new commands, either log out and log back in, or open a new console.
 
 
 ## Additional Information

@@ -55,7 +55,7 @@ module GitTree
         if Dir.exist? dir
           warn msg.cyan
         else
-          msg += ", but that directory does not exist, so redefining #{ename}."
+          msg += ", but that directory does not exist,\n  so redefining #{ename} as #{dir}."
           warn msg.green
         end
       end
