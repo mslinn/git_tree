@@ -1,4 +1,4 @@
-require_relative '../lib/git_tree'
+require_relative '../lib/git_tree_evars'
 
 RSpec.describe(GitTree) do
   it 'makes env vars' do
