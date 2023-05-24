@@ -72,7 +72,7 @@ $ git_tree_evars '$work' >> $work/.evars
 
 ### Generated Script from `git_tree_evars`
 Following is a sample of environment variable definitions.
-You can edit it to suit.
+You are expected to edit it to suit.
 
 ```shell
 export work=/mnt/c/work
