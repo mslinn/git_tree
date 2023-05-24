@@ -45,12 +45,19 @@ module GitTree
     result << make_env_var(env_var_name(base), MslinnUtil.deref_symlink(base))
     dirs.each do |dir|
       ename = env_var_name dir
-      ename_value = MslinnUtil.expand_env("$#{ename}")
+      ename_value = MslinnUtil.expand_env "$#{ename}"
       ename_value = ename_value.shellescape.delete_prefix('\\') unless ename_value.empty?
       if ename_value.to_s.empty?
         result << make_env_var(ename, "#{root}/#{dir}")
       else
-        warn "$#{ename} was previously defined as #{ename_value}".yellow
+        msg = "$#{ename} was previously defined as #{ename_value}"
+        dir = MslinnUtil.expand_env(ename_value)
+        if Dir.exist? dir
+          warn msg.cyan
+        else
+          msg += ", but that directory does not exist, so redefining #{ename}."
+          warn msg.green
+        end
       end
     end
     result.map { |x| "#{x}\n" }.join
