@@ -15,12 +15,9 @@ Directories containing a file called `.ignore` are ignored.
 
 
 ## Usage
-Both commands requires only one parameter:
-the name of the top-level directory to scan.
-
-You must pass an environment variable to both commands.
-Enclosing the name of the env var in single quotes,
-which will prevent the shell from expanding it before invoking either command.
+Both commands require one environment variable reference to be passed to them.
+Enclose the name of the environment variable within single quotes,
+which will prevent the shell from expanding it before invoking the command.
 
 
 ## `Git_tree_replicate` Usage
@@ -31,8 +28,8 @@ $ git_tree_replicate '$work' > work.sh
 ```
 
 The generated environment variables will all be relative to the
-env var you provided.
-You will understand what this means once you try it and look at the generated script.
+path pointed to by the expanded environment variable that you provided.
+You will understand what this means once you look at the generated script.
 
 When `git_tree_replicate` completes,
 edit the generated script to suit, then

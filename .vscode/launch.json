@@ -9,14 +9,14 @@
       "name": "Debug git_tree_evars",
       "type": "Ruby",
       "request": "launch",
-      "program": "${workspaceRoot}/bindir/git_tree_evars"
+      "program": "${workspaceRoot}/test/git_tree_evars.rb"
     },
     {
       "args": [ "$work" ],
       "name": "Debug git_tree_replicate",
       "type": "Ruby",
       "request": "launch",
-      "program": "${workspaceRoot}/bindir/git_tree_replicate"
+      "program": "${workspaceRoot}/test/git_tree_replicate.rb"
     },
     {
       "cwd": "${workspaceRoot}",

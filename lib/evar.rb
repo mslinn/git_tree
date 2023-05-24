@@ -65,24 +65,24 @@ class Evars
     puts @evars.join("\n") + "\n"
   end
 
-  def process_node(level)
-    level_nodes = @evars[level]
-    roots = MslinnUtil.roots(level_nodes, level)
-    level_nodes.each do |node|
-      root = roots.find { |r| node.full_value.start_with? r }
-      root_name = root.count '/'
-      node.short_value = node.full_value.tr(root, '$' + root_name)
-    end
-  end
+  # def process_node(level)
+  #   level_nodes = @evars[level]
+  #   roots = MslinnUtil.roots(level_nodes, level)
+  #   level_nodes.each do |node|
+  #     root = roots.find { |r| node.full_value.start_with? r }
+  #     root_name = root.count '/'
+  #     node.short_value = node.full_value.tr(root, '$' + root_name)
+  #   end
+  # end
 
   def unique_sibling_prefixes(level)
     @evars[level].select(&:leaf_subdirectory)
   end
 
-  def process_nodes
-    # @evars[0] is empty if !allow_root_match, else only contains node for '/'
-    @evars[1].each do |node| # TODO: finish me
-      unique_sibling_names(1).find
-    end
-  end
+  # def process_nodes
+  #   # @evars[0] is empty if !allow_root_match, else only contains node for '/'
+  #   @evars[1].each do |node| # TODO: finish me
+  #     unique_sibling_names(1).find
+  #   end
+  # end
 end
