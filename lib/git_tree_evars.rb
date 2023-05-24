@@ -46,10 +46,11 @@ module GitTree
     dirs.each do |dir|
       ename = env_var_name dir
       ename_value = MslinnUtil.expand_env("$#{ename}")
+      ename_value = ename_value.shellescape.delete_prefix('\\') unless ename_value.empty?
       if ename_value.to_s.empty?
-        result << make_env_var(ename, "#{root}/#{dir}".shellescape)
+        result << make_env_var(ename, "#{root}/#{dir}")
       else
-        puts "#{ename} was previously defined as #{ename_value}".yellow
+        warn "$#{ename} was previously defined as #{ename_value}".yellow
       end
     end
     result.map { |x| "#{x}\n" }.join
