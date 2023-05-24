@@ -1,3 +1,5 @@
+## 0.2.2 / 2023-05-23
+  * `git_tree_evars` now checks for previous definitions and issues warnings.
 ## 0.2.1 / 2023-05-03
   * Removed the here document wrapper from the output of `git_tree_evars`.
 
