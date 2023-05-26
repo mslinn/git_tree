@@ -6,12 +6,16 @@ module GitTree
 
   # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
   def self.command_evars(root = ARGV[0])
-    abort "Error: Argument must start with a dollar sign ($)".red unless root.start_with? '$'
+    help_evars "Environment variable reference was missing. Please enclose it within single quotes." if root.to_s.empty?
+    help_evars "Environment variable reference must start with a dollar sign ($)." unless root.start_with? '$'
 
     base = MslinnUtil.expand_env root
+    help_evars "Environment variable '#{root}' is undefined." if base.strip.empty?
+    help_evars "Environment variable '#{root}' points to a non-existant directory (#{base})." unless File.exist?(base)
+    help_evars "Environment variable '#{root}' points to a file (#{base}), not a directory." unless Dir.exist?(base)
+
     dirs = directories_to_process base
 
-    # puts "# root=#{root}, base=#{base}"
     puts make_env_vars root, base, dirs
   end
 
@@ -21,12 +25,26 @@ module GitTree
   end
 
   def self.help_evars(msg = nil)
-    puts msg if msg
+    prog_name = File.basename $PROGRAM_NAME
+    puts "Error: #{msg}\n".red if msg
     puts <<~END_HELP
-      Examines a tree of git repos and writes a bash script to STDOUT that defines environment variables that point to the repos in the tree.
-      Does not redefine existing environment variables.
+      #{prog_name} - Examines a tree of git repositories and writes a bash script to STDOUT
+      that defines environment variables which point to the repositories in the tree.
+
+      Does not redefine existing environment variables; messages are written to
+      STDERR to indicate environment variables that are not redefined.
+
+      The environment variable must have been exported, for example:
+
+      $ export work=$HOME/work
 
       Directories containing a file called .ignore are ignored.
+
+      Usage example:
+
+      $ #{prog_name} '$work'
+
+      The name of the environment variable must be preceded by a dollar sign and enclosed within single quotes.
     END_HELP
     exit 1
   end
@@ -39,7 +57,7 @@ module GitTree
   # @param base a fully qualified directory name ("/a/b/c")
   # @param dirs directory list to process
   def self.make_env_vars(root, base, dirs)
-    help_evars "Error: Please specify the subdirectory to traverse.\n\n" if root.to_s.empty?
+    help_evars "Error: Please specify the subdirectory to traverse." if root.to_s.empty?
 
     result = []
     result << make_env_var(env_var_name(base), MslinnUtil.deref_symlink(base))
@@ -60,6 +78,6 @@ module GitTree
         end
       end
     end
-    result.map { |x| "#{x}\n" }.join
+    result.map { |x| "#{x}\n" }.join + "\n"
   end
 end

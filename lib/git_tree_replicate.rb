@@ -1,12 +1,18 @@
 require_relative 'git_tree'
 
 module GitTree
+  using Rainbow
+
   # @param root might be "$envar" or a fully qualified directory name ("/a/b/c")
   def self.command_replicate(root = ARGV[0])
-    abort "Error: No directories were specified" if root.to_s.empty?
-    abort "Error: Argument must start with a dollar sign ($)" unless root.start_with? '$'
+    help_replicate "Environment variable reference was missing. Please enclose it within single quotes." if root.to_s.empty?
+    help_replicate "Error: Environment variable reference must start with a dollar sign ($)" unless root.start_with? '$'
 
     base = MslinnUtil.expand_env root
+    help_replicate "Environment variable '#{root}' is undefined." if base.strip.empty?
+    help_replicate "Environment variable '#{root}' points to a non-existant directory (#{base})." unless File.exist?(base)
+    help_replicate "Environment variable '#{root}' points to a file (#{base}), not a directory." unless Dir.exist?(base)
+
     dirs = directories_to_process base
 
     # puts "# root=#{root}, base=#{base}"
@@ -14,12 +20,26 @@ module GitTree
   end
 
   def self.help_replicate(msg = nil)
-    puts msg if msg
+    prog_name = File.basename $PROGRAM_NAME
+    puts "Error: #{msg}\n".red if msg
     puts <<~END_HELP
-      Replicates tree of git repos and writes a bash script to STDOUT that clones the repos in the tree.
-      Adds upstream remotes as required.
+      #{prog_name} - Replicates a tree of git repositories and writes a bash script
+      to STDOUT that clones the repositories in the tree. Replicates any remotes
+      defined in the source repositories to the target repositories.
+
+      The environment variable must have been exported, for example:
+
+      $ export work=$HOME/work
 
       Directories containing a file called .ignore are ignored.
+
+      Usage example:
+      Assuming that 'work' is an environment variable that contains the name of a
+      directory that contains a tree of git repositories:
+
+      $ #{prog_name} '$work'
+
+      The name of the environment variable must be preceded by a dollar sign and enclosed within single quotes.
     END_HELP
     exit 1
   end
