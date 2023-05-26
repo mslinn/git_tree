@@ -5,13 +5,13 @@
 This Ruby gem installs two commands that scan a git directory tree and write out scripts.
 Directories containing a file called `.ignore` are ignored.
 
- - The `git_tree_replicate` command writes a script that clones the repos in the tree,
+ - The `git-tree-replicate` command writes a script that clones the repos in the tree,
    and adds any defined remotes.
    - Any git repos that have already been cloned into the target directory tree are skipped.
-     This means you can rerun `git_tree_replicate` as many times as you want, without ill effects.
+     This means you can rerun `git-tree-replicate` as many times as you want, without ill effects.
    - All remotes in each repo are replicated.
 
- - The `git_tree_evars` command writes a script that defines environment variables pointing to git repos.
+ - The `git-tree-evars` command writes a script that defines environment variables pointing to git repos.
 
 
 ## Usage
@@ -20,18 +20,18 @@ Enclose the name of the environment variable within single quotes,
 which will prevent the shell from expanding it before invoking the command.
 
 
-## `Git_tree_replicate` Usage
+## `git-tree-replicate` Usage
 The following creates a script in the current directory called `work.sh`,
 that replicates the desired portions of the directory tree of git repos pointed to by `$work`:
 ```shell
-$ git_tree_replicate '$work' > work.sh
+$ git-tree-replicate '$work' > work.sh
 ```
 
 The generated environment variables will all be relative to the
 path pointed to by the expanded environment variable that you provided.
 You will understand what this means once you look at the generated script.
 
-When `git_tree_replicate` completes,
+When `git-tree-replicate` completes,
 edit the generated script to suit, then
 copy it to the target machine and run it.
 The following example copies the script to `machine2` and runs it:
@@ -43,7 +43,7 @@ $ ssh machine2 work.sh
 ```
 
 
-### Generated Script from `git_tree_replicate`
+### Generated Script from `git-tree-replicate`
 Following is a sample of one section, which is repeated for every git repo that is processed:
 You can edit them to suit.
 
@@ -57,8 +57,8 @@ if [ ! -d "sinatra/sinatras-skeleton/.git" ]; then
 fi
 ```
 
-## `Git_tree_evars` Usage
-The `git_tree_evars` command should be run on the target computer.
+## `git-tree-evars` Usage
+The `git-tree-evars` command should be run on the target computer.
 The command requires only one parameter:
 an environment variable reference, pointing to the top-level directory to replicate.
 The environment variable reference must be contained within single quotes to prevent expansion by the shell.
@@ -66,11 +66,11 @@ The environment variable reference must be contained within single quotes to pre
 The following appends to any script in the `$work` directory called `.evars`.
 The script defines environment variables that point to each git repos pointed to by `$work`:
 ```shell
-$ git_tree_evars '$work' >> $work/.evars
+$ git-tree-evars '$work' >> $work/.evars
 ```
 
 
-### Generated Script from `git_tree_evars`
+### Generated Script from `git-tree-evars`
 Following is a sample of environment variable definitions.
 You are expected to edit it to suit.
 

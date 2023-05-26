@@ -1,5 +1,6 @@
 ## 0.2.3 / 2023-05-26
   * Improved help messages.
+  * Renamed executables to `git-tree-replicate` and `git-tree-evars`.
 
 ## 0.2.2 / 2023-05-23
   * `git_tree_evars` now checks for previous definitions and issues warnings.

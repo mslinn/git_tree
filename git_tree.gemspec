@@ -13,7 +13,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     The git_tree_evars command writes a script that defines environment variables pointing to git repos.
   END_OF_DESC
   spec.email = ['mslinn@mslinn.com']
-  spec.executables = %w[git_tree_evars git_tree_replicate]
+  spec.executables = %w[git-tree-evars git-tree-replicate]
   spec.files = Dir[
     '{bindir,lib}/**/*',
     '.rubocop.yml',
