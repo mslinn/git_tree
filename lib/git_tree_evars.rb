@@ -1,4 +1,3 @@
-require 'shellwords'
 require_relative 'git_tree'
 
 module GitTree
@@ -15,8 +14,7 @@ module GitTree
     help_evars "Environment variable '#{root}' points to a file (#{base}), not a directory." unless Dir.exist?(base)
 
     dirs = directories_to_process base
-
-    puts make_env_vars root, base, dirs
+    puts make_env_vars(root, base, dirs)
   end
 
   def self.env_var_name(path)
@@ -64,17 +62,18 @@ module GitTree
     dirs.each do |dir|
       ename = env_var_name dir
       ename_value = MslinnUtil.expand_env "$#{ename}"
-      ename_value = ename_value.shellescape.delete_prefix('\\') unless ename_value.empty?
-      if ename_value.to_s.empty?
+      ename_value = ename_value.gsub(' ', '\\ ').delete_prefix('\\') unless ename_value.empty?
+      if ename_value.to_s.strip.empty?
         result << make_env_var(ename, "#{root}/#{dir}")
       else
         msg = "$#{ename} was previously defined as #{ename_value}"
-        dir = MslinnUtil.expand_env(ename_value)
-        if Dir.exist? dir
+        dir2 = MslinnUtil.expand_env(ename_value)
+        if Dir.exist? dir2
           warn msg.cyan
         else
           msg += ", but that directory does not exist,\n  so redefining #{ename} as #{dir}."
           warn msg.green
+          result << make_env_var(ename, "#{root}/#{dir}")
         end
       end
     end

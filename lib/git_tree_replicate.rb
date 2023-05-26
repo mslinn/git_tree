@@ -14,9 +14,7 @@ module GitTree
     help_replicate "Environment variable '#{root}' points to a file (#{base}), not a directory." unless Dir.exist?(base)
 
     dirs = directories_to_process base
-
-    # puts "# root=#{root}, base=#{base}"
-    puts make_replicate_script root, base, dirs
+    puts make_replicate_script(root, base, dirs)
   end
 
   def self.help_replicate(msg = nil)
@@ -58,7 +56,7 @@ module GitTree
 
   def self.replicate_one(dir)
     output = []
-    project_dir = File.basename dir
+    # project_dir = File.basename dir
     parent_dir = File.dirname dir
     repo = Rugged::Repository.new dir
     origin_url = repo.config['remote.origin.url']
@@ -81,7 +79,7 @@ module GitTree
     #   output << '  # Git project directory was renamed, renaming this copy to match original directory structure'
     #   output << "  mv #{git_dir_name} #{project_dir}"
     # end
-    output << "fi"
+    output << 'fi'
     output << ''
     output
   end
