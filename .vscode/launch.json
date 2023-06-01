@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "args": [ "$my_plugins", "pwd" ],
+      "args": [ "$jekyll_img $jekyll_pre", "version" ],
       "name": "Debug git-tree-exec",
       "type": "Ruby",
       "request": "launch",

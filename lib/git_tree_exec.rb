@@ -1,3 +1,5 @@
+require 'pathname'
+require 'shellwords'
 require_relative 'git_tree'
 
 module GitTree
@@ -15,11 +17,13 @@ module GitTree
     help_exec "A command must be specified." if args.length == 1
 
     base = MslinnUtil.expand_env root
-    help_exec "Environment variable '#{root}' is undefined." if base.strip.empty?
-    dirs = directories_to_process base
-    dirs.each do |dir|
-      dir_fq = File.join(base, dir)
-      execute dir_fq, command
+    help_exec "Environment variable '#{root}' is undefined." if base.empty?
+    base.shellsplit.each do |top|
+      dirs = directories_to_process(top)
+      dirs.each do |dir|
+        dir = File.join(base, dir) if Pathname.new(dir).relative?
+        execute dir, command
+      end
     end
   end
 
