@@ -1,3 +1,6 @@
+## 0.3.0 / 2023-06-01
+  * Added `git-tree-exec` command.
+
 ## 0.2.3 / 2023-05-26
   * Improved help messages.
   * Renamed executables to `git-tree-replicate` and `git-tree-evars`.

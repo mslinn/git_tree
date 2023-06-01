@@ -2,7 +2,8 @@
 [![Gem Version](https://badge.fury.io/rb/git_tree.svg)](https://badge.fury.io/rb/git_tree)
 ===========
 
-This Ruby gem installs two commands that scan a git directory tree and write out scripts.
+This Ruby gem installs 3 commands that scan a git directory tree;
+2 of the commands write out scripts and the third executes an arbitrary bash command for each repository.
 Directories containing a file called `.ignore` are ignored.
 
  - The `git-tree-replicate` command writes a script that clones the repos in the tree,
@@ -13,9 +14,10 @@ Directories containing a file called `.ignore` are ignored.
 
  - The `git-tree-evars` command writes a script that defines environment variables pointing to git repos.
 
+ - The `git-tree-exec` command executes an arbitrary bash command for each repository.
 
 ## Usage
-Both commands require one environment variable reference to be passed to them.
+All commands require one environment variable reference to be passed to them.
 Enclose the name of the environment variable within single quotes,
 which will prevent the shell from expanding it before invoking the command.
 
@@ -99,6 +101,124 @@ You can therefore change directory to any of the cloned projects, like this:
 $ cd $git_root
 
 $ cd $my_project
+```
+
+
+## `git-tree-exec` Usage
+The `git-tree-exec` command can be run on any computer.
+The command requires two parameters.
+The first parameter indicates the directory or directories to process.
+3 forms are accepted:
+  1. A directory name, which may be relative or absolute.
+  2. An environment variable reference,
+     which must be contained within single quotes to prevent expansion by the shell.
+  3. A list of directory names, which may be relative or absolute, and may contain environment variables.
+
+### Example 1
+For all subdirectories of current directory,
+update `Gemfile.lock` and install a local copy of the gem:
+
+```shell
+$ git-tree-exec '
+  $jekyll_plugin_logger
+  $jekyll_draft
+  $jekyll_plugin_support
+  $jekyll_all_collections
+  $jekyll_plugin_template
+  $jekyll_flexible_include_plugin
+  $jekyll_href
+  $jekyll_img
+  $jekyll_outline
+  $jekyll_plugin_template
+  $jekyll_pre
+  $jekyll_quote
+' 'bundle && bundle update && rake install'
+```
+
+### Example 2
+This example shows how to display the version of projects that
+create gems under the directory pointed to by `$my_plugins`.
+
+An executable script is required on the <code>PATH</code>, so <code>git-tree-exec</code>
+can invoke it as it loops through the subdirectories.
+I call this script <code>version</code>, and it is written in `bash`,
+although the language used is not significant:
+
+```
+#!/bin/bash
+
+x="$( ls lib/**/version.rb 2> /dev/null )"
+if [ -f "$x" ]; then
+  v="$(
+    cat "$x" | \
+    grep '=' | \
+    sed -e s/.freeze// | \
+    tr -d 'VERSION =\"' | \
+    tr -d \'
+  )"
+  echo "$(basename $PWD) v$v"
+fi
+```
+
+Call it like this:
+
+```shell
+$ git-tree-exec '$my_plugins' version
+jekyll_all_collections v0.3.3
+jekyll_archive_create v1.0.2
+jekyll_archive_display v1.0.1
+jekyll_auto_redirect v0.1.0
+jekyll_basename_dirname v1.0.3
+jekyll_begin_end v1.0.1
+jekyll_bootstrap5_tabs v1.1.2
+jekyll_context_inspector v1.0.1
+jekyll_download_link v1.0.1
+jekyll_draft v1.1.2
+jekyll_flexible_include_plugin v2.0.20
+jekyll_from_to_until v1.0.3
+jekyll_href v1.2.5
+jekyll_img v0.1.5
+jekyll_nth v1.1.0
+jekyll_outline v1.2.0
+jekyll_pdf v0.1.0
+jekyll_plugin_logger v2.1.1
+jekyll_plugin_support v0.7.0
+jekyll_plugin_template v0.3.0
+jekyll_pre v1.4.1
+jekyll_quote v0.4.0
+jekyll_random_hex v1.0.0
+jekyll_reading_time v1.0.0
+jekyll_revision v0.1.0
+jekyll_run v1.0.1
+jekyll_site_inspector v1.0.0
+jekyll_sort_natural v1.0.0
+jekyll_time_since v0.1.3
+```
+
+### Example 3
+List the projects under the directory pointed to by `$my_plugins`
+that have a `demo/` subdirectory:
+
+```shell
+$ git-tree-exec '$my_plugins' \
+  'if [ -d demo ]; then realpath demo; fi'
+/mnt/c/work/jekyll/my_plugins/jekyll-hello/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_all_collections/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_archive_create/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_download_link/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_draft/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_flexible_include_plugin/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_from_to_until/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_href/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_img/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_outline/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_pdf/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_plugin_support/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_plugin_template/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_pre/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_quote/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_revision/demo
+/mnt/c/work/jekyll/my_plugins/jekyll_time_since/demo
 ```
 
 
