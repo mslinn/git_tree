@@ -237,7 +237,8 @@ $ git-tree-exec '$my_plugins' \
 
 ## Installation
 
-Type the following at a shell prompt on the machine you are copying the git tree from, and on the machine that you are copying the git tree to:
+Type the following at a shell prompt on the machine you are copying the git tree from,
+and on the machine that you are copying the git tree to:
 
 ```shell
 $ yes | sudo apt install cmake libgit2-dev libssh2-1-dev pkg-config
@@ -266,7 +267,7 @@ $ ruby bin/make_test_directory.rb
 
 You can run `bin/console` for an interactive prompt that will allow you to experiment.
 
-```
+```shell
 $ bin/console
 irb(main):001:0> GitTree.command_replicate 'demo'
 
@@ -284,7 +285,7 @@ $ bundle exec rake install
 
 Examine the newly built gem:
 
-```
+```shell
 $ gem info git_tree
 
 *** LOCAL GEMS ***
@@ -305,9 +306,11 @@ To release a new version:
   2. Commit all changes to git; if you don't the next step might fail with an
      unexplainable error message.
   3. Run the following:
+
      ```shell
      $ bundle exec rake release
      ```
+
      The above creates a git tag for the version, commits the created tag,
      and pushes the new `.gem` file to [RubyGems.org](https://rubygems.org).
 
@@ -321,4 +324,5 @@ To release a new version:
 
 
 ## License
+
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

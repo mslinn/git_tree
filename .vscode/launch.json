@@ -5,47 +5,50 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "args": [ "$jekyll_img $jekyll_pre", "version" ],
+      "args": [ "\"$jekyll_img $jekyll_pre\"", "version" ],
+      "debugPort": "0",
       "name": "Debug git-tree-exec",
-      "type": "Ruby",
+      "type": "rdbg",
       "request": "launch",
-      "program": "${workspaceRoot}/test/git_tree_exec.rb"
+      "script": "${workspaceRoot}/test/git_tree_exec.rb"
     },
     {
-      "args": [ "$work" ],
+      "args": [ "'$work'" ],
+      "debugPort": "0",
       "name": "Debug git-tree-evars",
-      "type": "Ruby",
+      "type": "rdbg",
       "request": "launch",
-      "program": "${workspaceRoot}/test/git_tree_evars.rb"
+      "script": "${workspaceRoot}/test/git_tree_evars.rb"
     },
     {
-      "args": [ "$work" ],
+      "args": [ "'$work'" ],
+      "debugPort": "0",
       "name": "Debug git-tree-replicate",
-      "type": "Ruby",
+      "type": "rdbg",
       "request": "launch",
-      "program": "${workspaceRoot}/test/git_tree_replicate.rb"
+      "script": "${workspaceRoot}/test/git_tree_replicate.rb"
     },
     {
-      "cwd": "${workspaceRoot}",
-      "name": "Attach rdebug-ide",
+      "debugPort": "0",
+      "name": "Attach rdbg",
       "request": "attach",
-      "remoteHost": "localhost",
-      "remotePort": "1234",
-      "remoteWorkspaceRoot": "/",
-      "showDebuggerOutput": true,
-      "type": "Ruby",
+      "type": "rdbg",
+    },
+    {
+      "name": "Attach with ruby_lsp",
+      "request": "attach",
+      "type": "ruby_lsp",
     },
     {
       "args": [
         "-I",
         "${workspaceRoot}"
       ],
-      "cwd": "${workspaceRoot}",
+      "debugPort": "0",
       "name": "RSpec - all",
-      "program": "${workspaceRoot}/exe/rspec",
       "request": "launch",
-      "showDebuggerOutput": false,
-      "type": "Ruby",
+      "script": "${workspaceRoot}/binstub/rspec",
+      "type": "rdbg",
       "useBundler": true,
     },
     {
@@ -54,12 +57,11 @@
         "${workspaceRoot}",
         "${file}"
       ],
-      "cwd": "${workspaceRoot}",
+      "debugPort": "0",
       "name": "RSpec - active spec file only",
-      "program": "${workspaceRoot}/exe/rspec",
       "request": "launch",
-      "showDebuggerOutput": false,
-      "type": "Ruby",
+      "script": "${workspaceRoot}/binstub/rspec",
+      "type": "rdbg",
       "useBundler": true,
     }
   ]
