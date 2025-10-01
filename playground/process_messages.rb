@@ -1,5 +1,4 @@
 require 'etc'
-
 require 'rainbow/refinement'
 
 # A simple thread pool manager.
@@ -36,9 +35,7 @@ class ThreadPool
   end
 
   # A thread-safe output method.
-  def output(message, color: nil)
-    # In a more complex scenario with heavy contention, you might wrap this
-    # in a mutex, but for simple STDOUT, it's generally fine.
+  def output(message, color = nil)
     message.each_line do |line|
       line_to_print = line.chomp
       line_to_print = line_to_print.public_send(color) if color
@@ -55,7 +52,7 @@ class ThreadPool
 
     # Wait for the monitor to finish (which in turn waits for all workers).
     monitor.join
-    output "\nAll work is complete.", color: :green
+    output "\nAll work is complete.", :green
   end
 
   private
@@ -80,13 +77,13 @@ class ThreadPool
         worker_index = (worker_index + 1) % @worker_count
       end
 
-      output "[Monitor] Received shutdown signal. Relaying to all workers...", color: :yellow
+      output "[Monitor] Received shutdown signal. Relaying to all workers...", :yellow
       # Wait for all workers to finish.
       @workers.each do |worker|
         worker[:queue].push(SHUTDOWN_SIGNAL)
         worker[:thread].join
       end
-      output "[Monitor] All workers have shut down. Monitor finished.", color: :yellow
+      output "[Monitor] All workers have shut down. Monitor finished.", :yellow
     end
   end
 
@@ -101,7 +98,7 @@ class ThreadPool
 
           yield(self, job, i) # Execute the provided block of work.
         end
-        output "  [Worker #{i}] Shutting down.", color: :cyan
+        output "  [Worker #{i}] Shutting down.", :cyan
       end
       @workers << { thread: worker_thread, queue: worker_queue }
     end
@@ -116,7 +113,7 @@ jobs = (1..NUM_JOBS).map { |i| "Job ##{i}" }
 pool.create_jobs(jobs)
 
 pool.run do |p, job, worker_id|
-  p.output "  [Worker #{worker_id}] Processing job: '#{job}'", color: :blue
+  p.output "  [Worker #{worker_id}] Processing job: '#{job}'", :blue
   sleep(rand(1..3)) # Simulate doing work
-  p.output "  [Worker #{worker_id}] Finished job: '#{job}'", color: :blue
+  p.output "  [Worker #{worker_id}] Finished job: '#{job}'", :blue
 end
