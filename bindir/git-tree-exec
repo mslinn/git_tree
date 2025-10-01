@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'git_tree_exec'
-
-GitTree.command_exec

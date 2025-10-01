@@ -29,6 +29,9 @@ Layout/HashAlignment:
 Layout/InitialIndentation:
   Exclude:
     - README.md
+    - CHANGELOG.md
+    - Gemfile*
+    - git_tree.gemspec
 
 Layout/LineLength:
   Max: 150
@@ -64,15 +67,19 @@ Metrics/PerceivedComplexity:
 Naming/FileName:
   Exclude:
     - Rakefile
+    - CHANGELOG.md
+    - README.md
+    - Gemfile*
+    - exe/*
 
 RSpec/ExampleLength:
   Max: 20
 
-RSpec/FilePath:
-  Enabled: false
-
 RSpec/MultipleExpectations:
   Max: 15
+
+RSpec/SpecFilePathFormat:
+  IgnoreMethods: true
 
 Style/CommandLiteral:
   Enabled: false

@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require_relative '../commands/git_tree_commit_all'
+
+GitTree.command_commit_all

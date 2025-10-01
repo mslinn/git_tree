@@ -1,7 +1,8 @@
 require 'find'
 require 'rainbow/refinement'
 require 'rugged'
-require_relative 'util'
+
+require_relative 'util/util'
 
 module GitTree
   using Rainbow

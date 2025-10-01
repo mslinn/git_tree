@@ -1,4 +1,4 @@
-require_relative 'git_tree'
+require_relative '../git_tree'
 
 module GitTree
   using Rainbow

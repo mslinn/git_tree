@@ -1,4 +1,4 @@
-require_relative '../lib/evar'
+require_relative 'spec_helper'
 
 RSpec.describe(MslinnUtil) do
   it 'trims to level' do

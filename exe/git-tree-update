@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require_relative '../commands/git_tree_update'
+
+GitTree.command_update
