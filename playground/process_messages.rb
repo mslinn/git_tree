@@ -1,74 +1,85 @@
-WORKER_COUNT = 3
-JOBS_TO_CREATE = 10
-SHUTDOWN_SIGNAL = :shutdown
+# A simple thread pool manager.
+class ThreadPool
+  SHUTDOWN_SIGNAL = :shutdown
 
-# --- Shared State Start ---
-# The main queue where the producer sends work.
-@main_work_queue = Queue.new
-
-# An array to hold our worker threads and their individual queues.
-@workers = []
-# --- Shared State End ---
-
-# This method is the producer tha runs on main thread;
-# it creates jobs and sends them to the monitor thread.
-def create_jobs(jobs_to_create)
-  puts "[Producer] Creating #{jobs_to_create} jobs..."
-  JOBS_TO_CREATE.times { |i| @main_work_queue.push("Job ##{i}") }
-  @main_work_queue.push(SHUTDOWN_SIGNAL) # Signal that production is complete.
-end
-
-# Creates a monitor thread that manages the thread pool.
-# It takes jobs from the work queue and dispatches them to worker threads.
-def create_monitor(worker_count)
-  Thread.new do
-    puts "[Monitor] Ready to dispatch work."
-    worker_index = 0
-    loop do
-      # The monitor blocks here, waiting for the producer to send a job.
-      job = @main_work_queue.pop
-      break if job == SHUTDOWN_SIGNAL
-
-      # Distribute the job to the next worker in a round-robin fashion.
-      target_worker = @workers[worker_index]
-      puts "[Monitor] Dispatching '#{job}' to Worker #{worker_index}."
-      target_worker[:queue].push(job)
-
-      # Move to the next worker for the next job.
-      worker_index = (worker_index + 1) % worker_count
-    end
-
-    puts "[Monitor] Received shutdown signal. Relaying to all @workers..."
-    @workers.each do |worker|
-      worker[:queue].push(SHUTDOWN_SIGNAL)
-      worker[:thread].join # Wait for all @workers to finish.
-    end
-    puts "[Monitor] All @workers have shut down. Monitor finished."
+  def initialize(worker_count)
+    @worker_count = worker_count
+    @main_work_queue = Queue.new
+    @workers = []
   end
-end
 
-def initialize_workers(worker_count)
-  puts "Initializing #{worker_count} worker threads..."
-  worker_count.times do |i|
-    # Each worker gets its own personal queue. The monitor will push work here.
-    worker_queue = Queue.new
-    worker_thread = Thread.new do
+  # This method is the producer; it creates jobs and sends them to the monitor thread.
+  def create_jobs(jobs)
+    puts "[Producer] Creating #{jobs.count} jobs..."
+    jobs.each { |job| @main_work_queue.push(job) }
+    @main_work_queue.push(SHUTDOWN_SIGNAL) # Signal that production is complete.
+  end
+
+  # Starts the workers and the monitor, then waits for everything to complete.
+  # It accepts a block that defines what work each worker will perform.
+  def run(&)
+    initialize_workers(&)
+    monitor = create_monitor
+
+    # Wait for the monitor to finish (which in turn waits for all workers).
+    monitor.join
+    puts "\nAll work is complete."
+  end
+
+  private
+
+  # Creates a monitor thread that manages the thread pool.
+  # It takes jobs from the work queue and dispatches them to worker threads.
+  def create_monitor
+    Thread.new do
+      puts "[Monitor] Ready to dispatch work."
+      worker_index = 0
       loop do
-        job = worker_queue.pop # The worker blocks here, waiting for the monitor to give it a job.
+        # The monitor blocks here, waiting for the producer to send a job.
+        job = @main_work_queue.pop
         break if job == SHUTDOWN_SIGNAL
 
-        puts "  [Worker #{i}] Processing job: '#{job}'"
-        sleep(rand(1..3)) # Simulate doing work
-        puts "  [Worker #{i}] Finished job: '#{job}'"
+        # Distribute the job to the next worker in a round-robin fashion.
+        target_worker = @workers[worker_index]
+        puts "[Monitor] Dispatching '#{job}' to Worker #{worker_index}."
+        target_worker[:queue].push(job)
+
+        # Move to the next worker for the next job.
+        worker_index = (worker_index + 1) % @worker_count
       end
-      puts "  [Worker #{i}] Shutting down."
+
+      puts "[Monitor] Received shutdown signal. Relaying to all workers..."
+      @workers.each { |w| w[:queue].push(SHUTDOWN_SIGNAL) }
+      @workers.each { |w| w[:thread].join } # Wait for all workers to finish.
+      puts "[Monitor] All workers have shut down. Monitor finished."
     end
-    @workers << { thread: worker_thread, queue: worker_queue }
+  end
+
+  def initialize_workers
+    puts "Initializing #{@worker_count} worker threads..."
+    @worker_count.times do |i|
+      worker_queue = Queue.new
+      worker_thread = Thread.new do
+        loop do
+          job = worker_queue.pop # The worker blocks here, waiting for the monitor to give it a job.
+          break if job == SHUTDOWN_SIGNAL
+
+          yield(job, i) # Execute the provided block of work.
+        end
+        puts "  [Worker #{i}] Shutting down."
+      end
+      @workers << { thread: worker_thread, queue: worker_queue }
+    end
   end
 end
 
-initialize_workers WORKER_COUNT
-monitor = create_monitor(WORKER_COUNT)
-create_jobs JOBS_TO_CREATE
-monitor.join # Wait for the monitor to finish (which in turn waits for all @workers).
-puts "\nAll work is complete."
+# --- Example Usage ---
+pool = ThreadPool.new(3)
+jobs = (1..10).map { |i| "Job ##{i}" }
+pool.create_jobs(jobs)
+
+pool.run do |job, worker_id|
+  puts "  [Worker #{worker_id}] Processing job: '#{job}'"
+  sleep(rand(1..3)) # Simulate doing work
+  puts "  [Worker #{worker_id}] Finished job: '#{job}'"
+end
