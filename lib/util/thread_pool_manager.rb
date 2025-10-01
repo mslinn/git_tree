@@ -6,6 +6,12 @@ class FixedThreadPoolManager
 
   SHUTDOWN_SIGNAL = :shutdown
 
+  def self.dispatch_work(task_input_messages, &)
+    pool = FixedThreadPoolManager.new
+    pool.create_tasks_from(task_input_messages)
+    pool.run(&)
+  end
+
   # Calculate the number of worker threads as 75% of available processors
   # (less one for the monitor thread), with a minimum of 1.
   def initialize(percent_available_processors = 0.75)
