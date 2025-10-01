@@ -5,12 +5,32 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "args": [
+        "'$work'"
+      ],
+      "debugPort": "0",
+      "name": "Debug process_messages",
+      "type": "rdbg",
+      "request": "launch",
+      "script": "${workspaceRoot}/playground/process_messages.rb"
+    },
+    {
+      "args": [
+        "'$work'"
+      ],
+      "debugPort": "0",
+      "name": "Debug git-tree-commitAll",
+      "type": "rdbg",
+      "request": "launch",
+      "script": "${workspaceRoot}/exe/git_tree_commitAll"
+    },
+    {
       "args": [ "\"$jekyll_img $jekyll_pre\"", "version" ],
       "debugPort": "0",
       "name": "Debug git-tree-exec",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/test/git_tree_exec.rb"
+      "script": "${workspaceRoot}/exe/git_tree_exec"
     },
     {
       "args": [ "'$work'" ],
@@ -18,7 +38,7 @@
       "name": "Debug git-tree-evars",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/test/git_tree_evars.rb"
+      "script": "${workspaceRoot}/exe/git_tree_evars"
     },
     {
       "args": [ "'$work'" ],
@@ -26,7 +46,17 @@
       "name": "Debug git-tree-replicate",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/test/git_tree_replicate.rb"
+      "script": "${workspaceRoot}/exe/git_tree_replicate"
+    },
+    {
+      "args": [
+        "'$work'"
+      ],
+      "debugPort": "0",
+      "name": "Debug git-tree-update",
+      "type": "rdbg",
+      "request": "launch",
+      "script": "${workspaceRoot}/exe/git_tree_update"
     },
     {
       "debugPort": "0",
