@@ -22,10 +22,10 @@ class FixedThreadPoolManager
     @workers = []
   end
 
-  # This method is the producer; it creates tasks and sends them to the monitor thread.
-  def create_tasks(tasks)
-    output "[Producer] Creating #{tasks.count} tasks..."
-    tasks.each { |task| @main_work_queue.push(task) }
+  # Task producer: initiates tasks by sending messages to the monitor thread.
+  def create_tasks_from(input_messages)
+    output "[Producer] Creating #{input_messages.count} tasks..."
+    input_messages.each { |msg| @main_work_queue.push msg }
     @main_work_queue.push(SHUTDOWN_SIGNAL) # Signal that production is complete.
   end
 
@@ -33,9 +33,9 @@ class FixedThreadPoolManager
     @worker_count
   end
 
-  # A thread-safe output method.
-  def output(message, color = nil)
-    message.each_line do |line|
+  # A thread-safe output method for colored text.
+  def output(multiline_string, color = nil)
+    multiline_string.each_line do |line|
       line_to_print = line.chomp
       line_to_print = line_to_print.public_send(color) if color
       $stdout.puts line_to_print
