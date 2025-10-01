@@ -22,7 +22,6 @@ _yardoc/
 ~*
 binstub/
 coverage/
-demo/
 doc/
 Gemfile.lock
 node_modules/

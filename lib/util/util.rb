@@ -1,3 +1,5 @@
+require 'pathname'
+
 module MslinnUtil
   # @param paths [Array[String]] all start with a leading '/' (they are assumed to be absolute paths).
   # @return [String] the longest path prefix that is a prefix of all paths in array.
@@ -56,14 +58,13 @@ module MslinnUtil
   def self.trim_to_level(paths, level)
     result = paths.map do |x|
       elements = x.split('/').reject(&:empty?)
-      '/' + elements[0..level - 1].join('/')
+      '/' + elements[0..(level - 1)].join('/')
     end
     result.sort.uniq
   end
 
   # @return Path to symlink
   def self.deref_symlink(symlink)
-    require 'pathname'
     Pathname.new(symlink).realpath
   end
 
