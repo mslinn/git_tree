@@ -1,11 +1,25 @@
 require 'etc'
 
+require 'rainbow/refinement'
+
 # A simple thread pool manager.
 class ThreadPool
+  using Rainbow
+
   SHUTDOWN_SIGNAL = :shutdown
 
-  def initialize(worker_count)
-    @worker_count = worker_count
+  # Calculate the number of worker threads as 75% of available processors
+  # (less one for the monitor thread), with a minimum of 1.
+  def initialize(percent_available_processors = 0.75)
+    if percent_available_processors > 1 || percent_available_processors <= 0
+      msg = <<~END_MSG
+        Error: Allowable range for percent_available_processors is between 0 and 1.
+        You provided #{percent_available_processors}.
+      END_MSG
+      output msg, color: :red
+      exit! 1
+    end
+    @worker_count = [((Etc.nprocessors - 1) * percent_available_processors).floor, 1].max
     @main_work_queue = Queue.new
     @workers = []
   end
@@ -17,11 +31,19 @@ class ThreadPool
     @main_work_queue.push(SHUTDOWN_SIGNAL) # Signal that production is complete.
   end
 
+  def max_worker_count
+    @worker_count
+  end
+
   # A thread-safe output method.
-  def output(message)
+  def output(message, color: nil)
     # In a more complex scenario with heavy contention, you might wrap this
     # in a mutex, but for simple STDOUT, it's generally fine.
-    puts message
+    message.each_line do |line|
+      line_to_print = line.chomp
+      line_to_print = line_to_print.public_send(color) if color
+      $stdout.puts line_to_print
+    end
     $stdout.flush
   end
 
@@ -33,7 +55,7 @@ class ThreadPool
 
     # Wait for the monitor to finish (which in turn waits for all workers).
     monitor.join
-    puts "\nAll work is complete."
+    output "\nAll work is complete.", color: :green
   end
 
   private
@@ -58,13 +80,13 @@ class ThreadPool
         worker_index = (worker_index + 1) % @worker_count
       end
 
-      puts "[Monitor] Received shutdown signal. Relaying to all workers..."
+      output "[Monitor] Received shutdown signal. Relaying to all workers...", color: :yellow
       # Wait for all workers to finish.
       @workers.each do |worker|
         worker[:queue].push(SHUTDOWN_SIGNAL)
         worker[:thread].join
       end
-      output "[Monitor] All workers have shut down. Monitor finished."
+      output "[Monitor] All workers have shut down. Monitor finished.", color: :yellow
     end
   end
 
@@ -79,7 +101,7 @@ class ThreadPool
 
           yield(self, job, i) # Execute the provided block of work.
         end
-        output "  [Worker #{i}] Shutting down."
+        output "  [Worker #{i}] Shutting down.", color: :cyan
       end
       @workers << { thread: worker_thread, queue: worker_queue }
     end
@@ -88,15 +110,13 @@ end
 
 # --- Example Usage ---
 
-# Calculate the number of threads as 75% of available processors, with a minimum of 1.
-MAX_THREADS = [(Etc.nprocessors * 0.75).floor, 1].max
-NUM_JOBS = (MAX_THREADS * 3.5).to_i
-pool = ThreadPool.new(MAX_THREADS)
+pool = ThreadPool.new
+NUM_JOBS = (pool.max_worker_count * 3.5).to_i
 jobs = (1..NUM_JOBS).map { |i| "Job ##{i}" }
 pool.create_jobs(jobs)
 
 pool.run do |p, job, worker_id|
-  p.output "  [Worker #{worker_id}] Processing job: '#{job}'"
+  p.output "  [Worker #{worker_id}] Processing job: '#{job}'", color: :blue
   sleep(rand(1..3)) # Simulate doing work
-  p.output "  [Worker #{worker_id}] Finished job: '#{job}'"
+  p.output "  [Worker #{worker_id}] Finished job: '#{job}'", color: :blue
 end
