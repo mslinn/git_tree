@@ -1,3 +1,5 @@
+require 'etc'
+
 # A simple thread pool manager.
 class ThreadPool
   SHUTDOWN_SIGNAL = :shutdown
@@ -85,8 +87,12 @@ class ThreadPool
 end
 
 # --- Example Usage ---
-pool = ThreadPool.new(3)
-jobs = (1..10).map { |i| "Job ##{i}" }
+
+# Calculate the number of threads as 75% of available processors, with a minimum of 1.
+MAX_THREADS = [(Etc.nprocessors * 0.75).floor, 1].max
+NUM_JOBS = (MAX_THREADS * 3.5).to_i
+pool = ThreadPool.new(MAX_THREADS)
+jobs = (1..NUM_JOBS).map { |i| "Job ##{i}" }
 pool.create_jobs(jobs)
 
 pool.run do |p, job, worker_id|
