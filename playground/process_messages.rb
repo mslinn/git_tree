@@ -23,10 +23,10 @@ class ThreadPool
     @workers = []
   end
 
-  # This method is the producer; it creates jobs and sends them to the monitor thread.
-  def create_jobs(jobs)
-    output "[Producer] Creating #{jobs.count} jobs..."
-    jobs.each { |job| @main_work_queue.push(job) }
+  # This method is the producer; it creates tasks and sends them to the monitor thread.
+  def create_tasks(tasks)
+    output "[Producer] Creating #{tasks.count} tasks..."
+    tasks.each { |task| @main_work_queue.push(task) }
     @main_work_queue.push(SHUTDOWN_SIGNAL) # Signal that production is complete.
   end
 
@@ -58,22 +58,22 @@ class ThreadPool
   private
 
   # Creates a monitor thread that manages the thread pool.
-  # It takes jobs from the work queue and dispatches them to worker threads.
+  # It takes tasks from the work queue and dispatches them to worker threads.
   def create_monitor
     Thread.new do
       output "[Monitor] Ready to dispatch work."
       worker_index = 0
       loop do
-        # The monitor blocks here, waiting for the producer to send a job.
-        job = @main_work_queue.pop
-        break if job == SHUTDOWN_SIGNAL
+        # The monitor blocks here, waiting for the producer to send a task.
+        task = @main_work_queue.pop
+        break if task == SHUTDOWN_SIGNAL
 
-        # Distribute the job to the next worker in a round-robin fashion.
+        # Distribute the task to the next worker in a round-robin fashion.
         target_worker = @workers[worker_index]
-        output "[Monitor] Dispatching '#{job}' to Worker #{worker_index}."
-        target_worker[:queue].push(job)
+        output "[Monitor] Dispatching '#{task}' to Worker #{worker_index}."
+        target_worker[:queue].push(task)
 
-        # Move to the next worker for the next job.
+        # Move to the next worker for the next task.
         worker_index = (worker_index + 1) % @worker_count
       end
 
@@ -93,10 +93,10 @@ class ThreadPool
       worker_queue = Queue.new
       worker_thread = Thread.new do
         loop do
-          job = worker_queue.pop # The worker blocks here, waiting for the monitor to give it a job.
-          break if job == SHUTDOWN_SIGNAL
+          task = worker_queue.pop # The worker blocks here, waiting for the monitor to give it a task.
+          break if task == SHUTDOWN_SIGNAL
 
-          yield(self, job, i) # Execute the provided block of work.
+          yield(self, task, i) # Execute the provided block of work.
         end
         output "  [Worker #{i}] Shutting down.", :cyan
       end
@@ -108,12 +108,12 @@ end
 # --- Example Usage ---
 
 pool = ThreadPool.new
-NUM_JOBS = (pool.max_worker_count * 3.5).to_i
-jobs = (1..NUM_JOBS).map { |i| "Job ##{i}" }
-pool.create_jobs(jobs)
+num_tasks = (pool.max_worker_count * 3.5).to_i # Ensure there are many more tasks than threads
+tasks = (1..num_tasks).map { |i| "Task ##{i}" }
+pool.create_tasks(tasks)
 
-pool.run do |p, job, worker_id|
-  p.output "  [Worker #{worker_id}] Processing job: '#{job}'", :blue
+pool.run do |p, task, worker_id|
+  p.output "  [Worker #{worker_id}] Starting task: '#{task}'", :blue
   sleep(rand(1..3)) # Simulate doing work
-  p.output "  [Worker #{worker_id}] Finished job: '#{job}'", :blue
+  p.output "  [Worker #{worker_id}] Finished task: '#{task}'", :blue
 end
