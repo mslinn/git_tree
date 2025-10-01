@@ -1,8 +1,7 @@
 require 'etc'
 require 'rainbow/refinement'
 
-# A simple thread pool manager.
-class ThreadPool
+class FixedThreadPoolManager
   using Rainbow
 
   SHUTDOWN_SIGNAL = :shutdown
