@@ -12,7 +12,7 @@ class ThreadPool
   def initialize(percent_available_processors = 0.75)
     if percent_available_processors > 1 || percent_available_processors <= 0
       msg = <<~END_MSG
-        Error: Allowable range for percent_available_processors is between 0 and 1.
+        Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
         You provided #{percent_available_processors}.
       END_MSG
       output msg, color: :red
@@ -108,10 +108,9 @@ end
 # --- Example Usage ---
 
 pool = ThreadPool.new
-num_tasks = (pool.max_worker_count * 3.5).to_i # Ensure there are many more tasks than threads
+num_tasks = (pool.max_worker_count * 3.5).to_i # Ensure there are many more tasks than worker threads
 tasks = (1..num_tasks).map { |i| "Task ##{i}" }
 pool.create_tasks(tasks)
-
 pool.run do |p, task, worker_id|
   p.output "  [Worker #{worker_id}] Starting task: '#{task}'", :blue
   sleep(rand(1..3)) # Simulate doing work
