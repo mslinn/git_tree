@@ -1,8 +1,10 @@
 # Change Log
 
-## 0.3.1 (in progress)
+## 1.0.0 (in progress)
 
-* Added spec.platform to `.gemspec` because `RubyGems.org` now requires it
+* Added spec.platform to `.gemspec` because `RubyGems.org` now requires it.
+* Added `git-update` and `git-commitAll` commands.
+* Made the file search breadth-first instead of depth-first.
 
 
 ## 0.3.0 / 2023-06-01

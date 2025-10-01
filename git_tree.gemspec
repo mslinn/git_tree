@@ -42,7 +42,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     Thanks for installing #{spec.name}!
 
   END_MESSAGE
-  spec.required_ruby_version = '>= 2.6.0'
+  spec.required_ruby_version = '>= 3.2.0'
   spec.summary               = 'Installs two commands that scan a git directory tree and write out scripts for replication.'
   spec.version               = GitUrlsVersion::VERSION
 
