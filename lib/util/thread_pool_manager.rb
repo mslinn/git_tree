@@ -88,24 +88,21 @@ class FixedThreadPoolManager
         log_stderr "  [Worker #{i}] Started.", :cyan
         start_time = Time.now
         start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
+        tasks_processed = 0
 
         loop do
           task = @main_work_queue.pop # The worker blocks here, waiting for a task.
           break if task == SHUTDOWN_SIGNAL
 
-          task_start_time = Time.now
           yield(self, task, i) # Execute the provided block of work.
-          task_elapsed_time = Time.now - task_start_time
-          log_stderr(
-            format("  [Worker %d] Task finished in %.2fs", i, task_elapsed_time), :magenta
-          )
+          tasks_processed += 1
         end
 
         elapsed_time = Time.now - start_time
         cpu_time = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID) - start_cpu
         shutdown_msg = format(
-          "  [Worker %d] Shutting down. Elapsed: %.2fs, CPU: %.2fs",
-          i, elapsed_time, cpu_time
+          "  [Worker %d] Shutting down. Processed %d tasks. Elapsed: %.2fs, CPU: %.2fs",
+          i, tasks_processed, elapsed_time, cpu_time
         )
         log_stderr shutdown_msg, :cyan
       end
