@@ -36,11 +36,17 @@ module GitTree
         opts.on("-h", "--help", "Show this help message and exit.") do
           help
         end
-        opts.on("-q", "--quiet", "Suppress normal output, only show errors.") { @options[:verbosity] = GitTreeWalker::QUIET }
-        opts.on("-v", "--verbose", "Verbose output.") { @options[:verbosity] = GitTreeWalker::VERBOSE }
-        opts.on("-vv", "--very-verbose", "Very verbose (debug) output.") { @options[:verbosity] = GitTreeWalker::DEBUG }
-      end.parse!(args)
-      args
+        opts.on("-q", "--quiet", "Suppress normal output, only show errors.") do
+          @options[:verbosity] = GitTreeWalker::QUIET
+        end
+        opts.on("-v", "--verbose", "Verbose output.") do
+          @options[:verbosity] = GitTreeWalker::VERBOSE
+        end
+        opts.on("-vv", "--very-verbose", "Very verbose (debug) output.") do
+          @options[:verbosity] = GitTreeWalker::DEBUG
+        end
+        yield opts if block_given?
+      end
     end
   end
 end

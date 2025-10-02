@@ -11,10 +11,12 @@ module GitTree
   using Rainbow
 
   class CommitAllCommand < AbstractCommand
-    def initialize(args)
+    def initialize(args) # rubocop:disable Lint/MissingSuper
       $PROGRAM_NAME = 'git-tree-commitAll'
-      super
-      # This command can run without directory args, so we don't check for empty @args.
+      # Don't call super, as this command has special arg handling
+      # (it can run without directory arguments).
+      @options = { verbosity: GitTreeWalker::NORMAL }
+      parse_options(args)
       @options[:message] ||= '-'
     end
 
@@ -54,14 +56,13 @@ module GitTree
     end
 
     def parse_options(args)
-      # This method is called by the superclass initializer.
-      super do |opts|
+      parser = super do |opts|
         opts.banner = "Usage: #{$PROGRAM_NAME} [options] [DIRECTORY ...]"
         opts.on("-m MESSAGE", "--message MESSAGE", "Use the given string as the commit message.") do |m|
           @options[:message] = m
         end
-      end.parse!(args)
-      args
+      end
+      @args = parser.parse!(args)
     end
 
     # Processe a single git repository to check for and commit changes.
