@@ -93,7 +93,12 @@ class FixedThreadPoolManager
           task = @main_work_queue.pop # The worker blocks here, waiting for a task.
           break if task == SHUTDOWN_SIGNAL
 
+          task_start_time = Time.now
           yield(self, task, i) # Execute the provided block of work.
+          task_elapsed_time = Time.now - task_start_time
+          log_stderr(
+            format("  [Worker %d] Task finished in %.2fs", i, task_elapsed_time), :magenta
+          )
         end
 
         elapsed_time = Time.now - start_time
