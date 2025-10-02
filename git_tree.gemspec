@@ -6,15 +6,19 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.authors     = ['Mike Slinn']
   spec.bindir      = 'exe'
   spec.description = <<~END_OF_DESC
-    Installs 3 commands that process a git directory tree.
+    Installs 5 commands that process a git directory tree.
     Directories containing a file called .ignore are ignored.
 
-    The git-tree-replicate command writes a script that clones the repos in the tree,
-    and adds any defined remotes.
+    The git-tree-commitAll command commits all changes to each repository in the tree.
 
     The git-tree-evars command writes a script that defines environment variables pointing to git repos.
 
     The git-tree-exec command executes a bash expression on children of a directory, or a list of directories.
+
+    The git-tree-replicate command writes a script that clones the repos in the tree,
+    and adds any defined remotes.
+
+    The git-tree-update command updates each repository in the tree.
   END_OF_DESC
   spec.email       = ['mslinn@mslinn.com']
   spec.executables = %w[git-tree-commitAll git-tree-evars git-tree-exec git-tree-replicate git-tree-update]
@@ -43,7 +47,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
 
   END_MESSAGE
   spec.required_ruby_version = '>= 3.2.0'
-  spec.summary               = 'Installs two commands that scan a git directory tree and write out scripts for replication.'
+  spec.summary               = 'Installs five commands that walk a git directory tree and perform tasks.'
   spec.version               = GitUrlsVersion::VERSION
 
   spec.add_dependency 'gem_support'

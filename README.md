@@ -21,6 +21,17 @@ Multiple threads are used to dramatically boost performance.
 
 - The `git-tree-update` command updates each repository in the tree.
 
+You can list them by using the `gem specification` command, like this:
+
+```shell
+$ gem specification git_tree executables
+---
+- git-tree-commitAll
+- git-tree-evars
+- git-tree-exec
+- git-tree-replicate
+- git-tree-update
+```
 
 ## Usage
 
