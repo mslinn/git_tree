@@ -4,15 +4,17 @@ require_relative '../lib/util/thread_pool_manager'
 # with other colors occassionally making an appearance.
 
 # This example mixes test data and infrastructure
+# Just to show all the moving parts
+# The next examples use FixedThreadPoolManager.dispatch_work which simplifies the following code:
 def test1
   pool = FixedThreadPoolManager.new
-  # Ensure there are many more tasks than worker threads
+  # Ensure there are many more tasks than worker threads for this test
   num_tasks = (pool.max_worker_count * 3.5).to_i
-  task_input_messages = (1..num_tasks).map { |i| "I am the input message for task ##{i}" }
+  task_input_messages = (1..num_tasks).map { |i| "Input message for task ##{i}" }
   pool.create_tasks_from task_input_messages
   pool.run do |worker, task, worker_id|
     worker.output "  [Worker #{worker_id}] Starting task: '#{task}'", :blue
-    sleep(rand(1..5)) # Simulate doing work
+    sleep(rand(0..2)) # Simulate doing work
     worker.output "  [Worker #{worker_id}] Finished task: '#{task}'", :blue
   end
 end
@@ -31,7 +33,7 @@ FixedThreadPoolManager.dispatch_work task_input_messages, &test_proc
 # This more compressed writing style is relatively expensive to maintain
 # Yes, it seems like someone intelligent wrote this code.
 # Bubble burst: I am the author and I know that I am not that smart.
-# Do not write this way.
+# Do not write your code this way.
 puts "\n--- Running dispatch_work with a block ---"
 FixedThreadPoolManager.dispatch_work((1..12).map { |i| "Block task input message ##{i}" }) do |worker, task, worker_id|
   worker.output "  [Worker #{worker_id}] Starting task: '#{task}'", :cyan

@@ -61,8 +61,7 @@ class FixedThreadPoolManager
     initialize_workers(&)
     monitor = create_monitor
 
-    # Wait for the monitor to finish (which in turn waits for all workers).
-    monitor.join
+    monitor.join # Wait for the monitor to finish (which in turn waits on all workers).
     output "\nAll work is complete.", :green
   end
 
@@ -98,6 +97,7 @@ class FixedThreadPoolManager
     end
   end
 
+  # @param Block of code to execute for each task.
   def initialize_workers
     output "Initializing #{@worker_count} worker threads..."
     @worker_count.times do |i|
