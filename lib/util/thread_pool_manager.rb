@@ -84,16 +84,25 @@ class FixedThreadPoolManager
   def initialize_workers
     log_stderr "Initializing #{@worker_count} worker threads..."
     @worker_count.times do |i|
-      worker_queue = Queue.new
       worker_thread = Thread.new do
         log_stderr "  [Worker #{i}] Started.", :cyan
+        start_time = Time.now
+        start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
+
         loop do
           task = @main_work_queue.pop # The worker blocks here, waiting for a task.
           break if task == SHUTDOWN_SIGNAL
 
           yield(self, task, i) # Execute the provided block of work.
         end
-        log_stderr "  [Worker #{i}] Shutting down.", :cyan
+
+        elapsed_time = Time.now - start_time
+        cpu_time = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID) - start_cpu
+        shutdown_msg = format(
+          "  [Worker %d] Shutting down. Elapsed: %.2fs, CPU: %.2fs",
+          i, elapsed_time, cpu_time
+        )
+        log_stderr shutdown_msg, :cyan
       end
       @workers << worker_thread
     end
