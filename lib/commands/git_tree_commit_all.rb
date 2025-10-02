@@ -13,12 +13,11 @@ module GitTree
   using Rainbow
 
   class CommitAllCommand < AbstractCommand
-    def initialize(args) # rubocop:disable Lint/MissingSuper
+    self.allow_empty_args = true
+
+    def initialize(args)
       $PROGRAM_NAME = 'git-tree-commitAll'
-      # Don't call super, as this command has special arg handling
-      # (it can run without directory arguments).
-      @options = { verbosity: GitTreeWalker::NORMAL }
-      parse_options(args)
+      super
       @options[:message] ||= '-'
     end
 
@@ -58,13 +57,12 @@ module GitTree
     end
 
     def parse_options(args)
-      parser = super do |opts|
+      @args = super do |opts|
         opts.banner = "Usage: #{$PROGRAM_NAME} [options] [DIRECTORY ...]"
         opts.on("-m MESSAGE", "--message MESSAGE", "Use the given string as the commit message.") do |m|
           @options[:message] = m
         end
       end
-      @args = parser.parse!(args)
     end
 
     # Processe a single git repository to check for and commit changes.
@@ -75,8 +73,8 @@ module GitTree
         Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
           # Use rugged for a faster status check
           repo = Rugged::Repository.new(dir)
-          has_changes = !repo.status { |_file, status| status != :current }
-
+          # repo.status without a block returns a hash of changed files.
+          has_changes = !repo.status.empty?
           unless has_changes
             git_walker_instance.log GitTreeWalker::DEBUG, "  No changes to commit in #{short_dir}".yellow
             return

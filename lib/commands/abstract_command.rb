@@ -6,6 +6,10 @@ module GitTree
   class AbstractCommand
     using Rainbow
 
+    class << self
+      attr_accessor :allow_empty_args
+    end
+
     def initialize(args)
       @options = {
         # Default to NORMAL verbosity
@@ -16,7 +20,7 @@ module GitTree
       @args = parse_options(args)
 
       # Show help if no arguments are provided, which is a common requirement.
-      help if @args.empty?
+      help if @args.empty? && !self.class.allow_empty_args
     end
 
     def run
@@ -32,7 +36,7 @@ module GitTree
 
     # Provides a base OptionParser. Subclasses will add their specific options.
     def parse_options(args)
-      OptionParser.new do |opts|
+      parser = OptionParser.new do |opts|
         opts.on("-h", "--help", "Show this help message and exit.") do
           help
         end
@@ -47,6 +51,7 @@ module GitTree
         end
         yield opts if block_given?
       end
+      parser.parse!(args)
     end
   end
 end
