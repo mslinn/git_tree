@@ -33,7 +33,7 @@ def test_data_array
   FixedThreadPoolManager.dispatch_work task_input_messages, &test_proc
 end
 
-# Do not write your code this way.
+# Do not write your code this way if all the data is available at once.
 # This more compressed writing style is relatively expensive to maintain
 # Yes, it seems like someone intelligent wrote this code.
 # Bubble burst: I am the author and I know that I am not that smart.
@@ -48,11 +48,12 @@ end
 
 # This demonstrates how to use FixedThreadPoolManager when messages are available at different times
 def test_data_drip(message_count: 10)
-  puts "\n--- Running test_data_drip ---"
+  puts "\n--- Running test_data_drip with #{message_count} tasks---", :green
   pool = FixedThreadPoolManager.new
 
   # Start the pool and provide the block of work for the workers
-  # Although the block encloses the current context, so pool.output can be used, worker provides a related context
+  # Although the block encloses the current context, so pool.output can be used,
+  # worker provides a related context
   pool.start do |worker, task, worker_id|
     worker.output "  [Worker #{worker_id}] Starting task: '#{task}'", :green
     sleep(rand(1..3)) # Simulate doing work
@@ -62,17 +63,19 @@ def test_data_drip(message_count: 10)
   # Drip-feed tasks into the pool over time
   # The block encloses the current context, so pool.output can be used
   message_count.times do |i|
-    task_message = "Drip-fed task ##{i + 1}"
-    pool.output "[Producer] Adding new task: '#{task_message}'"
+    task_message = "Drip-fed task ##{i + 1}", :green
+    pool.output "[Producer] Adding new task: '#{task_message}'", :green
     pool.add_task(task_message)
     sleep(rand(0..1)) # Generate each task at a diffent time
   end
 
-  pool.output '[Producer] All tasks have been added. Shutting down pool and waiting for completion...'
+  pool.output '[Producer] All tasks have been added. Signalling pool shutdown.', :green
   pool.shutdown # Signal shutdown (non-blocking)
-  # Peform any cleanup operations for the program here
+  pool.output '[Producer] Cleaning up main program.', :green
+  # Peform any other cleanup operations for the program here
+  pool.output '[Producer] Waiting for all threads to complete.', :green
   pool.wait_for_completion # Block and wait for a graceful exit
-  pool.output "Program finished gracefully."
+  pool.output "Program finished gracefully.", :green
 end
 
 test_data_drip(message_count: 50)
