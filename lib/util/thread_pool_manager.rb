@@ -68,14 +68,21 @@ class FixedThreadPoolManager
   # It pauses the execution of your main thread and waits until the monitor and all worker threads have
   # fully completed their work and terminated.
   def wait_for_completion
-    # Signal all workers to shut down
-    @worker_count.times do
-      @main_work_queue.push(SHUTDOWN_SIGNAL)
+    # Wait for the queue to be empty before sending shutdown signals
+    sleep 0.1 until @main_work_queue.empty?
+
+    @worker_count.times { @main_work_queue.push(SHUTDOWN_SIGNAL) }
+
+    loop do
+      active_workers = @workers.count(&:alive?)
+      break if active_workers.zero?
+
+      warn format("Waiting for %d worker threads to complete...", active_workers) + "\r"
+      sleep 0.1
     end
 
-    # Wait for all worker threads to finish
-    @workers.each(&:join)
-    log_stderr "\nAll work is complete.", :green
+    warn (" " * 60) + "\r" # Clear the line
+    log_stderr "All work is complete.", :green
   end
 
   private
