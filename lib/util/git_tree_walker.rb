@@ -6,7 +6,7 @@ require 'timeout'
 require 'rainbow/refinement'
 require_relative 'thread_pool_manager'
 
-class GitWalker
+class GitTreeWalker
   using Rainbow
 
   GIT_TIMEOUT = 300 # 5 minutes per git pull
@@ -42,7 +42,7 @@ class GitWalker
     log NORMAL, "Updating #{@display_roots.join(' ')}".green
     pool = FixedThreadPoolManager.new
     pool.start do |worker, dir, thread_id|
-      yield(worker, dir, thread_id, self) # Pass self (GitWalker instance) for access to its methods
+      yield(worker, dir, thread_id, self) # Pass self (GitTreeWalker instance) for access to its methods
     end
 
     find_and_process_repos(pool) # This method adds tasks to the pool
