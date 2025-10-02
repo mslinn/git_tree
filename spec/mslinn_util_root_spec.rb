@@ -1,6 +1,6 @@
 require_relative 'spec_helper'
 
-RSpec.describe(MslinnUtil) do
+RSpec.describe(GemSupport) do
   it 'trims to level' do
     paths = [
       '/root/sub3/sub1'

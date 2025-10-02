@@ -1,21 +1,3 @@
 #!/usr/bin/env ruby
 
-begin
-  require_relative '../lib/commands/git_tree_exec'
-rescue LoadError => e
-  puts "Error: #{e.message}".red if defined?(Rainbow)
-  puts <<~END_HELP
-    git-tree-exec - Run a shell command in each git repository under a directory tree.
-
-    Usage:
-      git-tree-exec <directory or $envar> <command>
-
-    Example:
-      git-tree-exec '$work' 'git status'
-
-    For more details, see the documentation or run with --help.
-  END_HELP
-  exit 1
-end
-
-GitTree.command_exec(ARGV)
+require_relative '../lib/commands/git_tree_exec'

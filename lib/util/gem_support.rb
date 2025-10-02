@@ -1,6 +1,6 @@
 require 'pathname'
 
-module MslinnUtil
+module GemSupport
   # @param paths [Array[String]] all start with a leading '/' (they are assumed to be absolute paths).
   # @return [String] the longest path prefix that is a prefix of all paths in array.
   #   If array is empty, return ''.

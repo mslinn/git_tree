@@ -40,7 +40,7 @@
       "name": "Debug git-tree-exec",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git_tree_exec"
+      "script": "${workspaceRoot}/exe/git-tree-exec"
     },
     {
       "args": [ "'$work'" ],
@@ -48,7 +48,7 @@
       "name": "Debug git-tree-evars",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git_tree_evars"
+      "script": "${workspaceRoot}/exe/git-tree-evars"
     },
     {
       "args": [ "'$work'" ],
@@ -56,7 +56,7 @@
       "name": "Debug git-tree-replicate",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git_tree_replicate"
+      "script": "${workspaceRoot}/exe/git-tree-replicate"
     },
     {
       "args": [
@@ -66,7 +66,7 @@
       "name": "Debug git-tree-update",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git_tree_update"
+      "script": "${workspaceRoot}/exe/git-tree-update"
     },
     {
       "debugPort": "0",

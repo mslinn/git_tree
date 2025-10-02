@@ -1,6 +1,6 @@
 require_relative 'spec_helper'
 
-RSpec.describe(MslinnUtil) do
+RSpec.describe(GemSupport) do
   it 'finds common prefix for one string with many slashes' do
     strings = [
       '/root/sub3/sub1'

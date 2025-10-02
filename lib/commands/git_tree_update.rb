@@ -1,4 +1,7 @@
 require 'rainbow/refinement'
+require 'shellwords'
+require 'timeout'
+require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 require_relative '../util/thread_pool_manager'
 
@@ -7,39 +10,67 @@ module GitTree
   trap('SIGINT') { exit!(-1) }
   using Rainbow
 
-  begin
-    $PROGRAM_NAME = 'git-tree-update'
-    walker = GitTreeWalker.new ARGV
-    walker.process do |_worker, dir, thread_id, git_walker_instance|
-      abbrev_dir = git_walker_instance.abbreviate_path(dir)
-      git_walker_instance.log GitTreeWalker::NORMAL, "Updating #{abbrev_dir}".green
-      git_walker_instance.log GitTreeWalker::VERBOSE, "Thread #{thread_id}: git -C #{dir} pull".yellow
+  PROGRAM_NAME = 'git-tree-update'.freeze
 
-      output = nil
-      status = nil
-      begin
-        Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
-          output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
-          status = $CHILD_STATUS.exitstatus
+  class UpdateCommand < AbstractCommand
+    def initialize(args) # rubocop:disable Lint/MissingSuper
+      # Don't call super, this command can run without arguments
+      $PROGRAM_NAME = PROGRAM_NAME
+      @options = {}
+      @args = parse_options(args)
+    end
+
+    def run
+      walker = GitTreeWalker.new(@args)
+      walker.process do |_worker, dir, thread_id, git_walker_instance|
+        abbrev_dir = git_walker_instance.abbreviate_path(dir)
+        git_walker_instance.log GitTreeWalker::NORMAL, "Updating #{abbrev_dir}".green
+        git_walker_instance.log GitTreeWalker::VERBOSE, "Thread #{thread_id}: git -C #{dir} pull".yellow
+
+        output = nil
+        status = nil
+        begin
+          Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
+            output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
+            status = $CHILD_STATUS.exitstatus
+          end
+        rescue Timeout::Error
+          git_walker_instance.log GitTreeWalker::NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}".red
+          status = -1
+        rescue StandardError => e
+          git_walker_instance.log GitTreeWalker::NORMAL, "[ERROR] Thread #{thread_id}: Failed in #{abbrev_dir}: #{e.message}".red
+          status = -1
         end
-      rescue Timeout::Error
-        git_walker_instance.log GitTreeWalker::NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}".red
-        status = -1
-      rescue StandardError => e
-        git_walker_instance.log GitTreeWalker::NORMAL, "[ERROR] Thread #{thread_id}: Failed in #{abbrev_dir}: #{e.message}".red
-        status = -1
-      end
 
-      if !status.zero?
-        git_walker_instance.log GitTreeWalker::NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):\n#{output}".red
-      elsif git_walker_instance.instance_variable_get(:@verbosity) >= GitTreeWalker::VERBOSE
-        # The log method already handles verbosity, so we can just call it directly
-        git_walker_instance.log GitTreeWalker::NORMAL, output.strip.green
+        if !status.zero?
+          git_walker_instance.log GitTreeWalker::NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):\n#{output}".red
+        elsif git_walker_instance.instance_variable_get(:@verbosity) >= GitTreeWalker::VERBOSE
+          git_walker_instance.log GitTreeWalker::NORMAL, output.strip.green
+        end
       end
     end
-  rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}"
-    puts e.backtrace.join("\n")
-    exit 1
+
+    private
+
+    def help(msg = nil)
+      puts "Error: #{msg}\n".red if msg
+      puts <<~END_HELP
+        #{$PROGRAM_NAME} - Recursively updates all git repositories under the specified DIRECTORY roots.
+        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        Skips directories containing a .ignore file.
+
+        Usage: #{$PROGRAM_NAME} [DIRECTORY...]
+      END_HELP
+      exit 1
+    end
+  end
+
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?(PROGRAM_NAME)
+    begin
+      GitTree::UpdateCommand.new(ARGV).run
+    rescue StandardError => e
+      puts "An unexpected error occurred: #{e.message}".red
+      exit 1
+    end
   end
 end

@@ -2,6 +2,7 @@ require 'optparse'
 require 'rainbow/refinement'
 require 'rugged'
 
+require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
 module GitTree
@@ -9,19 +10,19 @@ module GitTree
   trap('SIGINT') { exit!(-1) }
   using Rainbow
 
-  # This class encapsulates the logic for the git-tree-commitAll command.
-  class CommitAll
-    def initialize(args)
-      @options = {
-        debug:   false,
-        message: '-',
-      }
-      # OptionParser modifies args in place, removing parsed options.
-      @args = parse_options(args)
+  PROGRAM_NAME = 'git-tree-commitAll'.freeze
+
+  class CommitAllCommand < AbstractCommand
+    def initialize(args) # rubocop:disable Lint/MissingSuper
+      # Don't call super here, because this command can run without arguments,
+      # using default directories from GitTreeWalker.
+      $PROGRAM_NAME = PROGRAM_NAME
+      @options = { message: '-' }
+      @args = parse_options(args) # This will call the help method if -h is present.
     end
 
     def run
-      $PROGRAM_NAME = 'git-tree-commitAll'
+      $PROGRAM_NAME = PROGRAM_NAME
       walker = GitTreeWalker.new(@args) # ARGV now contains only the directory arguments
       walker.process do |_worker, dir, thread_id, git_walker_instance|
         process_repo(dir, thread_id, git_walker_instance, @options[:message])
@@ -30,27 +31,26 @@ module GitTree
 
     private
 
-    def help
+    def help(msg = nil)
+      puts "Error: #{msg}\n".red if msg
       puts <<~END_MSG
-        Runs git commit on a tree of git repositories without prompting for messages.
+        #{$PROGRAM_NAME} - Runs git commit on a tree of git repositories without prompting for messages.
 
-        Usage: commit [options] [file...]
+        Usage: #{$PROGRAM_NAME} [options] [DIRECTORY...]
           Where options are:
-           -d  enables debug mode
            -m "commit message"
 
         Examples:
-          commit  # The default commit message is just a single dash (-)
-          commit -m "This is a commit message"
-          commit -d # Generate debug output
+          #{$PROGRAM_NAME}  # The default commit message is just a single dash (-)
+          #{$PROGRAM_NAME} -m "This is a commit message"
+          #{$PROGRAM_NAME} '$work' '$sites'
       END_MSG
       exit
     end
 
     def parse_options(args)
       OptionParser.new do |opts|
-        opts.banner = "Usage: git-tree-commitAll [options] [DIRECTORY ...]"
-        opts.on("-d", "--debug", "Generate debug output.") { @options[:debug] = true }
+        opts.banner = "Usage: #{$PROGRAM_NAME} [options] [DIRECTORY ...]"
         opts.on("-h", "--help", "Show this help message and exit.") { help }
         opts.on("-m MESSAGE", "--message MESSAGE", "Use the given string as the commit message.") do |m|
           @options[:message] = m
@@ -59,7 +59,7 @@ module GitTree
       args
     end
 
-    # Processes a single git repository to check for and commit changes.
+    # Processe a single git repository to check for and commit changes.
     def process_repo(dir, thread_id, git_walker_instance, message)
       short_dir = git_walker_instance.abbreviate_path(dir)
       git_walker_instance.log GitTreeWalker::VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
@@ -81,11 +81,12 @@ module GitTree
     end
   end
 
-  begin
-    GitTree::CommitAll.new(ARGV).run
-  rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}".red
-    puts e.backtrace.join("\n")
-    exit 1
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-commitAll')
+    begin
+      GitTree::CommitAllCommand.new(ARGV).run
+    rescue StandardError => e
+      puts "An unexpected error occurred: #{e.message}".red
+      exit 1
+    end
   end
 end

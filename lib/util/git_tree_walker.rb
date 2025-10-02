@@ -45,10 +45,18 @@ class GitTreeWalker
       yield(worker, dir, thread_id, self) # Pass self (GitTreeWalker instance) for access to its methods
     end
 
-    find_and_process_repos(pool) # This method adds tasks to the pool
+    find_and_process_repos do |dir|
+      pool.add_task(dir)
+    end
 
     pool.shutdown
     pool.wait_for_completion
+  end
+
+  # Finds git repos and yields them to the block. Does not use thread pool.
+  def find_and_process_repos(&block)
+    visited = Set.new
+    @root_map.each_value { |paths| paths.sort.each { |root_path| find_git_repos_recursive(root_path, visited, &block) } }
   end
 
   private
@@ -64,20 +72,11 @@ class GitTreeWalker
       @display_roots = args.dup
       args.each do |arg|
         path = arg
-        if (match = arg.match(/\A'\$([a-zA-Z_]\w*)'\z/))
+        if (match = arg.match(/\A'?\$([a-zA-Z_]\w*)'?\z/))
           var_name = match[1]
           path = ENV.fetch(var_name, nil)
         end
         @root_map[arg] = [File.expand_path(path)] if path
-      end
-    end
-  end
-
-  def find_and_process_repos(pool)
-    visited = Set.new
-    @root_map.each_value do |paths|
-      paths.sort.each do |root_path|
-        find_git_repos_recursive(root_path, visited, pool)
       end
     end
   end
@@ -94,25 +93,22 @@ class GitTreeWalker
     entries.sort
   end
 
-  def find_git_repos_recursive(root_path, visited, pool)
+  def find_git_repos_recursive(root_path, visited, &block)
     return unless File.directory?(root_path)
 
     log DEBUG, "Scanning #{root_path}".yellow
     if File.exist?(File.join(root_path, '.git'))
       unless visited.include?(root_path)
         visited.add(root_path)
-        log DEBUG, "Enqueueing repo: #{root_path}".yellow
-        pool.add_task(root_path)
+        yield root_path
       end
       return # Prune search
     end
 
     return if File.exist?(File.join(root_path, '.ignore'))
 
-    sort_directory_entries(root_path).each do |entry|
-      fq_file_name = File.join(root_path, entry)
-      find_git_repos_recursive(fq_file_name, visited, pool)
-    end
+    sort_directory_entries(root_path)
+      .each { |entry| find_git_repos_recursive(File.join(root_path, entry), visited, &block) }
   rescue SystemCallError => e
     log NORMAL, "Error scanning #{root_path}: #{e.message}".red
   end

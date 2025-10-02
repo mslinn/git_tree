@@ -7,7 +7,7 @@ RSpec.describe(GitTree) do
     dirs = described_class.directories_to_process base
     result = described_class.make_env_vars('$demo', base, dirs)
 
-    demo = MslinnUtil.deref_symlink MslinnUtil.expand_env("$demo")
+    demo = GemSupport.deref_symlink GemSupport.expand_env("$demo")
     expected = <<~END_STR
       export demo=#{demo}
       export proj_a=$demo/proj_a
@@ -33,7 +33,7 @@ RSpec.describe(GitTree) do
   end
 
   it 'finds git repos under a symlinked directory' do
-    base = MslinnUtil.expand_env '$work'
+    base = GemSupport.expand_env '$work'
     dirs = described_class.directories_to_process base
     expect(dirs.length).to be > 5
   end
