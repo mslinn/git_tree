@@ -1,5 +1,7 @@
 require 'optparse'
 require 'rainbow/refinement'
+require 'shellwords'
+require 'timeout'
 require 'rugged'
 
 require_relative 'abstract_command'
@@ -69,16 +71,21 @@ module GitTree
     def process_repo(dir, thread_id, git_walker_instance, message)
       short_dir = git_walker_instance.abbreviate_path(dir)
       git_walker_instance.log GitTreeWalker::VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
-      begin # Check if there are changes to commit in the repo at 'dir'
-        status_output = `git -C #{Shellwords.escape(dir)} status --porcelain`
-        has_changes = !status_output.strip.empty?
-        unless has_changes
-          git_walker_instance.log GitTreeWalker::DEBUG, "  No changes to commit in #{short_dir}".yellow
-          return
+      begin
+        Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
+          # Check if there are changes to commit in the repo at 'dir'
+          status_output = `git -C #{Shellwords.escape(dir)} status --porcelain`
+          has_changes = !status_output.strip.empty?
+          unless has_changes
+            git_walker_instance.log GitTreeWalker::DEBUG, "  No changes to commit in #{short_dir}".yellow
+            return
+          end
+          system('git', '-C', dir, 'add', '--all', exception: true)
+          system('git', '-C', dir, 'commit', '-m', message, '--quiet', '--no-gpg-sign', exception: true)
+          git_walker_instance.log GitTreeWalker::NORMAL, "Committed changes in #{short_dir}".green
         end
-        system('git', '-C', dir, 'add', '--all', exception: true)
-        system('git', '-C', dir, 'commit', '-m', message, '--quiet', exception: true)
-        git_walker_instance.log GitTreeWalker::NORMAL, "Committed changes in #{short_dir}".green
+      rescue Timeout::Error
+        git_walker_instance.log GitTreeWalker::NORMAL, "[TIMEOUT] Thread #{thread_id}: git operations timed out in #{short_dir}".red
       rescue StandardError => e
         git_walker_instance.log GitTreeWalker::NORMAL, "Error processing #{short_dir}: #{e.message}".red
         git_walker_instance.log GitTreeWalker::DEBUG, "Exception class: #{e.class}".yellow
