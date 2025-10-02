@@ -1,6 +1,8 @@
 require 'pathname'
 require 'shellwords'
-require_relative '../git_tree'
+require 'rainbow/refinement'
+require_relative '../util/git_tree_walker'
+require_relative '../util/thread_pool_manager'
 
 module GitTree
   using Rainbow

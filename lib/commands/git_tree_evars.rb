@@ -29,6 +29,8 @@ module GitTree
       #{prog_name} - Examines a tree of git repositories and writes a bash script to STDOUT
       that defines environment variables which point to the repositories in the tree.
 
+      Purpose: Quickly generate bash environment variables for each git repository found under a specified directory tree.
+
       Does not redefine existing environment variables; messages are written to
       STDERR to indicate environment variables that are not redefined.
 
