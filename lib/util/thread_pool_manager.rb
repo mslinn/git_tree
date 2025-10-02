@@ -68,9 +68,6 @@ class FixedThreadPoolManager
   # It pauses the execution of your main thread and waits until the monitor and all worker threads have
   # fully completed their work and terminated.
   def wait_for_completion
-    # Wait for the queue to be empty before sending shutdown signals
-    sleep 0.1 until @main_work_queue.empty?
-
     @worker_count.times { @main_work_queue.push(SHUTDOWN_SIGNAL) }
 
     last_active_count = -1

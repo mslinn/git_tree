@@ -73,9 +73,10 @@ module GitTree
       git_walker_instance.log GitTreeWalker::VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
       begin
         Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
-          # Check if there are changes to commit in the repo at 'dir'
-          status_output = `git -C #{Shellwords.escape(dir)} status --porcelain`
-          has_changes = !status_output.strip.empty?
+          # Use rugged for a faster status check
+          repo = Rugged::Repository.new(dir)
+          has_changes = !repo.status { |_file, status| status != :current }
+
           unless has_changes
             git_walker_instance.log GitTreeWalker::DEBUG, "  No changes to commit in #{short_dir}".yellow
             return

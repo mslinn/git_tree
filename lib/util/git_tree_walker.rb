@@ -95,6 +95,8 @@ class GitTreeWalker
   def find_git_repos_recursive(root_path, visited, &block)
     return unless File.directory?(root_path)
 
+    return if File.exist?(File.join(root_path, '.ignore'))
+
     log DEBUG, "Scanning #{root_path}".yellow
     if File.exist?(File.join(root_path, '.git'))
       unless visited.include?(root_path)
@@ -103,8 +105,6 @@ class GitTreeWalker
       end
       return # Prune search
     end
-
-    return if File.exist?(File.join(root_path, '.ignore'))
 
     sort_directory_entries(root_path)
       .each { |entry| find_git_repos_recursive(File.join(root_path, entry), visited, &block) }
