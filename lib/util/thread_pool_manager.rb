@@ -73,11 +73,15 @@ class FixedThreadPoolManager
 
     @worker_count.times { @main_work_queue.push(SHUTDOWN_SIGNAL) }
 
+    last_active_count = -1
     loop do
       active_workers = @workers.count(&:alive?)
       break if active_workers.zero?
 
-      warn format("Waiting for %d worker threads to complete...", active_workers) + "\r"
+      if active_workers != last_active_count
+        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r"
+        last_active_count = active_workers
+      end
       sleep 0.1
     end
 
