@@ -1,21 +1,17 @@
 #!/usr/bin/env ruby
 
-# Multithreaded Ruby script to update all git directories below specified roots.
-
+require 'English'
 require 'etc'
-require 'open3'
+require 'shellwords'
 require 'optparse'
-require 'rainbow/refinement'
-require 'rugged'
 require 'timeout'
+require 'rainbow/refinement'
+require_relative 'thread_pool_manager'
 
-using Rainbow
-
-# A class to update multiple git repositories concurrently.
 class GitUpdater
-  MAX_THREADS = [1, (Etc.nprocessors * 0.75).to_i].max
+  using Rainbow
+
   GIT_TIMEOUT = 300 # 5 minutes per git pull
-  DEFAULT_ROOT_VARS = %w[sites sitesUbuntu work].freeze
 
   # Verbosity levels
   QUIET = 0
@@ -23,35 +19,35 @@ class GitUpdater
   VERBOSE = 2
   DEBUG = 3
 
-  def initialize(args)
-    @mode = File.basename($PROGRAM_NAME) == 'commitAll' ? :commit : :update
+  def initialize(args = ARGV)
     @verbosity = NORMAL
     @root_map = {}
-    parse_options(args)
+    @display_roots = []
     determine_roots(args)
-    @work_queue = Queue.new
-    @processed = Set.new
   end
 
   def process
-    action_verb = @mode == :commit ? 'Committing' : 'Updating'
-    log NORMAL, "#{action_verb} #{@display_roots.join(' ')}".green
-    scan_for_repos
-    log VERBOSE, "Found #{@work_queue.size} repositories to process.".green
-    log VERBOSE, "Using #{MAX_THREADS} threads.".green
-    process_queue
-    log NORMAL, "Finished processing all repositories.".blue
+    log NORMAL, "Updating #{@display_roots.join(' ')}".green
+    pool = FixedThreadPoolManager.new
+    pool.start do |_worker, dir, thread_id|
+      update_repo(dir, thread_id)
+    end
+
+    find_and_process_repos(pool)
+
+    pool.shutdown
+    pool.wait_for_completion
   end
 
   private
 
-  def abbreviate_path(path)
-    @root_map.each do |name, expanded_paths|
+  def abbreviate_path(dir)
+    @root_map.each do |display_root, expanded_paths|
       expanded_paths.each do |expanded_path|
-        return path.sub(expanded_path, name) if path.start_with?(expanded_path)
+        return dir.sub(expanded_path, display_root) if dir.start_with?(expanded_path)
       end
     end
-    path
+    dir # Return original if no match
   end
 
   def commit(dir, thread_id)
@@ -91,16 +87,13 @@ class GitUpdater
   end
 
   # args might contain literal file paths or
-  # it might contain strings that contain an environment variable reference, enclosed in single quotes
-  # Here is an example: "'$work'"
+  # environment variables that point to file paths
   def determine_roots(args)
     if args.empty?
-      @display_roots = []
-      DEFAULT_ROOT_VARS.each do |var|
-        next unless (path_str = ENV.fetch(var, nil))
-
-        @display_roots << "$#{var}"
-        @root_map["$#{var}"] = path_str.split.map { |p| File.expand_path(p) }
+      default_roots = %w[sites sitesUbuntu work]
+      @display_roots = default_roots.map { |r| "$#{r}" }
+      default_roots.each do |r|
+        @root_map["$#{r}"] = ENV[r].split.map { |p| File.expand_path(p) } if ENV[r]
       end
     else
       @display_roots = args.dup
@@ -110,35 +103,39 @@ class GitUpdater
           var_name = match[1]
           path = ENV.fetch(var_name, nil)
         end
-        expanded_path = File.expand_path(path) if path
-        @root_map[arg] = [expanded_path]
+        @root_map[arg] = [File.expand_path(path)] if path
       end
     end
   end
 
-  def find_git_repos(root_path)
+  def find_and_process_repos(pool)
+    visited = Set.new
+    @root_map.each_value do |paths|
+      paths.each do |root_path|
+        find_git_repos_recursive(root_path, visited, pool)
+      end
+    end
+  end
+
+  def find_git_repos_recursive(root_path, visited, pool)
     return unless File.directory?(root_path)
 
     log DEBUG, "Scanning #{root_path}".yellow
+    if File.exist?(File.join(root_path, '.git'))
+      unless visited.include?(root_path)
+        visited.add(root_path)
+        log DEBUG, "Enqueueing repo: #{root_path}".yellow
+        pool.add_task(root_path)
+      end
+      return # Prune search
+    end
+
+    return if File.exist?(File.join(root_path, '.ignore'))
+
     Dir.foreach(root_path) do |entry|
-      next if ['.', '..', '.venv'].include?(entry)
+      next if ['.', '..'].include?(entry)
 
-      path = File.join(root_path, entry)
-      next unless File.directory?(path)
-      next if @processed.include?(path) # Already seen
-
-      if File.exist?(File.join(path, '.ignore'))
-        log DEBUG, "Skipping #{path} (has .ignore)".yellow
-        next
-      end
-
-      if File.exist?(File.join(path, '.git'))
-        @processed.add(path)
-        log DEBUG, "Enqueueing repo: #{path}".yellow
-        @work_queue << path
-      else
-        find_git_repos(path) # Recurse
-      end
+      find_git_repos_recursive(File.join(root_path, entry), visited, pool)
     end
   rescue SystemCallError => e
     log NORMAL, "Error scanning #{root_path}: #{e.message}".red
@@ -148,88 +145,35 @@ class GitUpdater
     puts msg if @verbosity >= level
   end
 
-  def parse_options(args)
-    OptionParser.new do |opts|
-      opts.banner = "Usage: #{$PROGRAM_NAME} [OPTIONS] [DIRECTORY ...]"
-      opts.on('-h', '--help', 'Show this help message and exit') do
-        puts opts
-        exit
-      end
-      opts.on('-q', '--quiet', 'Suppress normal output, only show errors') { @verbosity = QUIET }
-      opts.on('-v', '--verbose', 'Increase verbosity (can be repeated: -vv for debug)') { @verbosity += 1 }
-    end.parse!(args)
-  rescue OptionParser::InvalidOption => e
-    puts "Error: #{e.message}".red
-    exit!(-2)
-  end
-
-  def process_queue
-    threads = Array.new(MAX_THREADS) do |i|
-      Thread.new do
-        while (dir = begin
-          @work_queue.pop(true)
-        rescue StandardError
-          nil
-        end)
-          case @mode
-          when :commit
-            commit(dir, i)
-          else # :update
-            update_repo(dir, i)
-          end
-        end
-      end
-    end
-    threads.each(&:join)
-  end
-
   def run(cmd)
     log DEBUG, "Executing: #{cmd.join(' ')}".green
     system(*cmd, exception: true)
   end
-
-  def scan_for_repos
-    @root_map.each_value do |paths|
-      paths.each { |root_path| find_git_repos(root_path) }
-    end
-  end
-
-  def to_s
-    msg = "#<GitUpdater"
-    msg += " @mode=#{@mode} "
-    msg += " @verbosity=#{@verbosity}"
-    msg += " @display_roots=#{@display_roots}"
-    msg += " @root_map=#{@root_map}"
-    msg += " @work_queue=#{@work_queue.count}"
-    msg += " @processed=#{@processed.count}"
-    msg += ">"
-    msg
-  end
-
-  def inspect = to_s
 
   def update_repo(dir, thread_id)
     abbrev_dir = abbreviate_path(dir)
     log NORMAL, "Updating #{abbrev_dir}".green
     log VERBOSE, "Thread #{thread_id}: git -C #{dir} pull".yellow
 
-    output, status = nil
+    output = nil
+    status = nil
     begin
       Timeout.timeout(GIT_TIMEOUT) do
-        output, status = Open3.capture2e('git', '-C', dir, 'pull')
+        output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
+        status = $CHILD_STATUS.exitstatus
       end
     rescue Timeout::Error
       log NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}".red
-      return
+      status = -1
     rescue StandardError => e
       log NORMAL, "[ERROR] Thread #{thread_id}: Failed in #{abbrev_dir}: #{e}".red
-      return
+      status = -1
     end
 
-    if status.success?
-      log VERBOSE, output.strip.green unless output.strip.empty?
-    else
-      puts "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status.exitstatus}):\n#{output}".red
+    if status != 0
+      log NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):\n#{output}".red
+    elsif @verbosity >= VERBOSE
+      log NORMAL, output.strip.green
     end
   end
 end
