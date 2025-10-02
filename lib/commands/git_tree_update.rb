@@ -6,6 +6,7 @@ module GitTree
   trap('INT') { exit!(-1) }
   trap('SIGINT') { exit!(-1) }
   using Rainbow
+
   begin
     $PROGRAM_NAME = 'git-tree-update'
     walker = GitTreeWalker.new ARGV

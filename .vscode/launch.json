@@ -26,13 +26,13 @@
     },
     {
       "args": [
-        "'$work'"
+        "'$sitesUbuntu'"
       ],
       "debugPort": "0",
       "name": "Debug git-tree-commitAll",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git_tree_commitAll"
+      "script": "${workspaceRoot}/exe/git-tree-commitAll"
     },
     {
       "args": [ "\"$jekyll_img $jekyll_pre\"", "version" ],
