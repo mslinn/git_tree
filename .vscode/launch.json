@@ -9,6 +9,16 @@
         "'$work'"
       ],
       "debugPort": "0",
+      "name": "Debug git_update_example",
+      "type": "rdbg",
+      "request": "launch",
+      "script": "${workspaceRoot}/playground/git_update_example.rb"
+    },
+    {
+      "args": [
+        "'$work'"
+      ],
+      "debugPort": "0",
       "name": "Debug process_messages",
       "type": "rdbg",
       "request": "launch",

@@ -6,6 +6,7 @@ require 'etc'
 require 'open3'
 require 'optparse'
 require 'rainbow/refinement'
+require 'rugged'
 require 'timeout'
 
 using Rainbow
@@ -54,42 +55,44 @@ class GitUpdater
   end
 
   def commit(dir, thread_id)
-    puts "Examining #{dir} on thread #{thread_id}".green
-    rugged_repo = Rugged::Repository.new(repo)
+    short_dir = abbreviate_path(dir)
+    log VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
+    rugged_repo = Rugged::Repository.new(dir)
 
     # Check for unstaged or staged changes
     has_changes = false
     rugged_repo.status do |_, s|
-      if s != :ignored && s != :unmodified
+      unless %i[ignored unmodified].include?(s)
         has_changes = true
         break
       end
     end
 
     unless has_changes
-      puts "  No changes to commit in #{short_repo}".yellow if options[:debug]
+      log DEBUG, "  No changes to commit in #{short_dir}".yellow
       return
     end
 
-    run(["git", "-C", repo, "add", "-A"], options)
+    run(['git', '-C', dir, 'add', '-A'])
 
     # Check again for staged changes before committing
-    status_output = `git -C #{repo} status --porcelain`.strip
+    status_output = `git -C #{dir} status --porcelain`.strip
     if status_output.empty?
-      puts "No changes to commit in #{short_repo}".yellow if options[:debug]
+      log DEBUG, "No changes to commit in #{short_dir}".yellow
       return
     end
 
-    run(["git", "-C", repo, "commit", "-m", msg, "--quiet"], options)
-    puts "Committed changes in #{short_repo}".green if options[:debug]
+    run(['git', '-C', dir, 'commit', '-m', 'Auto-commit by git-tree-commitAll', '--quiet'])
+    log NORMAL, "Committed changes in #{short_dir}".green
   rescue StandardError => e
-    puts "Error processing #{short_repo}: #{e.message}".red
-    if options[:debug]
-      puts "Exception class: #{e.class}".yellow
-      puts e.backtrace.join("\n").yellow
-    end
+    log NORMAL, "Error processing #{short_dir}: #{e.message}".red
+    log DEBUG, "Exception class: #{e.class}".yellow
+    log DEBUG, e.backtrace.join("\n").yellow
   end
 
+  # args might contain literal file paths or
+  # it might contain strings that contain an environment variable reference, enclosed in single quotes
+  # Here is an example: "'$work'"
   def determine_roots(args)
     if args.empty?
       @display_roots = []
@@ -102,7 +105,13 @@ class GitUpdater
     else
       @display_roots = args.dup
       args.each do |arg|
-        @root_map[arg] = [File.expand_path(arg.start_with?('$') ? (ENV[arg[1..]] || arg) : arg)]
+        path = arg
+        if (match = arg.match(/\A'\$([a-zA-Z_]\w*)'\z/))
+          var_name = match[1]
+          path = ENV.fetch(var_name, nil)
+        end
+        expanded_path = File.expand_path(path) if path
+        @root_map[arg] = [expanded_path]
       end
     end
   end
@@ -112,7 +121,7 @@ class GitUpdater
 
     log DEBUG, "Scanning #{root_path}".yellow
     Dir.foreach(root_path) do |entry|
-      next if ['.', '..'].include?(entry)
+      next if ['.', '..', '.venv'].include?(entry)
 
       path = File.join(root_path, entry)
       next unless File.directory?(path)
@@ -174,8 +183,8 @@ class GitUpdater
     threads.each(&:join)
   end
 
-  def run(cmd, options)
-    puts "Executing: #{cmd.join(' ')}".green if options[:debug]
+  def run(cmd)
+    log DEBUG, "Executing: #{cmd.join(' ')}".green
     system(*cmd, exception: true)
   end
 
@@ -184,6 +193,20 @@ class GitUpdater
       paths.each { |root_path| find_git_repos(root_path) }
     end
   end
+
+  def to_s
+    msg = "#<GitUpdater"
+    msg += " @mode=#{@mode} "
+    msg += " @verbosity=#{@verbosity}"
+    msg += " @display_roots=#{@display_roots}"
+    msg += " @root_map=#{@root_map}"
+    msg += " @work_queue=#{@work_queue.count}"
+    msg += " @processed=#{@processed.count}"
+    msg += ">"
+    msg
+  end
+
+  def inspect = to_s
 
   def update_repo(dir, thread_id)
     abbrev_dir = abbreviate_path(dir)
@@ -208,24 +231,5 @@ class GitUpdater
     else
       puts "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status.exitstatus}):\n#{output}".red
     end
-  end
-end
-
-if __FILE__ == $PROGRAM_NAME
-  trap('INT') do
-    exit!(-1)
-  end
-
-  trap('SIGINT') do
-    exit!(-1)
-  end
-
-  begin
-    updater = GitUpdater.new(ARGV)
-    updater.process
-  rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}".red
-    puts e.backtrace.join("\n").red
-    exit 1
   end
 end
