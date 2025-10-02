@@ -1,5 +1,8 @@
 require_relative '../lib/util/thread_pool_manager'
 
+# Running this program should yield messages cycling through a rainbow of cool colors
+# with other colors occassionally making an appearance.
+
 # This example mixes test data and infrastructure
 def test1
   pool = FixedThreadPoolManager.new
