@@ -35,11 +35,11 @@ class GitTreeWalker
   end
 
   def log(level, msg) # Kept for external blocks to use
-    puts msg if @verbosity >= level
+    warn msg if @verbosity >= level
   end
 
   def process(&) # Now accepts a block
-    log NORMAL, "Updating #{@display_roots.join(' ')}".green
+    log NORMAL, "Processing #{@display_roots.join(' ')}".green
     pool = FixedThreadPoolManager.new
     pool.start do |worker, dir, thread_id|
       yield(worker, dir, thread_id, self) # Pass self (GitTreeWalker instance) for access to its methods

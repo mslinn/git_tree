@@ -1,4 +1,5 @@
 require_relative '../git_tree'
+require 'rainbow/refinement'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
@@ -40,8 +41,8 @@ module GitTree
     end
 
     def help(msg = nil)
-      puts "Error: #{msg}\n".red if msg
-      puts <<~END_HELP
+      warn "Error: #{msg}\n".red if msg
+      warn <<~END_HELP
         #{$PROGRAM_NAME} - Examines a tree of git repositories and writes a bash script to STDOUT
         that defines environment variables which point to the repositories in the tree.
 
@@ -69,13 +70,13 @@ module GitTree
       "export #{env_var_name(name)}=#{value}"
     end
   end
-end
 
-if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-evars')
-  begin
-    GitTree::EvarsCommand.new(ARGV).run
-  rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}".red
-    exit 1
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-evars')
+    begin
+      GitTree::EvarsCommand.new(ARGV).run
+    rescue StandardError => e
+      puts "An unexpected error occurred: #{e.message}".red
+      exit 1
+    end
   end
 end

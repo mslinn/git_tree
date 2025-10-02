@@ -53,8 +53,8 @@ module GitTree
     private
 
     def help(msg = nil)
-      puts "Error: #{msg}\n".red if msg
-      puts <<~END_HELP
+      warn "Error: #{msg}\n".red if msg
+      warn <<~END_HELP
         #{$PROGRAM_NAME} - Recursively updates all git repositories under the specified DIRECTORY roots.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         Skips directories containing a .ignore file.

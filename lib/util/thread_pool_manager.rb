@@ -26,7 +26,7 @@ class FixedThreadPoolManager
         Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
         You provided #{percent_available_processors}.
       END_MSG
-      output msg, color: :red
+      log_stderr msg, :red
       exit! 1
     end
     @worker_count = [((Etc.nprocessors - 1) * percent_available_processors).floor, 1].max
@@ -36,7 +36,7 @@ class FixedThreadPoolManager
 
   # Task producer: initiates tasks by sending messages to the monitor thread.
   def create_tasks_from(input_messages)
-    output "[Producer] Creating #{input_messages.count} tasks..."
+    log_stderr "[Producer] Creating #{input_messages.count} tasks..."
     input_messages.each { |msg| @main_work_queue.push msg }
     @main_work_queue.push(SHUTDOWN_SIGNAL) # Signal that production is complete.
   end
@@ -52,12 +52,18 @@ class FixedThreadPoolManager
   end
 
   # A thread-safe output method for colored text.
-  def output(multiline_string, color = nil)
+  def log_stderr(multiline_string, color = nil)
     multiline_string.each_line do |line|
       line_to_print = line.chomp
       line_to_print = line_to_print.public_send(color) if color
-      $stdout.puts line_to_print
+      warn line_to_print
     end
+    $stderr.flush
+  end
+
+  # A thread-safe output method for uncolored text to STDOUT.
+  def log_stdout(multiline_string)
+    $stdout.puts multiline_string
     $stdout.flush
   end
 
@@ -68,7 +74,7 @@ class FixedThreadPoolManager
     monitor = create_monitor
 
     monitor.join # Wait for the monitor to finish (which in turn waits on all workers).
-    output "\nAll work is complete.", :green
+    log_stderr "\nAll work is complete.", :green
   end
 
   # Signals the pool to shut down after all currently queued tasks are processed.
@@ -105,7 +111,7 @@ class FixedThreadPoolManager
   # It takes tasks from the work queue and dispatches them to worker threads.
   def create_monitor
     Thread.new do
-      output "[Monitor] Ready to dispatch work."
+      log_stderr "[Monitor] Ready to dispatch work."
       worker_index = 0
       loop do
         # The monitor blocks here, waiting for the producer to send a task.
@@ -114,26 +120,26 @@ class FixedThreadPoolManager
 
         # Distribute the task to the next worker in a round-robin fashion.
         target_worker = @workers[worker_index]
-        output "[Monitor] Dispatching '#{task}' to Worker #{worker_index}."
+        log_stderr "[Monitor] Dispatching '#{task}' to Worker #{worker_index}."
         target_worker[:queue].push(task)
 
         # Move to the next worker for the next task.
         worker_index = (worker_index + 1) % @worker_count
       end
 
-      output "[Monitor] Received shutdown signal. Relaying to all workers...", :yellow
+      log_stderr "[Monitor] Received shutdown signal. Relaying to all workers...", :yellow
       # Wait for all workers to finish.
       @workers.each do |worker|
         worker[:queue].push(SHUTDOWN_SIGNAL)
         worker[:thread].join
       end
-      output "[Monitor] All workers have shut down. Monitor finished.", :yellow
+      log_stderr "[Monitor] All workers have shut down. Monitor finished.", :yellow
     end
   end
 
   # @param Block of code to execute for each task.
   def initialize_workers
-    output "Initializing #{@worker_count} worker threads..."
+    log_stderr "Initializing #{@worker_count} worker threads..."
     @worker_count.times do |i|
       worker_queue = Queue.new
       worker_thread = Thread.new do
@@ -143,7 +149,7 @@ class FixedThreadPoolManager
 
           yield(self, task, i) # Execute the provided block of work.
         end
-        output "  [Worker #{i}] Shutting down.", :cyan
+        log_stderr "  [Worker #{i}] Shutting down.", :cyan
       end
       @workers << { thread: worker_thread, queue: worker_queue }
     end

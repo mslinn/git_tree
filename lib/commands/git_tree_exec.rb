@@ -1,3 +1,4 @@
+require 'open3'
 require 'pathname'
 require 'rainbow/refinement'
 require_relative 'abstract_command'
@@ -20,33 +21,25 @@ module GitTree
       command = @args[1]
 
       walker = GitTreeWalker.new([root])
-      walker.process do |_worker, dir, _thread_id, _git_walker_instance|
-        execute(dir, command)
+      walker.process do |worker, dir, _thread_id, _git_walker_instance|
+        execute(worker, dir, command)
       end
     end
 
     private
 
-    def execute(dir, command)
-      Dir.chdir(dir) do
-        unless File.exist?(dir)
-          warn "Warning: directory '#{dir}' does not exist.".yellow
-          return
-        end
-        unless Dir.exist?(dir)
-          warn "Warning: #{dir} is a file, not a directory.".yellow
-          return
-        end
-        result = `#{command}`.rstrip
-        puts result unless result.empty?
-      end
+    def execute(worker, dir, command)
+      # Use system with :chdir to be thread-safe, avoiding process-wide Dir.chdir.
+      # Redirect stdout and stderr to capture the output.
+      output, _status = Open3.capture2e(command, chdir: dir)
+      worker.log_stdout(output.strip) unless output.strip.empty?
     rescue StandardError => e
-      warn "Error: #{e.message} from executing '#{command}' in #{dir}".red
+      warn "Error: '#{e.message}' from executing '#{command}' in #{dir}".red
     end
 
     def help(msg = nil)
-      puts "Error: #{msg}\n".red if msg
-      puts <<~END_HELP
+      warn "Error: #{msg}\n".red if msg
+      warn <<~END_HELP
         #{$PROGRAM_NAME} - requires two parameters.
         The first points to the top-level directory to process. 3 forms are accepted.
           1. A directory name, which may be relative or absolute.
@@ -75,13 +68,13 @@ module GitTree
       exit 1
     end
   end
-end
 
-if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-exec')
-  begin
-    GitTree::ExecCommand.new(ARGV).run
-  rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}".red
-    exit 1
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-exec')
+    begin
+      GitTree::ExecCommand.new(ARGV).run
+    rescue StandardError => e
+      puts "An unexpected error occurred: #{e.message}".red
+      exit 1
+    end
   end
 end

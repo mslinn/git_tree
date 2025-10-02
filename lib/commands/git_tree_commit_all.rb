@@ -32,8 +32,8 @@ module GitTree
     private
 
     def help(msg = nil)
-      puts "Error: #{msg}\n".red if msg
-      puts <<~END_MSG
+      warn "Error: #{msg}\n".red if msg
+      warn <<~END_MSG
         #{$PROGRAM_NAME} - Runs git commit on a tree of git repositories without prompting for messages.
 
         Usage: #{$PROGRAM_NAME} [options] [DIRECTORY...]
