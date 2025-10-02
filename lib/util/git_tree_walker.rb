@@ -10,6 +10,7 @@ class GitWalker
   using Rainbow
 
   GIT_TIMEOUT = 300 # 5 minutes per git pull
+  IGNORED_DIRECTORIES = ['.', '..', '.venv'].freeze
 
   # Verbosity levels
   QUIET = 0
@@ -18,7 +19,7 @@ class GitWalker
   DEBUG = 3
 
   def initialize(args = ARGV)
-    @verbosity = NORMAL
+    @verbosity = DEBUG
     @root_map = {}
     @display_roots = []
     determine_roots(args)
@@ -75,10 +76,22 @@ class GitWalker
   def find_and_process_repos(pool)
     visited = Set.new
     @root_map.each_value do |paths|
-      paths.each do |root_path|
+      paths.sort.each do |root_path|
         find_git_repos_recursive(root_path, visited, pool)
       end
     end
+  end
+
+  def sort_directory_entries(directory_path)
+    entries = []
+    directories = Dir.children(directory_path).select do |entry|
+      File.directory?(File.join(directory_path, entry))
+    end
+
+    directories.each do |entry|
+      entries << entry unless IGNORED_DIRECTORIES.include?(entry) # Exclude '.' and '..'
+    end
+    entries.sort
   end
 
   def find_git_repos_recursive(root_path, visited, pool)
@@ -96,10 +109,9 @@ class GitWalker
 
     return if File.exist?(File.join(root_path, '.ignore'))
 
-    Dir.foreach(root_path) do |entry|
-      next if ['.', '..'].include?(entry)
-
-      find_git_repos_recursive(File.join(root_path, entry), visited, pool)
+    sort_directory_entries(root_path).each do |entry|
+      fq_file_name = File.join(root_path, entry)
+      find_git_repos_recursive(fq_file_name, visited, pool)
     end
   rescue SystemCallError => e
     log NORMAL, "Error scanning #{root_path}: #{e.message}".red

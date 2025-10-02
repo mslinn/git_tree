@@ -9,10 +9,10 @@
         "'$work'"
       ],
       "debugPort": "0",
-      "name": "Debug git_update_example",
+      "name": "Debug git_tree_update",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/playground/git_update_example.rb"
+      "script": "${workspaceRoot}/exe/git-tree-update"
     },
     {
       "args": [
