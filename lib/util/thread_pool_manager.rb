@@ -72,6 +72,12 @@ class FixedThreadPoolManager
   end
 
   # Signals the pool to shut down after all currently queued tasks are processed.
+  # This is a non-blocking method.
+  # When you call it, it simply places a special SHUTDOWN_SIGNAL message onto the
+  # main work queue. The method returns immediately, allowing your main thread to
+  # continue with other tasks.
+  # It's like telling the pool, "I'm not going to give you any more tasks,
+  # so start wrapping things up when you're done with what you have."
   def shutdown
     @main_work_queue.push(SHUTDOWN_SIGNAL)
   end
@@ -85,6 +91,10 @@ class FixedThreadPoolManager
     @monitor = create_monitor
   end
 
+  # This is the last method to call when using FixedPoolManager.
+  # This is a blocking method.
+  # It pauses the execution of your main thread and waits until the monitor and all worker threads have
+  # fully completed their work and terminated.
   def wait_for_completion
     @monitor&.join
   end
