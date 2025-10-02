@@ -34,6 +34,10 @@ module GitTree
       warn <<~END_MSG
         #{$PROGRAM_NAME} - Runs git commit on a tree of git repositories without prompting for messages.
 
+        Recursively commits changes in all git repositories under the specified DIRECTORY roots.
+        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        Skips directories containing a .ignore file.
+
         Usage: #{$PROGRAM_NAME} [options] [DIRECTORY...]
 
         Options:
