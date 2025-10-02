@@ -6,6 +6,12 @@ class FixedThreadPoolManager
 
   SHUTDOWN_SIGNAL = :shutdown
 
+  # Constructor/dispatcher for new FixedThreadPoolManager instances
+  # See playground/process_messages.rb for examples of how to use this
+  # @param task_input_messages [Array[String]] The contents of the array will be parceled out to
+  #   individual threads as they become available.
+  # @return void Note the thread pool is torn down and the program exits
+  #   shortly after this method returns.
   def self.dispatch_work(task_input_messages, &)
     pool = FixedThreadPoolManager.new
     pool.create_tasks_from(task_input_messages)
