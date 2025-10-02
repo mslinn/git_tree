@@ -1,9 +1,10 @@
-require 'find'
 require 'gem_support'
 require 'rainbow/refinement'
-require 'rugged'
-require_relative 'util/gem_support'
+require_relative 'git_tree/version'
 
-module GitTree
-  using Rainbow
+def self.require_all(relative_path)
+  Dir[File.join(__dir__, relative_path, '*.rb')].each { |file| require file }
 end
+
+require_all 'commands'
+require_all 'util'
