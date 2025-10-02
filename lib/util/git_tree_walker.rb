@@ -40,7 +40,7 @@ class GitTreeWalker
 
   def process(&) # Now accepts a block
     log NORMAL, "Processing #{@display_roots.join(' ')}".green
-    pool = FixedThreadPoolManager.new
+    pool = FixedThreadPoolManager.new(0.75, verbosity: @verbosity)
     pool.start do |worker, dir, thread_id|
       yield(worker, dir, thread_id, self) # Pass self (GitTreeWalker instance) for access to its methods
     end

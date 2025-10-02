@@ -8,7 +8,7 @@ class FixedThreadPoolManager
 
   # Calculate the number of worker threads as 75% of available processors
   # (less one for the monitor thread), with a minimum of 1.
-  def initialize(percent_available_processors = 0.75)
+  def initialize(percent_available_processors = 0.75, verbosity: 1)
     if percent_available_processors > 1 || percent_available_processors <= 0
       msg = <<~END_MSG
         Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
@@ -17,6 +17,7 @@ class FixedThreadPoolManager
       log_stderr msg, :red
       exit! 1
     end
+    @verbosity = verbosity
     @worker_count = [(Etc.nprocessors * percent_available_processors).floor, 1].max
     @main_work_queue = Queue.new
     @workers = []
@@ -76,7 +77,7 @@ class FixedThreadPoolManager
       break if active_workers.zero?
 
       if active_workers != last_active_count
-        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r"
+        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if @verbosity >= 2
         last_active_count = active_workers
       end
       sleep 0.1
@@ -90,10 +91,10 @@ class FixedThreadPoolManager
 
   # @param Block of code to execute for each task.
   def initialize_workers
-    log_stderr "Initializing #{@worker_count} worker threads..."
+    log_stderr "Initializing #{@worker_count} worker threads...", :green if @verbosity >= 1
     @worker_count.times do |i|
       worker_thread = Thread.new do
-        log_stderr "  [Worker #{i}] Started.", :cyan
+        log_stderr "  [Worker #{i}] Started.", :cyan if @verbosity >= 2
         start_time = Time.now
         start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
         tasks_processed = 0
@@ -112,7 +113,7 @@ class FixedThreadPoolManager
           "  [Worker %d] Shutting down. Processed %d tasks. Elapsed: %.2fs, CPU: %.2fs",
           i, tasks_processed, elapsed_time, cpu_time
         )
-        log_stderr shutdown_msg, :cyan
+        log_stderr shutdown_msg, :cyan if @verbosity >= 2
       end
       @workers << worker_thread
     end

@@ -11,6 +11,8 @@ module GitTree
   using Rainbow
 
   class UpdateCommand < AbstractCommand
+    self.allow_empty_args = true
+
     def initialize(args)
       $PROGRAM_NAME = 'git-tree-update'
       super
