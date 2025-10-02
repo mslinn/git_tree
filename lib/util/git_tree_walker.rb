@@ -18,8 +18,8 @@ class GitTreeWalker
   VERBOSE = 2
   DEBUG = 3
 
-  def initialize(args = ARGV)
-    @verbosity = DEBUG
+  def initialize(args = ARGV, verbosity: NORMAL)
+    @verbosity = verbosity
     @root_map = {}
     @display_roots = []
     determine_roots(args)

@@ -24,7 +24,7 @@ module GitTree
       result = []
       result << make_env_var(env_var_name(base), GemSupport.deref_symlink(base))
 
-      walker = GitTreeWalker.new(@args)
+      walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
       walker.find_and_process_repos do |dir|
         relative_dir = dir.sub(base + '/', '')
         result << make_env_var(env_var_name(relative_dir), "#{root}/#{relative_dir}")
@@ -56,6 +56,12 @@ module GitTree
         $ export work=$HOME/work
 
         Directories containing a file called .ignore are ignored.
+
+        Options:
+          -h, --help           Show this help message and exit.
+          -q, --quiet          Suppress normal output, only show errors.
+          -v, --verbose        Verbose output.
+          -vv, --very-verbose  Very verbose (debug) output.
 
         Usage example:
 

@@ -2,9 +2,15 @@ require 'gem_support'
 require 'rainbow/refinement'
 require_relative 'git_tree/version'
 
-def self.require_all(relative_path)
-  Dir[File.join(__dir__, relative_path, '*.rb')].each { |file| require file }
-end
+module GitTree
+  using Rainbow
 
-require_all 'commands'
-require_all 'util'
+  # Helper to require all .rb files in a subdirectory
+  def self.require_all(relative_path)
+    Dir[File.join(__dir__, relative_path, '*.rb')].sort.each { |file| require file }
+  end
+
+  # Require utilities first, as commands may depend on them.
+  require_all 'util'
+  require_all 'commands'
+end

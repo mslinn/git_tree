@@ -22,7 +22,7 @@ module GitTree
       help("Environment variable '#{root}' points to a file (#{base}), not a directory.") unless Dir.exist?(base)
 
       result = []
-      walker = GitTreeWalker.new(@args)
+      walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
       walker.find_and_process_repos do |dir|
         result << replicate_one(dir, root)
       end
@@ -44,6 +44,12 @@ module GitTree
         $ export work=$HOME/work
 
         Directories containing a file called .ignore are ignored.
+
+        Options:
+          -h, --help           Show this help message and exit.
+          -q, --quiet          Suppress normal output, only show errors.
+          -v, --verbose        Verbose output.
+          -vv, --very-verbose  Very verbose (debug) output.
 
         Usage example:
         Assuming that 'work' is an environment variable that contains the name of a

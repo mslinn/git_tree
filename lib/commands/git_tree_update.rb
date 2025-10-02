@@ -13,15 +13,13 @@ module GitTree
   PROGRAM_NAME = 'git-tree-update'.freeze
 
   class UpdateCommand < AbstractCommand
-    def initialize(args) # rubocop:disable Lint/MissingSuper
-      # Don't call super, this command can run without arguments
+    def initialize(args)
       $PROGRAM_NAME = PROGRAM_NAME
-      @options = {}
-      @args = parse_options(args)
+      super
     end
 
     def run
-      walker = GitTreeWalker.new(@args)
+      walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
       walker.process do |_worker, dir, thread_id, git_walker_instance|
         abbrev_dir = git_walker_instance.abbreviate_path(dir)
         git_walker_instance.log GitTreeWalker::NORMAL, "Updating #{abbrev_dir}".green
@@ -58,6 +56,12 @@ module GitTree
         #{$PROGRAM_NAME} - Recursively updates all git repositories under the specified DIRECTORY roots.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         Skips directories containing a .ignore file.
+
+        Options:
+          -h, --help           Show this help message and exit.
+          -q, --quiet          Suppress normal output, only show errors.
+          -v, --verbose        Verbose output.
+          -vv, --very-verbose  Very verbose (debug) output.
 
         Usage: #{$PROGRAM_NAME} [DIRECTORY...]
       END_HELP

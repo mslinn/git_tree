@@ -7,7 +7,10 @@ module GitTree
     using Rainbow
 
     def initialize(args)
-      @options = {}
+      @options = {
+        # Default to NORMAL verbosity
+        verbosity: GitTreeWalker::NORMAL,
+      }
       # The parse_options method is expected to be defined in the subclass
       # and should call super to get the base OptionParser instance.
       @args = parse_options(args)
@@ -33,6 +36,9 @@ module GitTree
         opts.on("-h", "--help", "Show this help message and exit.") do
           help
         end
+        opts.on("-q", "--quiet", "Suppress normal output, only show errors.") { @options[:verbosity] = GitTreeWalker::QUIET }
+        opts.on("-v", "--verbose", "Verbose output.") { @options[:verbosity] = GitTreeWalker::VERBOSE }
+        opts.on("-vv", "--very-verbose", "Very verbose (debug) output.") { @options[:verbosity] = GitTreeWalker::DEBUG }
       end.parse!(args)
       args
     end

@@ -13,17 +13,15 @@ module GitTree
   PROGRAM_NAME = 'git-tree-commitAll'.freeze
 
   class CommitAllCommand < AbstractCommand
-    def initialize(args) # rubocop:disable Lint/MissingSuper
-      # Don't call super here, because this command can run without arguments,
-      # using default directories from GitTreeWalker.
+    def initialize(args)
       $PROGRAM_NAME = PROGRAM_NAME
-      @options = { message: '-' }
-      @args = parse_options(args) # This will call the help method if -h is present.
+      super
+      # This command can run without directory args, so we don't check for empty @args.
+      @options[:message] ||= '-'
     end
 
     def run
-      $PROGRAM_NAME = PROGRAM_NAME
-      walker = GitTreeWalker.new(@args) # ARGV now contains only the directory arguments
+      walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
       walker.process do |_worker, dir, thread_id, git_walker_instance|
         process_repo(dir, thread_id, git_walker_instance, @options[:message])
       end
@@ -37,21 +35,26 @@ module GitTree
         #{$PROGRAM_NAME} - Runs git commit on a tree of git repositories without prompting for messages.
 
         Usage: #{$PROGRAM_NAME} [options] [DIRECTORY...]
-          Where options are:
-           -m "commit message"
+
+        Options:
+          -h, --help                Show this help message and exit.
+          -m, --message MESSAGE     Use the given string as the commit message.
+          -q, --quiet               Suppress normal output, only show errors.
+          -v, --verbose             Verbose output.
+          -vv, --very-verbose       Very verbose (debug) output.
 
         Examples:
           #{$PROGRAM_NAME}  # The default commit message is just a single dash (-)
           #{$PROGRAM_NAME} -m "This is a commit message"
           #{$PROGRAM_NAME} '$work' '$sites'
       END_MSG
-      exit
+      exit 0
     end
 
     def parse_options(args)
-      OptionParser.new do |opts|
+      # This method is called by the superclass initializer.
+      super do |opts|
         opts.banner = "Usage: #{$PROGRAM_NAME} [options] [DIRECTORY ...]"
-        opts.on("-h", "--help", "Show this help message and exit.") { help }
         opts.on("-m MESSAGE", "--message MESSAGE", "Use the given string as the commit message.") do |m|
           @options[:message] = m
         end

@@ -20,7 +20,7 @@ module GitTree
       root = @args[0]
       command = @args[1]
 
-      walker = GitTreeWalker.new([root])
+      walker = GitTreeWalker.new([root], verbosity: @options[:verbosity])
       walker.process do |worker, dir, _thread_id, _git_walker_instance|
         execute(worker, dir, command)
       end
