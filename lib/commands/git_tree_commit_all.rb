@@ -10,11 +10,9 @@ module GitTree
   trap('SIGINT') { exit!(-1) }
   using Rainbow
 
-  PROGRAM_NAME = 'git-tree-commitAll'.freeze
-
   class CommitAllCommand < AbstractCommand
     def initialize(args)
-      $PROGRAM_NAME = PROGRAM_NAME
+      $PROGRAM_NAME = 'git-tree-commitAll'
       super
       # This command can run without directory args, so we don't check for empty @args.
       @options[:message] ||= '-'
@@ -32,7 +30,7 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_MSG
-        #{$PROGRAM_NAME} - Runs git commit on a tree of git repositories without prompting for messages.
+        git-tree-commitAll - Runs git commit on a tree of git repositories without prompting for messages.
 
         Recursively commits changes in all git repositories under the specified DIRECTORY roots.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.

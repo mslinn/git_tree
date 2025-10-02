@@ -4,7 +4,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   github = 'https://github.com/mslinn/git_tree'
 
   spec.authors     = ['Mike Slinn']
-  spec.bindir      = 'bindir'
+  spec.bindir      = 'exe'
   spec.description = <<~END_OF_DESC
     Installs 3 commands that process a git directory tree.
     Directories containing a file called .ignore are ignored.
@@ -17,9 +17,9 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     The git-tree-exec command executes a bash expression on children of a directory, or a list of directories.
   END_OF_DESC
   spec.email       = ['mslinn@mslinn.com']
-  spec.executables = %w[git-tree-exec git-tree-evars git-tree-replicate]
+  spec.executables = %w[git-tree-commitAll git-tree-evars git-tree-exec git-tree-replicate git-tree-update]
   spec.files = Dir[
-    '{bindir,lib}/**/*',
+    '{exe,lib}/**/*',
     '.rubocop.yml',
     'LICENSE.*',
     'Rakefile',

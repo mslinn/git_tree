@@ -10,11 +10,9 @@ module GitTree
   trap('SIGINT') { exit!(-1) }
   using Rainbow
 
-  PROGRAM_NAME = 'git-tree-update'.freeze
-
   class UpdateCommand < AbstractCommand
     def initialize(args)
-      $PROGRAM_NAME = PROGRAM_NAME
+      $PROGRAM_NAME = 'git-tree-update'
       super
     end
 
@@ -53,7 +51,7 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
-        #{$PROGRAM_NAME} - Recursively updates all git repositories under the specified DIRECTORY roots.
+        git-tree-update - Recursively updates all git repositories under the specified DIRECTORY roots.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         Skips directories containing a .ignore file.
 
@@ -69,7 +67,7 @@ module GitTree
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?(PROGRAM_NAME)
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-update')
     begin
       GitTree::UpdateCommand.new(ARGV).run
     rescue StandardError => e
