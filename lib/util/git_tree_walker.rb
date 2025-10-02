@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 require 'English'
 require 'etc'
 require 'shellwords'
@@ -8,7 +6,7 @@ require 'timeout'
 require 'rainbow/refinement'
 require_relative 'thread_pool_manager'
 
-class GitUpdater
+class GitWalker
   using Rainbow
 
   GIT_TIMEOUT = 300 # 5 minutes per git pull
@@ -26,21 +24,6 @@ class GitUpdater
     determine_roots(args)
   end
 
-  def process
-    log NORMAL, "Updating #{@display_roots.join(' ')}".green
-    pool = FixedThreadPoolManager.new
-    pool.start do |_worker, dir, thread_id|
-      update_repo(dir, thread_id)
-    end
-
-    find_and_process_repos(pool)
-
-    pool.shutdown
-    pool.wait_for_completion
-  end
-
-  private
-
   def abbreviate_path(dir)
     @root_map.each do |display_root, expanded_paths|
       expanded_paths.each do |expanded_path|
@@ -50,44 +33,25 @@ class GitUpdater
     dir # Return original if no match
   end
 
-  def commit(dir, thread_id)
-    short_dir = abbreviate_path(dir)
-    log VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
-    rugged_repo = Rugged::Repository.new(dir)
-
-    # Check for unstaged or staged changes
-    has_changes = false
-    rugged_repo.status do |_, s|
-      unless %i[ignored unmodified].include?(s)
-        has_changes = true
-        break
-      end
-    end
-
-    unless has_changes
-      log DEBUG, "  No changes to commit in #{short_dir}".yellow
-      return
-    end
-
-    run(['git', '-C', dir, 'add', '-A'])
-
-    # Check again for staged changes before committing
-    status_output = `git -C #{dir} status --porcelain`.strip
-    if status_output.empty?
-      log DEBUG, "No changes to commit in #{short_dir}".yellow
-      return
-    end
-
-    run(['git', '-C', dir, 'commit', '-m', 'Auto-commit by git-tree-commitAll', '--quiet'])
-    log NORMAL, "Committed changes in #{short_dir}".green
-  rescue StandardError => e
-    log NORMAL, "Error processing #{short_dir}: #{e.message}".red
-    log DEBUG, "Exception class: #{e.class}".yellow
-    log DEBUG, e.backtrace.join("\n").yellow
+  def log(level, msg) # Kept for external blocks to use
+    puts msg if @verbosity >= level
   end
 
-  # args might contain literal file paths or
-  # environment variables that point to file paths
+  def process(&) # Now accepts a block
+    log NORMAL, "Updating #{@display_roots.join(' ')}".green
+    pool = FixedThreadPoolManager.new
+    pool.start do |worker, dir, thread_id|
+      yield(worker, dir, thread_id, self) # Pass self (GitWalker instance) for access to its methods
+    end
+
+    find_and_process_repos(pool) # This method adds tasks to the pool
+
+    pool.shutdown
+    pool.wait_for_completion
+  end
+
+  private
+
   def determine_roots(args)
     if args.empty?
       default_roots = %w[sites sitesUbuntu work]
@@ -139,41 +103,5 @@ class GitUpdater
     end
   rescue SystemCallError => e
     log NORMAL, "Error scanning #{root_path}: #{e.message}".red
-  end
-
-  def log(level, msg)
-    puts msg if @verbosity >= level
-  end
-
-  def run(cmd)
-    log DEBUG, "Executing: #{cmd.join(' ')}".green
-    system(*cmd, exception: true)
-  end
-
-  def update_repo(dir, thread_id)
-    abbrev_dir = abbreviate_path(dir)
-    log NORMAL, "Updating #{abbrev_dir}".green
-    log VERBOSE, "Thread #{thread_id}: git -C #{dir} pull".yellow
-
-    output = nil
-    status = nil
-    begin
-      Timeout.timeout(GIT_TIMEOUT) do
-        output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
-        status = $CHILD_STATUS.exitstatus
-      end
-    rescue Timeout::Error
-      log NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}".red
-      status = -1
-    rescue StandardError => e
-      log NORMAL, "[ERROR] Thread #{thread_id}: Failed in #{abbrev_dir}: #{e}".red
-      status = -1
-    end
-
-    if status != 0
-      log NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):\n#{output}".red
-    elsif @verbosity >= VERBOSE
-      log NORMAL, output.strip.green
-    end
   end
 end
