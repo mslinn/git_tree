@@ -1,5 +1,21 @@
 #!/usr/bin/env ruby
 
-require_relative '../commands/git_tree_replicate'
+begin
+  require_relative '../lib/commands/git_tree_replicate'
+rescue LoadError => e
+  puts "Error: #{e.message}".red if defined?(Rainbow)
+  puts <<~END_HELP
+    git-tree-replicate - Replicate a tree of git repositories to a new location.
 
-GitTree.command_replicate
+    Usage:
+      git-tree-replicate <source directory or $envar> <destination directory or $envar>
+
+    Example:
+      git-tree-replicate '$work' '$backup'
+
+    For more details, see the documentation or run with --help.
+  END_HELP
+  exit 1
+end
+
+GitTree.command_replicate(ARGV)
