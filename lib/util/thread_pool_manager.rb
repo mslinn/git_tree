@@ -41,6 +41,12 @@ class FixedThreadPoolManager
     @main_work_queue.push(SHUTDOWN_SIGNAL) # Signal that production is complete.
   end
 
+  # Adds a single task to the work queue.
+  # The pool must have been started with `start` first.
+  def add_task(task)
+    @main_work_queue.push(task)
+  end
+
   def max_worker_count
     @worker_count
   end
@@ -63,6 +69,24 @@ class FixedThreadPoolManager
 
     monitor.join # Wait for the monitor to finish (which in turn waits on all workers).
     output "\nAll work is complete.", :green
+  end
+
+  # Signals the pool to shut down after all currently queued tasks are processed.
+  def shutdown
+    @main_work_queue.push(SHUTDOWN_SIGNAL)
+  end
+
+  # Starts the workers and the monitor, but does not wait for them to complete.
+  # This is for "drip-feeding" tasks.
+  # @param Block of code to execute for each task.
+  # @return nil
+  def start(&)
+    initialize_workers(&)
+    @monitor = create_monitor
+  end
+
+  def wait_for_completion
+    @monitor&.join
   end
 
   private
