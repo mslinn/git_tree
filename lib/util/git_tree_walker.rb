@@ -49,7 +49,6 @@ class GitTreeWalker
       pool.add_task(dir)
     end
 
-    pool.shutdown
     pool.wait_for_completion
   end
 
