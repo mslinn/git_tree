@@ -9,8 +9,8 @@ require_relative 'thread_pool_manager'
 class GitTreeWalker
   using Rainbow
 
-  GIT_TIMEOUT = 300 # 5 minutes per git pull
-  IGNORED_DIRECTORIES = ['.', '..', '.venv'].freeze
+  GIT_TIMEOUT = 300 # 5 minutes max per git pull
+  IGNORED_DIRECTORIES = ['.venv'].freeze
 
   # Verbosity levels
   QUIET = 0
@@ -35,7 +35,11 @@ class GitTreeWalker
   end
 
   def log(level, msg) # Kept for external blocks to use
-    warn msg if @verbosity >= level
+    return unless @verbosity >= level
+
+    # The message might already be colored by Rainbow, so we can't just pass a color.
+    # We'll just use `warn` which is thread-safe for single lines.
+    msg.each_line { |line| warn line.chomp }
   end
 
   def process(&) # Now accepts a block
@@ -81,15 +85,9 @@ class GitTreeWalker
   end
 
   def sort_directory_entries(directory_path)
-    entries = []
-    directories = Dir.children(directory_path).select do |entry|
+    Dir.children(directory_path).select do |entry|
       File.directory?(File.join(directory_path, entry))
-    end
-
-    directories.each do |entry|
-      entries << entry unless IGNORED_DIRECTORIES.include?(entry) # Exclude '.' and '..'
-    end
-    entries.sort
+    end.sort
   end
 
   def find_git_repos_recursive(root_path, visited, &block)
@@ -106,8 +104,11 @@ class GitTreeWalker
       return # Prune search
     end
 
-    sort_directory_entries(root_path)
-      .each { |entry| find_git_repos_recursive(File.join(root_path, entry), visited, &block) }
+    sort_directory_entries(root_path).each do |entry|
+      next if IGNORED_DIRECTORIES.include?(entry)
+
+      find_git_repos_recursive(File.join(root_path, entry), visited, &block)
+    end
   rescue SystemCallError => e
     log NORMAL, "Error scanning #{root_path}: #{e.message}".red
   end

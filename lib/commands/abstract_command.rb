@@ -43,11 +43,11 @@ module GitTree
         opts.on("-q", "--quiet", "Suppress normal output, only show errors.") do
           @options[:verbosity] = GitTreeWalker::QUIET
         end
-        opts.on("-v", "--verbose", "Verbose output.") do
-          @options[:verbosity] = GitTreeWalker::VERBOSE
-        end
-        opts.on("-vv", "--very-verbose", "Very verbose (debug) output.") do
-          @options[:verbosity] = GitTreeWalker::DEBUG
+        opts.on("-v", "--verbose", "Increase verbosity. Can be used multiple times (e.g., -v, -vv).") do
+          @options[:verbosity] = case @options[:verbosity]
+                                 when GitTreeWalker::NORMAL then GitTreeWalker::VERBOSE
+                                 else GitTreeWalker::DEBUG
+                                 end
         end
         yield opts if block_given?
       end

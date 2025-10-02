@@ -41,7 +41,8 @@ module GitTree
         end
 
         if !status.zero?
-          git_walker_instance.log GitTreeWalker::NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):\n#{output}".red
+          git_walker_instance.log GitTreeWalker::NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):".red
+          git_walker_instance.log GitTreeWalker::NORMAL, output.strip.red unless output.strip.empty?
         elsif git_walker_instance.instance_variable_get(:@verbosity) >= GitTreeWalker::VERBOSE
           git_walker_instance.log GitTreeWalker::NORMAL, output.strip.green
         end

@@ -31,8 +31,12 @@ module GitTree
     def execute(worker, dir, command)
       # Use system with :chdir to be thread-safe, avoiding process-wide Dir.chdir.
       # Redirect stdout and stderr to capture the output.
-      output, _status = Open3.capture2e(command, chdir: dir)
-      worker.log_stdout(output.strip) unless output.strip.empty?
+      output, status = Open3.capture2e(command, chdir: dir)
+      if status.success?
+        worker.log_stdout(output.strip) unless output.strip.empty?
+      else
+        worker.log_stderr(output.strip.red) unless output.strip.empty?
+      end
     rescue StandardError => e
       warn "Error: '#{e.message}' from executing '#{command}' in #{dir}".red
     end
