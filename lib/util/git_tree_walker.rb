@@ -60,9 +60,13 @@ class GitTreeWalker
   end
 
   # Finds git repos and yields them to the block. Does not use thread pool.
-  def find_and_process_repos(&block)
+  def find_and_process_repos(&)
     visited = Set.new
-    @root_map.each_value { |paths| paths.sort.each { |root_path| find_git_repos_recursive(root_path, visited, &block) } }
+    @root_map.each do |root_arg, paths|
+      paths.sort.each do |root_path|
+        find_git_repos_recursive(root_path, visited) { |dir| yield(dir, root_arg) }
+      end
+    end
   end
 
   private

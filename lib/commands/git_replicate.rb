@@ -17,9 +17,8 @@ module GitTree
 
       result = []
       walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
-      walker.root_map.each do |root_arg, root_paths|
-        root_paths.each { |p| walker.find_git_repos_recursive(p, Set.new) { |dir| result << replicate_one(dir, root_arg) } }
-      end
+      # Use the public API to find repos, which now yields the root argument as well.
+      walker.find_and_process_repos { |dir, root_arg| result << replicate_one(dir, root_arg) }
 
       puts result.join("\n")
     end
