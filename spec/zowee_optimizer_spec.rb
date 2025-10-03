@@ -3,7 +3,7 @@ require_relative '../lib/util/zowee_optimizer'
 
 describe ZoweeOptimizer do
   context 'with no initial variables' do
-    let(:optimizer) { ZoweeOptimizer.new }
+    let(:optimizer) { described_class.new }
 
     context 'with a simple nested structure' do
       let(:paths) { ['/a', '/a/b', '/a/b/c'] }
@@ -42,7 +42,7 @@ describe ZoweeOptimizer do
 
   context 'with initial variables' do
     let(:initial_vars) { { '$work' => ['/path/to/work'] } }
-    let(:optimizer) { ZoweeOptimizer.new(initial_vars) }
+    let(:optimizer) { described_class.new(initial_vars) }
     let(:paths) { ['/path/to/work/project_a', '/path/to/work/project_b'] }
 
     it 'uses the initial variables for substitution' do

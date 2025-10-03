@@ -6,7 +6,7 @@ Ignoring a directory means all subdirectories are also ignored.
 Multiple threads are used to dramatically boost performance.
 
 - The `git-commitAll` command commits and pushes all changes to each repository in the tree.
-  Repositories in a detached HEAD state are skipped.
+  Repositories in a detached `HEAD` state are skipped.
 
 - The `git-evars` command writes a script that defines environment variables pointing to each git repository.
 
@@ -34,9 +34,39 @@ $ gem specification git_tree executables
 - git-update
 ```
 
+## Installation
+
+Type the following at a shell prompt on the machine you are copying the git tree from,
+and on the machine that you are copying the git tree to:
+
+```shell
+$ yes | sudo apt install cmake libgit2-dev libssh2-1-dev pkg-config
+
+$ gem install git_tree
+```
+
+To register the new commands, either log out and log back in, or open a new console.
+
 ## Usage
 
-### `git-commitAll` Usage
+### Single- And Multi-Threading
+
+All of these commands are inherently multi-threaded.
+They consume up to 75% of the threads that your CPU can provide.
+You may notice that your computer's fan gets louder when your run these commands on large numbers of Git repositories.
+
+For builds and other sequential tasks, however, parallelism is inappropriate.
+Instead, it is necessary to build components in the proper order.
+Doing all the work on a single thread is a straightforward way of ensuring proper task ordering.
+
+Use the `-s/--serial` option when the order that Git projects are processed matters.
+All of the commands support this option.
+Execution will take much longer that without the option,
+because performing most tasks take longer to perform in sequence than performing them in parallel.
+Exceptions include old sayings like “Nine women cannot have a baby in one month.”
+For those exceptions, use the `-s/--serial` option.
+
+### `git-commitAll`
 
 ```text
 git-commitAll - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
@@ -53,8 +83,16 @@ Options:
   -v, --verbose             Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 ```
 
+```shell
+$ git commitAll
+Processing $sites $sitesUbuntu $work
+Initializing 18 worker threads...
 
-### `git-evars` Usage
+All work is complete.
+```
+
+
+### `git-evars`
 
 The `git-evars` command writes a script that defines environment variables pointing to each git repository.
 This command should be run on the target computer.
@@ -74,17 +112,24 @@ $ git-evars '$work' >> $work/.evars
 #### Generated Script from `git-evars`
 
 Following is a sample of environment variable definitions.
-You are expected to edit it to suit.
+The `-z`/`--zowee` option generates intermediate environment variable definitions,
+making them much easier to work with.
 
 ```shell
-export work=/mnt/c/work
-export ancientWarmth=$work/ancientWarmth/ancientWarmth
-export ancientWarmthBackend=$work/ancientWarmth/ancientWarmthBackend
-export braintreeTutorial=$work/ancientWarmth/braintreeTutorial
-export survey_analytics=$work/ancientWarmth/survey-analytics
-export survey_creator=$work/ancientWarmth/survey-creator
-export django=$work/django/django
-export frobshop=$work/django/frobshop
+$ git-evars -z '$sites'
+export 6of26=$sites/6of26
+export computers.mslinn.com=$sites/computers.mslinn.com
+export ebooks=$sites/ebooks
+export expert=$sites/expert
+export fonts=$sites/fonts
+export intranet.mslinn.com=$sites/intranet.mslinn.com
+export jekyllTemplate=$sites/jekyllTemplate
+export lyrics=$sites/lyrics
+export metamusic=$sites/metamusic
+export music.mslinn.com=$sites/music.mslinn.com
+export photos=$sites/photos
+export supportingLiterature=$sites/supportingLiterature
+export www.scalacourses.com=$sites/www.scalacourses.com
 ```
 
 The environment variable definitions are meant to be saved into a file that is `source`d upon boot.
@@ -127,8 +172,8 @@ For all subdirectories of current directory,
 update `Gemfile.lock` and install a local copy of the gem:
 
 ```shell
-$ git-exec '
-  $jekyll_plugin_logger
+$ git-exec \
+  '$jekyll_plugin_logger
   $jekyll_draft
   $jekyll_plugin_support
   $jekyll_all_collections
@@ -139,8 +184,8 @@ $ git-exec '
   $jekyll_outline
   $jekyll_plugin_template
   $jekyll_pre
-  $jekyll_quote
-' 'bundle && bundle update && rake install'
+  $jekyll_quote'
+  'bundle && bundle update && rake install'
 ```
 
 #### Example 2
@@ -158,12 +203,12 @@ although the language used is not significant:
 
 x="$( ls lib/**/version.rb 2> /dev/null )"
 if [ -f "$x" ]; then
-  v="$(
+  v="$( \
     cat "$x" | \
     grep '=' | \
     sed -e s/.freeze// | \
-    tr -d 'VERSION =\"' | \
-    tr -d \'
+    tr -d 'VERSION ="' | \
+    tr -d \
   )"
   echo "$(basename $PWD) v$v"
 fi
@@ -273,26 +318,59 @@ if [ ! -d "sinatra/sinatras-skeleton/.git" ]; then
 fi
 ```
 
+### `git-update`
 
-## Installation
+The `git-update` command updates each repository in the tree.
 
-Type the following at a shell prompt on the machine you are copying the git tree from,
-and on the machine that you are copying the git tree to:
+## Use Cases
 
-```shell
-$ yes | sudo apt install cmake libgit2-dev libssh2-1-dev pkg-config
+### Dependent Gem Maintenance
 
-$ gem install git_tree
-```
+One of my directory trees holds Jekyll plugins, packaged as 25 gems.
+They depend on one another, and must be built in a particular order.
+Sometimes an operation must be performed on all of the plugins, and then rebuild them all.
 
-To register the new commands, either log out and log back in, or open a new console.
+Most operations do not require that the projects be processed in any particular order, however
+the build process must be invoked on the dependencies first.
+It is quite tedious to do this 25 times, over and over.
 
+Several years ago I wrote a bash script to perform this task, but as its requirements became more complex,
+the bash script proved difficult to maintain. This use case is now fulfilled by the `git-exec` command
+provided by the `git_tree` gem.
+See below for further details.
 
-## Additional Information
+### Replicating Trees of Git Repositories
 
-More information is available on
-[Mike Slinn&rsquo;s website](https://www.mslinn.com/git/1100-git-tree.html)
+Whenever I set up an operating system for a new development computer,
+one of the tedious tasks that must be performed is to replicate
+the directory trees of Git repositories.
 
+It is a bad idea to attempt to copy an entire Git repository between computers,
+because the `.git` directories within them can quite large.
+So large, in fact, that it might much more time to copy than re-cloning.
+
+The reason is that copying the entire Git repository actually means copying the same information twice:
+first the `.git` hidden directory, complete with all the history for the project,
+and then again for the files in the currently checked out branch.
+Git repos store the entire development history of the project in their `.git` directories,
+so as they accumulate history they eventually become much larger than the
+code that is checked out at any given time.
+
+One morning I found myself facing the boring task of doing this manually once again.
+Instead, I wrote a bash script that scanned a Git directory tree and
+wrote out another bash script that clones the repos in the tree.
+Any additional remote references are replicated.
+
+Two years later, I decided to add new features to the script.
+Bash is great for short scripts,
+but it is not conducive to debugging or structured programming.
+I rewrote the bash script in Ruby, using the `rugged` gem.
+Much better!
+
+This use case is fulfilled by the
+`git-replicate`
+and `git-evars` commands
+provided by this gem.
 
 ## Development
 
@@ -368,3 +446,8 @@ To release a new version:
 
 The gem is available as open source under the terms of the
 [MIT License](https://opensource.org/licenses/MIT).
+
+## Additional Information
+
+More information is available on
+[Mike Slinn’s website](https://www.mslinn.com/git/1100-git-tree.html)
