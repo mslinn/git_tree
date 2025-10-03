@@ -29,6 +29,7 @@ module GitTree
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
         #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
+        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         The script clones the repositories and replicates any remotes.
         Skips directories containing a .ignore file.
 

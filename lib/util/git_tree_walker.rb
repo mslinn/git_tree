@@ -21,8 +21,9 @@ class GitTreeWalker
 
   attr_reader :display_roots, :root_map
 
-  def initialize(args = ARGV, verbosity: NORMAL)
-    @verbosity = verbosity
+  def initialize(args = ARGV, options: {})
+    @options = options
+    @verbosity = @options.fetch(:verbosity, NORMAL)
     @root_map = {}
     @display_roots = []
     determine_roots(args)
@@ -45,24 +46,47 @@ class GitTreeWalker
     msg.each_line { |line| warn line.chomp }
   end
 
+  # A thread-safe output method for colored text to STDERR.
+  def log_stderr(multiline_string, color = nil)
+    multiline_string.each_line do |line|
+      line_to_print = line.chomp
+      line_to_print = line_to_print.public_send(color) if color
+      warn line_to_print
+    end
+    $stderr.flush
+  end
+
+  # A thread-safe output method for uncolored text to STDOUT.
+  def log_stdout(multiline_string)
+    $stdout.puts multiline_string
+    $stdout.flush
+  end
+
   def process(&) # Now accepts a block
     log NORMAL, "Processing #{@display_roots.join(' ')}".green
-    pool = FixedThreadPoolManager.new(0.75, verbosity: @verbosity)
-    pool.start(&) # Pass the block to the pool's start method
-
-    # Run the directory scanning in a separate thread so the main thread can handle interrupts.
-    producer_thread = Thread.new do
+    if @options[:serial]
+      log NORMAL, "Running in serial mode.".yellow
       find_and_process_repos do |dir, _root_arg|
-        pool.add_task(dir)
+        yield(self, dir, 0) # Pass self as the worker for logging
       end
-    end
+    else
+      pool = FixedThreadPoolManager.new(0.75, verbosity: @verbosity)
+      pool.start(&) # Pass the block to the pool's start method
 
-    # Wait for the producer to finish, then wait for the pool to complete.
-    producer_thread.join
-    pool.wait_for_completion
+      # Run the directory scanning in a separate thread so the main thread can handle interrupts.
+      producer_thread = Thread.new do
+        find_and_process_repos do |dir, _root_arg|
+          pool.add_task(dir)
+        end
+      end
+
+      # Wait for the producer to finish, then wait for the pool to complete.
+      producer_thread.join
+      pool.wait_for_completion
+    end
   rescue Interrupt
     # If interrupted, ensure the pool is shut down and then let the main command handle the exit.
-    pool.shutdown
+    pool&.shutdown
     raise
   end
 

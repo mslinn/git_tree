@@ -49,6 +49,7 @@ Options:
   -m, --message MESSAGE     Use the given string as the commit message.
                             (default: "-")
   -q, --quiet               Suppress normal output, only show errors.
+  -s, --serial              Run tasks serially in a single thread in the order specified.
   -v, --verbose             Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 ```
 

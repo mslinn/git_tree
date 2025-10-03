@@ -53,19 +53,17 @@ module GitTree
 
           $ export work=$HOME/work
 
-        Usage: #{$PROGRAM_NAME} [OPTIONS] [QUOTED_ENV_VARS...]
+        Usage: #{$PROGRAM_NAME} [OPTIONS] [ROOTS...]
 
-        OPTIONS:
+        Options:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
-        QUOTED_ENV_VARS:
-        When specifying roots, the name of the environment variable must be preceded by a dollar sign
-        and enclosed within single quotes to prevent shell expansion.
+        ROOTS can be directory names or environment variable references (e.g., '$work').
+        Multiple roots can be specified in a single quoted string.
 
         Usage examples:
-
         $ #{$PROGRAM_NAME}                   # Use default environment variables as roots
         $ #{$PROGRAM_NAME} '$work' '$sites'  # Use specific environment variables
       END_HELP

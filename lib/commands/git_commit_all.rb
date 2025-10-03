@@ -20,7 +20,7 @@ module GitTree
     end
 
     def run
-      walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
+      walker = GitTreeWalker.new(@args, options: @options)
       walker.process do |_worker, dir, thread_id, git_walker_instance|
         process_repo(dir, thread_id, git_walker_instance, @options[:message])
       end
@@ -41,6 +41,7 @@ module GitTree
           -m, --message MESSAGE     Use the given string as the commit message.
                                     (default: "-")
           -q, --quiet               Suppress normal output, only show errors.
+          -s, --serial              Run tasks serially in a single thread in the order specified.
           -v, --verbose             Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
         Usage:

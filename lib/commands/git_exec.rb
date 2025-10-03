@@ -20,9 +20,9 @@ module GitTree
       roots = @args[0..-2]
       command = @args[-1]
 
-      walker = GitTreeWalker.new(roots, verbosity: @options[:verbosity])
-      walker.process do |worker, dir, _thread_id, _git_walker_instance|
-        execute(worker, dir, command)
+      walker = GitTreeWalker.new(roots, options: @options)
+      walker.process do |worker, dir, _thread_id, git_walker_instance|
+        execute(worker || git_walker_instance, dir, command)
       end
     end
 
@@ -54,30 +54,26 @@ module GitTree
 
           $ export work=$HOME/work
 
-        Usage: #{$PROGRAM_NAME} [OPTIONS] TLD_ROOT SHELL_COMMAND
+        Usage: #{$PROGRAM_NAME} [OPTIONS] [ROOTS...] SHELL_COMMAND
 
+        Options:
+          -h, --help           Show this help message and exit.
+          -q, --quiet          Suppress normal output, only show errors.
+          -s, --serial         Run tasks serially in a single thread in the order specified.
+          -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
-        TLD_ROOT: Points to the top-level directory to process. 3 forms are accepted:
-          1. A directory name, which may be relative or absolute.
-          2. An environment variable reference,
-             which must be preceded by a dollar sign and enclosed within single quotes
-             to prevent expansion by the shell.
-          3. A list of directory names, which may be relative or absolute,
-             and may contain environment variables.
+        ROOTS can be directory names or environment variable references (e.g., '$work').
+        Multiple roots can be specified in a single quoted string.
 
         Usage examples:
         1) For all git repositories under $sites, display their root directories:
            $ #{$PROGRAM_NAME} '$sites' pwd
 
-        2) For all subdirectories of the current directory, update `Gemfile.lock` and install a local copy of the gem:
-           $ #{$PROGRAM_NAME} . 'bundle && bundle update && rake install'
+        2) For all git repositories under the current directory and $my_plugins, list the `demo/` subdirectory if it exists.
+           $ #{$PROGRAM_NAME} '. $my_plugins' 'if [ -d demo ]; then realpath demo; fi'
 
-        3) For all subdirectories of the directory pointed to by `$work`, run git commit and push changes.
-           This is a simplified version of the `git-commitAll` command.
-           $ #{$PROGRAM_NAME} '$work' 'git commit -am "-" && git push'
-
-        4) For all git repositories under the current directory, list the fully qualified path to the `demo/` subdirectory, if it exists.
-           $ #{$PROGRAM_NAME} '. ~ $my_plugins' 'if [ -d demo ]; then realpath demo; fi'
+        3) For all subdirectories of the current directory, update Gemfile.lock and install a local copy of the gem:
+           $ #{$PROGRAM_NAME} . 'bundle update && rake install'
       END_HELP
       exit 1
     end

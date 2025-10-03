@@ -16,7 +16,7 @@ module GitTree
     end
 
     def run
-      walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
+      walker = GitTreeWalker.new(@args, options: @options)
       walker.process do |_worker, dir, thread_id, git_walker_instance|
         abbrev_dir = git_walker_instance.abbreviate_path(dir)
         git_walker_instance.log GitTreeWalker::NORMAL, "Updating #{abbrev_dir}".green
@@ -89,7 +89,7 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
     GitTree::UpdateCommand.new(ARGV).run
   rescue Interrupt
     warn "\nInterrupted by user".yellow
-    exit! 130 # Use exit! to prevent further exceptions on shutdown
+    exit 130
   rescue StandardError => e
     puts "An unexpected error occurred: #{e.message}".red
     exit 1

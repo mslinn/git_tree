@@ -49,6 +49,9 @@ module GitTree
                                  else GitTreeWalker::DEBUG
                                  end
         end
+        opts.on('-s', "--serial", "Run tasks serially in a single thread in the order specified.") do
+          @options[:serial] = true
+        end
         yield opts if block_given?
       end
       parser.parse!(args)
