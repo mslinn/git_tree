@@ -23,8 +23,9 @@ module GitTree
           result << make_env_var_with_substitution(dir, GitTreeWalker::DEFAULT_ROOTS)
         end
       else
+        processed_args = @args.flat_map { |arg| arg.strip.split(/\s+/) }
         # Process each argument as a root
-        @args.each { |root| result.concat(process_root(root)) }
+        processed_args.each { |root| result.concat(process_root(root)) }
       end
       puts result.map { |x| "#{x}\n" }.join
     end
@@ -124,7 +125,7 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
     GitTree::EvarsCommand.new(ARGV).run
   rescue Interrupt
     warn "\nInterrupted by user".yellow
-    exit 130
+    exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
     puts "An unexpected error occurred: #{e.message}".red
     exit 1

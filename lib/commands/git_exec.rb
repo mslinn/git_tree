@@ -89,7 +89,7 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-exec')
     GitTree::ExecCommand.new(ARGV).run
   rescue Interrupt
     warn "\nInterrupted by user".yellow
-    exit 130
+    exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
     puts "An unexpected error occurred: #{e.message}".red
     exit 1
