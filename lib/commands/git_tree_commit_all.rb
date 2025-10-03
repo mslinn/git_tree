@@ -33,27 +33,27 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_MSG
-        git-tree-commitAll - Runs git commit on a tree of git repositories without prompting for messages.
-
-        Recursively commits changes in all git repositories under the specified DIRECTORY roots.
+        #{$PROGRAM_NAME} - Recursively commits changes in all git repositories under the specified DIRECTORY roots.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         Skips directories containing a .ignore file.
-
-        Usage: #{$PROGRAM_NAME} [options] [DIRECTORY...]
 
         Options:
           -h, --help                Show this help message and exit.
           -m, --message MESSAGE     Use the given string as the commit message.
+                                    (default: "-")
           -q, --quiet               Suppress normal output, only show errors.
           -v, --verbose             Verbose output.
           -vv, --very-verbose       Very verbose (debug) output.
 
-        Examples:
-          #{$PROGRAM_NAME}  # The default commit message is just a single dash (-)
-          #{$PROGRAM_NAME} -m "This is a commit message"
-          #{$PROGRAM_NAME} '$work' '$sites'
+        Usage:
+          #{$PROGRAM_NAME} [OPTIONS] [DIRECTORY...]
+
+        Usage examples:
+          #{$PROGRAM_NAME}                             # Commit with default message "-"
+          #{$PROGRAM_NAME} -m "This is a commit message"  # Commit with a custom message
+          #{$PROGRAM_NAME} '$work' '$sites'              # Commit in repositories under specific roots
       END_MSG
-      exit 0
+      exit 1
     end
 
     def parse_options(args)
@@ -65,23 +65,17 @@ module GitTree
       end
     end
 
-    # Processe a single git repository to check for and commit changes.
+    # Processes a single git repository to check for and commit changes.
     def process_repo(dir, thread_id, git_walker_instance, message)
       short_dir = git_walker_instance.abbreviate_path(dir)
       git_walker_instance.log GitTreeWalker::VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
       begin
         Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
-          # Use rugged for a faster status check
-          repo = Rugged::Repository.new(dir)
-          # repo.status without a block returns a hash of changed files.
-          has_changes = !repo.status.empty?
-          unless has_changes
+          unless repo_has_changes?(dir)
             git_walker_instance.log GitTreeWalker::DEBUG, "  No changes to commit in #{short_dir}".yellow
             return
           end
-          system('git', '-C', dir, 'add', '--all', exception: true)
-          system('git', '-C', dir, 'commit', '-m', message, '--quiet', '--no-gpg-sign', exception: true)
-          git_walker_instance.log GitTreeWalker::NORMAL, "Committed changes in #{short_dir}".green
+          commit_changes(dir, message, short_dir, git_walker_instance)
         end
       rescue Timeout::Error
         git_walker_instance.log GitTreeWalker::NORMAL, "[TIMEOUT] Thread #{thread_id}: git operations timed out in #{short_dir}".red
@@ -90,6 +84,20 @@ module GitTree
         git_walker_instance.log GitTreeWalker::DEBUG, "Exception class: #{e.class}".yellow
         git_walker_instance.log GitTreeWalker::DEBUG, e.backtrace.join("\n").yellow
       end
+    end
+
+    def repo_has_changes?(dir)
+      repo = Rugged::Repository.new(dir)
+      repo.status do |_path, _status|
+        return true # Found a change, no need to check further
+      end
+      false # No changes found
+    end
+
+    def commit_changes(dir, message, short_dir, git_walker_instance)
+      system('git', '-C', dir, 'add', '--all', exception: true)
+      system('git', '-C', dir, 'commit', '-m', message, '--quiet', '--no-gpg-sign', exception: true)
+      git_walker_instance.log GitTreeWalker::NORMAL, "Committed changes in #{short_dir}".green
     end
   end
 
