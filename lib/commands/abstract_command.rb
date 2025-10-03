@@ -53,5 +53,15 @@ module GitTree
       end
       parser.parse!(args)
     end
+
+    protected
+
+    def repo_has_changes?(dir)
+      repo = Rugged::Repository.new(dir)
+      repo.status do |_path, _status|
+        return true # Found a change, no need to check further
+      end
+      false # No changes found
+    end
   end
 end

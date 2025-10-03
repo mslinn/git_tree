@@ -67,6 +67,8 @@ module GitTree
       repo = Rugged::Repository.new(dir)
       origin_url = repo.config['remote.origin.url']
       # ARGV[0] is not reliable here, use the arg passed to run
+
+      warn "Warning: Uncommitted changes in #{dir}. These will not be replicated.".yellow if repo_has_changes?(dir)
       base_path = File.expand_path(ENV.fetch(root_arg.tr("'$", ''), ''))
       relative_dir = dir.sub(base_path + '/', '')
 

@@ -92,16 +92,22 @@ module GitTree
       end
     end
 
-    def repo_has_changes?(dir)
-      repo = Rugged::Repository.new(dir)
-      repo.status do |_path, _status|
-        return true # Found a change, no need to check further
-      end
-      false # No changes found
+    def repo_has_staged_changes?(repo)
+      # For an existing repo, diff the index against the HEAD tree.
+      head_tree = repo.head.target.tree
+      diff = head_tree.diff(repo.index)
+      !diff.deltas.empty?
+    rescue Rugged::ReferenceError # Handles a new repo with no commits yet.
+      # If there's no HEAD, any file in the index is a staged change for the first commit.
+      !repo.index.empty?
     end
 
     def commit_changes(dir, message, short_dir, git_walker_instance)
       system('git', '-C', dir, 'add', '--all', exception: true)
+
+      repo = Rugged::Repository.new(dir)
+      return unless repo_has_staged_changes?(repo)
+
       system('git', '-C', dir, 'commit', '-m', message, '--quiet', '--no-gpg-sign', exception: true)
       git_walker_instance.log GitTreeWalker::NORMAL, "Committed changes in #{short_dir}".green
     end
