@@ -20,7 +20,7 @@ module GitTree
         # No args provided, use default roots and substitute them in the output.
         walker = GitTreeWalker.new([], verbosity: @options[:verbosity])
         walker.find_and_process_repos do |dir|
-          result << make_env_var_with_substitution(dir, walker.default_roots)
+          result << make_env_var_with_substitution(dir, GitTreeWalker::DEFAULT_ROOTS)
         end
       else
         # Process each argument as a root
@@ -90,6 +90,31 @@ module GitTree
 
     def make_env_var(name, value)
       "export #{env_var_name(name)}=#{value}"
+    end
+
+    def make_env_var_with_substitution(dir, roots)
+      # Find which root this dir belongs to and substitute it.
+      found_root_var = nil
+      found_root_path = nil
+
+      roots.each do |root_name|
+        root_path = ENV.fetch(root_name, nil)
+        next if root_path.nil? || root_path.strip.empty?
+
+        next unless dir.start_with?(root_path)
+
+        found_root_var = "$#{root_name}"
+        found_root_path = root_path
+        break
+      end
+
+      if found_root_var
+        relative_dir = dir.sub(found_root_path + '/', '')
+        make_env_var(env_var_name(relative_dir), "#{found_root_var}/#{relative_dir}")
+      else
+        # Fallback to absolute path if no root matches (should be rare).
+        make_env_var(env_var_name(dir), dir)
+      end
     end
   end
 
