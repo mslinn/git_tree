@@ -41,15 +41,14 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
-        #{$PROGRAM_NAME} - Generate bash environment variables for each git repository found under a specified directory tree.
+        #{$PROGRAM_NAME} - Generate bash environment variables for each git repository found under specified directory trees.
 
         Examines trees of git repositories and writes a bash script to STDOUT.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         These environment variables point to roots of git repository trees to walk.
-        Skips directories containing a .ignore file, and all subdirectories of those.
+        Skips directories containing a .ignore file, and all subdirectories.
 
-        Does not redefine existing environment variables; messages are written to
-        STDERR to indicate environment variables that are not redefined.
+        Does not redefine existing environment variables; messages are written to STDERR to indicate environment variables that are not redefined.
 
         Environment variables that point to the roots of git repository trees must have been exported, for example:
 

@@ -35,7 +35,7 @@ module GitTree
       warn <<~END_MSG
         #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
-        Skips directories containing a .ignore file.
+        Skips directories containing a .ignore file, and all subdirectories.
         Repositories in a detached HEAD state are skipped.
 
         Options:

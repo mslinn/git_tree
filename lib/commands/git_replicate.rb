@@ -39,7 +39,7 @@ module GitTree
         to STDOUT that clones the repositories in each tree. Replicates any remotes
         defined in the source repositories to the target repositories.
 
-        Skips directories containing a .ignore file, and all subdirectories of those.
+        Skips directories containing a .ignore file, and all subdirectories.
 
         Environment variables that point to the roots of git repository trees must have been exported, for example:
 

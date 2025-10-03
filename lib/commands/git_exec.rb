@@ -48,7 +48,7 @@ module GitTree
 
         If no arguments are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         These environment variables point to roots of git repository trees to walk.
-        Skips directories containing a .ignore file, and all subdirectories of those.
+        Skips directories containing a .ignore file, and all subdirectories.
 
         Environment variables that point to the roots of git repository trees must have been exported, for example:
 
