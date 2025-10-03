@@ -1,8 +1,6 @@
-# The ZoweeOptimizer class is responsible for optimizing the environment variable definitions.
-# It is used by the `git-evars` command to generate a script with shorter and more readable variable names.
 class ZoweeOptimizer
-  # Initializes the optimizer with a set of initial variables.
-  # @param initial_vars [Hash] a hash of initial variables, where the key is the variable name and the value is the path.
+  # The ZoweeOptimizer class is responsible for optimizing the environment variable definitions.
+  # It is used by the `git-evars` command to generate a script with shorter and more readable variable names.
   def initialize(initial_vars = {})
     @defined_vars = {}
     initial_vars.each do |var_ref, paths|
@@ -51,9 +49,17 @@ class ZoweeOptimizer
     return nil if basename.empty?
 
     parts = basename.split('.')
-    name = parts.first.tr('-', '_')
+    name = if parts.first == 'www' && parts.length > 1
+             parts[1]
+           else
+             parts.first
+           end.tr('-', '_')
 
-    name = parts.take(2).join('_').tr('-', '_') if @defined_vars.key?(name) && @defined_vars[name] != path && parts.length > 1
+    if @defined_vars.key?(name) && @defined_vars[name] != path
+      # Collision. Try to disambiguate.
+      parent_name = File.basename(File.dirname(path))
+      name = "#{parent_name}_#{name}"
+    end
 
     # Sanitize the name
     name.gsub!(/[^a-zA-Z0-9_]/, '_')
