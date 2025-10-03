@@ -73,10 +73,11 @@ module GitTree
            $ #{$PROGRAM_NAME} . 'bundle && bundle update && rake install'
 
         3) For all subdirectories of the directory pointed to by `$work`, run git commit and push changes.
+           This is a simplified version of the `git-commitAll` command.
            $ #{$PROGRAM_NAME} '$work' 'git commit -am "-" && git push'
 
-        4) For all subdirectories of the specified directories, list the projects that have a demo/ subdirectory.
-           $ #{$PROGRAM_NAME} '. ~ $my_plugins' 'if [ -d demo]; then realpath demo; fi'
+        4) For all git repositories under the current directory, list the fully qualified path to the `demo/` subdirectory, if it exists.
+           $ #{$PROGRAM_NAME} '. ~ $my_plugins' 'if [ -d demo ]; then realpath demo; fi'
       END_HELP
       exit 1
     end
