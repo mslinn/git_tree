@@ -33,7 +33,7 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_MSG
-        #{$PROGRAM_NAME} - Recursively commits changes in all git repositories under the specified DIRECTORY roots.
+        #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         Skips directories containing a .ignore file.
 
@@ -109,7 +109,8 @@ module GitTree
       return unless repo_has_staged_changes?(repo)
 
       system('git', '-C', dir, 'commit', '-m', message, '--quiet', '--no-gpg-sign', exception: true)
-      git_walker_instance.log GitTreeWalker::NORMAL, "Committed changes in #{short_dir}".green
+      system('git', '-C', dir, 'push', exception: true)
+      git_walker_instance.log GitTreeWalker::NORMAL, "Committed and pushed changes in #{short_dir}".green
     end
   end
 
