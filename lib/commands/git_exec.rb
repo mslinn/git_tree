@@ -5,9 +5,9 @@ require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 require_relative '../util/thread_pool_manager'
 
-module GitTree
-  using Rainbow
+using Rainbow
 
+module GitTree
   class ExecCommand < GitTree::AbstractCommand
     def initialize(args)
       $PROGRAM_NAME = 'git-exec'

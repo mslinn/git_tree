@@ -7,9 +7,9 @@ require 'rugged'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
-module GitTree
-  using Rainbow
+using Rainbow
 
+module GitTree
   class CommitAllCommand < AbstractCommand
     self.allow_empty_args = true
 

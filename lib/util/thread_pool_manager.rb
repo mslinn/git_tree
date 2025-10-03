@@ -115,8 +115,8 @@ class FixedThreadPoolManager
         elapsed_time = Time.now - start_time
         cpu_time = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID) - start_cpu
         shutdown_msg = format(
-          "  [Worker %d] Shutting down. Processed %d tasks. Elapsed: %.2fs, CPU: %.2fs",
-          i, tasks_processed, elapsed_time, cpu_time
+          "  [Worker #{i}] Shutting down. Processed #{tasks_processed} tasks. Elapsed: %.2fs, CPU: %.2fs",
+          elapsed_time, cpu_time
         )
         log_stderr shutdown_msg, :cyan if @verbosity >= 2
       rescue Interrupt

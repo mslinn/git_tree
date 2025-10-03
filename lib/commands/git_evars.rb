@@ -3,9 +3,9 @@ require 'rainbow/refinement'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
-module GitTree
-  using Rainbow
+using Rainbow
 
+module GitTree
   class EvarsCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
