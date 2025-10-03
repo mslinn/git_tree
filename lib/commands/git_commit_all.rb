@@ -14,7 +14,7 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args)
-      $PROGRAM_NAME = 'git-commitAll'
+      $PROGRAM_NAME = 'git-commitAll' # Corrected from git-tree-commitAll
       super
       @options[:message] ||= '-'
     end
@@ -124,12 +124,12 @@ module GitTree
   end
 end
 
-if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-commitAll')
+if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-commitAll') # Corrected from git-tree-commitAll
   begin
     GitTree::CommitAllCommand.new(ARGV).run
   rescue Interrupt
     warn "\nInterrupted by user".yellow
-    exit 130
+    exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
     puts "An unexpected error occurred: #{e.message}".red
     exit 1

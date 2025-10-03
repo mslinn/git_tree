@@ -10,7 +10,7 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args)
-      $PROGRAM_NAME = 'git-replicate'
+      $PROGRAM_NAME = 'git-replicate' # Corrected from git-tree-replicate
       super
     end
 
@@ -80,7 +80,7 @@ module GitTree
   end
 end
 
-if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-replicate')
+if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-replicate') # Corrected from git-tree-replicate
   begin
     GitTree::ReplicateCommand.new(ARGV).run
   rescue Interrupt

@@ -48,15 +48,22 @@ class GitTreeWalker
   def process(&) # Now accepts a block
     log NORMAL, "Processing #{@display_roots.join(' ')}".green
     pool = FixedThreadPoolManager.new(0.75, verbosity: @verbosity)
-    pool.start do |worker, dir, thread_id|
-      yield(worker, dir, thread_id, self) # Pass self (GitTreeWalker instance) for access to its methods
+    pool.start(&) # Pass the block to the pool's start method
+
+    # Run the directory scanning in a separate thread so the main thread can handle interrupts.
+    producer_thread = Thread.new do
+      find_and_process_repos do |dir, _root_arg|
+        pool.add_task(dir)
+      end
     end
 
-    find_and_process_repos do |dir|
-      pool.add_task(dir)
-    end
-
+    # Wait for the producer to finish, then wait for the pool to complete.
+    producer_thread.join
     pool.wait_for_completion
+  rescue Interrupt
+    # If interrupted, ensure the pool is shut down and then let the main command handle the exit.
+    pool.shutdown
+    raise
   end
 
   # Finds git repos and yields them to the block. Does not use thread pool.
