@@ -66,13 +66,16 @@ module GitTree
              and may contain environment variables.
 
         Usage examples:
-        1) For all subdirectories of the current directory, update `Gemfile.lock` and install a local copy of the gem:
+        1) For all git repositories under $sites, display their root directories:
+           $ #{$PROGRAM_NAME} '$sites' pwd
+
+        2) For all subdirectories of the current directory, update `Gemfile.lock` and install a local copy of the gem:
            $ #{$PROGRAM_NAME} . 'bundle && bundle update && rake install'
 
-        2) For all subdirectories of the directory pointed to by `$work`, run git commit and push changes.
+        3) For all subdirectories of the directory pointed to by `$work`, run git commit and push changes.
            $ #{$PROGRAM_NAME} '$work' 'git commit -am "-" && git push'
 
-        3) For all subdirectories of the specified directories, list the projects that have a demo/ subdirectory.
+        4) For all subdirectories of the specified directories, list the projects that have a demo/ subdirectory.
            $ #{$PROGRAM_NAME} '. ~ $my_plugins' 'if [ -d demo]; then realpath demo; fi'
       END_HELP
       exit 1
