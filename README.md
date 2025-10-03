@@ -47,6 +47,57 @@ $ gem install git_tree
 
 To register the new commands, either log out and log back in, or open a new console.
 
+## Use Cases
+
+### Dependent Gem Maintenance
+
+One of my directory trees holds Jekyll plugins, packaged as 25 gems.
+They depend on one another, and must be built in a particular order.
+Sometimes an operation must be performed on all of the plugins, and then rebuild them all.
+
+Most operations do not require that the projects be processed in any particular order, however
+the build process must be invoked on the dependencies first.
+It is quite tedious to do this 25 times, over and over.
+
+Several years ago I wrote a bash script to perform this task, but as its requirements became more complex,
+the bash script proved difficult to maintain. This use case is now fulfilled by the `git-exec` command
+provided by the `git_tree` gem.
+See below for further details.
+
+### Replicating Trees of Git Repositories
+
+Whenever I set up an operating system for a new development computer,
+one of the tedious tasks that must be performed is to replicate
+the directory trees of Git repositories.
+
+It is a bad idea to attempt to copy an entire Git repository between computers,
+because the `.git` directories within them can quite large.
+So large, in fact, that it might much more time to copy than re-cloning.
+
+The reason is that copying the entire Git repository actually means copying the same information twice:
+first the `.git` hidden directory, complete with all the history for the project,
+and then again for the files in the currently checked out branch.
+Git repos store the entire development history of the project in their `.git` directories,
+so as they accumulate history they eventually become much larger than the
+code that is checked out at any given time.
+
+One morning I found myself facing the boring task of doing this manually once again.
+Instead, I wrote a bash script that scanned a Git directory tree and
+wrote out another bash script that clones the repos in the tree.
+Any additional remote references are replicated.
+
+Two years later, I decided to add new features to the script.
+Bash is great for short scripts,
+but it is not conducive to debugging or structured programming.
+I rewrote the bash script in Ruby, using the `rugged` gem.
+Much better!
+
+This use case is fulfilled by the
+`git-replicate`
+and `git-evars` commands
+provided by this gem.
+
+
 ## Usage
 
 ### Single- And Multi-Threading
@@ -322,55 +373,12 @@ fi
 
 The `git-update` command updates each repository in the tree.
 
-## Use Cases
 
-### Dependent Gem Maintenance
+## Additional Information
 
-One of my directory trees holds Jekyll plugins, packaged as 25 gems.
-They depend on one another, and must be built in a particular order.
-Sometimes an operation must be performed on all of the plugins, and then rebuild them all.
+More information is available on
+[Mike Slinn’s website](https://www.mslinn.com/git/1100-git-tree.html).
 
-Most operations do not require that the projects be processed in any particular order, however
-the build process must be invoked on the dependencies first.
-It is quite tedious to do this 25 times, over and over.
-
-Several years ago I wrote a bash script to perform this task, but as its requirements became more complex,
-the bash script proved difficult to maintain. This use case is now fulfilled by the `git-exec` command
-provided by the `git_tree` gem.
-See below for further details.
-
-### Replicating Trees of Git Repositories
-
-Whenever I set up an operating system for a new development computer,
-one of the tedious tasks that must be performed is to replicate
-the directory trees of Git repositories.
-
-It is a bad idea to attempt to copy an entire Git repository between computers,
-because the `.git` directories within them can quite large.
-So large, in fact, that it might much more time to copy than re-cloning.
-
-The reason is that copying the entire Git repository actually means copying the same information twice:
-first the `.git` hidden directory, complete with all the history for the project,
-and then again for the files in the currently checked out branch.
-Git repos store the entire development history of the project in their `.git` directories,
-so as they accumulate history they eventually become much larger than the
-code that is checked out at any given time.
-
-One morning I found myself facing the boring task of doing this manually once again.
-Instead, I wrote a bash script that scanned a Git directory tree and
-wrote out another bash script that clones the repos in the tree.
-Any additional remote references are replicated.
-
-Two years later, I decided to add new features to the script.
-Bash is great for short scripts,
-but it is not conducive to debugging or structured programming.
-I rewrote the bash script in Ruby, using the `rugged` gem.
-Much better!
-
-This use case is fulfilled by the
-`git-replicate`
-and `git-evars` commands
-provided by this gem.
 
 ## Development
 
@@ -386,9 +394,7 @@ You can run `bin/console` for an interactive prompt that will allow you to exper
 
 ```shell
 $ bin/console
-irb(main):001:0> GitTree.command_replicate 'demo'
-
-irb(main):002:0> GitTree.command_evars 'demo'
+irb(main):001:0> GitTree::ReplicateCommand.new('$work').run
 ```
 
 
