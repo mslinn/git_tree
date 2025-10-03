@@ -28,33 +28,23 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
-        #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script
-        to STDOUT that clones the repositories in each tree. Replicates any remotes
-        defined in the source repositories to the target repositories.
+        #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
+        The script clones the repositories and replicates any remotes.
+        Skips directories containing a .ignore file.
 
-        Skips directories containing a .ignore file, and all subdirectories.
-
-        Environment variables that point to the roots of git repository trees must have been exported, for example:
-
-          $ export work=$HOME/work
-
-        Usage: #{$PROGRAM_NAME} [OPTIONS] [QUOTED_ENV_VARS...]
-
-        OPTIONS:
+        Options:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
-        QUOTED_ENV_VARS:
-        When specifying roots, the name of the environment variable must be preceded by a dollar sign
-        and enclosed within single quotes to prevent shell expansion.
+        Usage: #{$PROGRAM_NAME} [OPTIONS] [ROOTS...]
 
-        Usage example:
-        Assuming that 'work' is an environment variable that contains the name of a
-        directory that contains a tree of git repositories:
+        ROOTS can be directory names or environment variable references (e.g., '$work').
+        Multiple roots can be specified in a single quoted string.
 
-        $ #{$PROGRAM_NAME}
-        $ #{$PROGRAM_NAME} '$work' '$sites'
+        Usage examples:
+        $ #{$PROGRAM_NAME} '$work'
+        $ #{$PROGRAM_NAME} '$work $sites'
       END_HELP
       exit 1
     end
@@ -83,6 +73,7 @@ module GitTree
       output
     end
   end
+end
 
 if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-replicate')
   begin
