@@ -10,7 +10,7 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args)
-      $PROGRAM_NAME = 'git-evars'
+      $PROGRAM_NAME = 'git-tree-evars'
       super
     end
 
@@ -39,34 +39,33 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
-        #{$PROGRAM_NAME} - Generate bash environment variables for each git repository found under specified directory trees.
-
-        Examines trees of git repositories and writes a bash script to STDOUT.
+        #{$PROGRAM_NAME} - Examines a tree of git repositories and writes a bash script to STDOUT.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
-        These environment variables point to roots of git repository trees to walk.
-        Skips directories containing a .ignore file, and all subdirectories.
+        that defines environment variables which point to the repositories in the tree.
 
-        Does not redefine existing environment variables; messages are written to STDERR to indicate environment variables that are not redefined.
+        Purpose: Quickly generate bash environment variables for each git repository found under a specified directory tree.
 
-        Environment variables that point to the roots of git repository trees must have been exported, for example:
+        Does not redefine existing environment variables; messages are written to
+        STDERR to indicate environment variables that are not redefined.
 
-          $ export work=$HOME/work
+        The environment variable must have been exported, for example:
 
-        Usage: #{$PROGRAM_NAME} [OPTIONS] [QUOTED_ENV_VARS...]
+        $ export work=$HOME/work
 
-        OPTIONS:
+        Directories containing a file called .ignore are ignored.
+
+        Options:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
-        QUOTED_ENV_VARS:
+        Usage example:
+
+        $ #{$PROGRAM_NAME}               # Use default environment variables as roots
+        $ #{$PROGRAM_NAME} '$work' '$sites'  # Use specific environment variables
+
         When specifying roots, the name of the environment variable must be preceded by a dollar sign
         and enclosed within single quotes to prevent shell expansion.
-
-        Usage examples:
-
-        $ #{$PROGRAM_NAME}                   # Use default environment variables as roots
-        $ #{$PROGRAM_NAME} '$work' '$sites'  # Use specific environment variables
       END_HELP
       exit 1
     end
@@ -93,7 +92,7 @@ module GitTree
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-evars')
     begin
       GitTree::EvarsCommand.new(ARGV).run
     rescue StandardError => e
