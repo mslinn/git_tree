@@ -18,6 +18,8 @@ class GitTreeWalker
   VERBOSE = 2
   DEBUG = 3
 
+  attr_reader :display_roots
+
   def initialize(args = ARGV, verbosity: NORMAL)
     @verbosity = verbosity
     @root_map = {}

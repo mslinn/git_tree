@@ -20,7 +20,7 @@ module GitTree
         # No args provided, use default roots and substitute them in the output.
         walker = GitTreeWalker.new([], verbosity: @options[:verbosity])
         walker.find_and_process_repos do |dir|
-          result << make_env_var_with_substitution(dir, walker.default_roots)
+          result << make_env_var_with_substitution(dir, walker.display_roots)
         end
       else
         # Process each argument as a root
