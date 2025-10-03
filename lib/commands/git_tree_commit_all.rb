@@ -76,6 +76,12 @@ module GitTree
           return
         end
 
+        repo = Rugged::Repository.new(dir)
+        if repo.head_detached?
+          git_walker_instance.log GitTreeWalker::NORMAL, "  Skipping #{short_dir} because it is in a detached HEAD state".yellow
+          return
+        end
+
         Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
           unless repo_has_changes?(dir)
             git_walker_instance.log GitTreeWalker::DEBUG, "  No changes to commit in #{short_dir}".yellow
@@ -110,15 +116,8 @@ module GitTree
 
       system('git', '-C', dir, 'commit', '-m', message, '--quiet', '--no-gpg-sign', exception: true)
 
-      if repo.head_unborn?
-        git_walker_instance.log GitTreeWalker::DEBUG, "  Skipping push for new repo in #{short_dir} (will be pushed on next run)".yellow
-        return
-      end
-
-      if repo.head_detached?
-        git_walker_instance.log GitTreeWalker::NORMAL, "  Skipping push in #{short_dir} because it is in a detached HEAD state".yellow
-        return
-      end
+      # Re-initialize the repo object to get the fresh state after the commit.
+      repo = Rugged::Repository.new(dir)
 
       current_branch = repo.head.name.sub('refs/heads/', '')
       system('git', '-C', dir, 'push', '--set-upstream', 'origin', current_branch, exception: true)
