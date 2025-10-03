@@ -3,10 +3,10 @@ require 'shellwords'
 require 'timeout'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
-require_relative '../util/thread_pool_manager'
 
 module GitTree
-  class UpdateCommand < AbstractCommand
+  using Rainbow
+  class UpdateCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
     def initialize(args)
@@ -79,6 +79,7 @@ module GitTree
       exit 1
     end
   end
+end
 
 if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
   begin

@@ -8,7 +8,7 @@ require_relative '../util/thread_pool_manager'
 module GitTree
   using Rainbow
 
-  class ExecCommand < AbstractCommand
+  class ExecCommand < GitTree::AbstractCommand
     def initialize(args)
       $PROGRAM_NAME = 'git-exec'
       super
@@ -82,6 +82,7 @@ module GitTree
       exit 1
     end
   end
+end
 
 if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-exec')
   begin

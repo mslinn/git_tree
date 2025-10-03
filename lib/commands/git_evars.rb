@@ -6,7 +6,7 @@ require_relative '../util/git_tree_walker'
 module GitTree
   using Rainbow
 
-  class EvarsCommand < AbstractCommand
+  class EvarsCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
     def initialize(args)
@@ -117,6 +117,7 @@ module GitTree
       end
     end
   end
+end
 
 if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
   begin

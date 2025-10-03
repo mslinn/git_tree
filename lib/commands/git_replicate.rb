@@ -3,10 +3,10 @@ require 'rainbow/refinement'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
-module GitTree
-  using Rainbow
+using Rainbow
 
-  class ReplicateCommand < AbstractCommand
+module GitTree
+  class ReplicateCommand < GitTree::AbstractCommand
     def initialize(args)
       $PROGRAM_NAME = 'git-replicate'
       super
@@ -51,22 +51,27 @@ module GitTree
 
     def replicate_one(dir, root_arg)
       output = []
-      repo = Rugged::Repository.new(dir)
-      origin_url = repo.config['remote.origin.url']
-      # ARGV[0] is not reliable here, use the arg passed to run
+      config_path = File.join(dir, '.git', 'config')
+      return output unless File.exist?(config_path)
 
-      warn "Warning: Uncommitted changes in #{dir}. These will not be replicated.".yellow if repo_has_changes?(dir)
+      config = Rugged::Config.new(config_path)
+      origin_url = config['remote.origin.url']
+      return output unless origin_url
+
       base_path = File.expand_path(ENV.fetch(root_arg.tr("'$", ''), ''))
       relative_dir = dir.sub(base_path + '/', '')
 
       output << "if [ ! -d \"#{relative_dir}/.git\" ]; then"
       output << "  mkdir -p '#{File.dirname(relative_dir)}'"
       output << "  pushd '#{File.dirname(relative_dir)}' > /dev/null"
-      output << "  git clone #{origin_url} '#{File.basename(relative_dir)}'"
-      repo.remotes.each do |remote|
-        next if remote.name == 'origin'
+      output << "  git clone '#{origin_url}' '#{File.basename(relative_dir)}'"
+      config.each_key do |key|
+        next unless key.start_with?('remote.') && key.end_with?('.url')
 
-        output << "  git remote add #{remote.name} '#{remote.url}'"
+        remote_name = key.split('.')[1]
+        next if remote_name == 'origin'
+
+        output << "  git remote add #{remote_name} '#{config[key]}'"
       end
       output << '  popd > /dev/null'
       output << 'fi'
