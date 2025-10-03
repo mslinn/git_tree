@@ -11,6 +11,7 @@ class GitTreeWalker
 
   GIT_TIMEOUT = 300 # 5 minutes max per git pull
   IGNORED_DIRECTORIES = ['.venv'].freeze
+  DEFAULT_ROOTS = %w[sites sitesUbuntu work].freeze
 
   # Verbosity levels
   QUIET = 0
@@ -68,9 +69,8 @@ class GitTreeWalker
 
   def determine_roots(args)
     if args.empty?
-      default_roots = %w[sites sitesUbuntu work]
-      @display_roots = default_roots.map { |r| "$#{r}" }
-      default_roots.each do |r|
+      @display_roots = DEFAULT_ROOTS.map { |r| "$#{r}" }
+      DEFAULT_ROOTS.each do |r|
         @root_map["$#{r}"] = ENV[r].split.map { |p| File.expand_path(p) } if ENV[r]
       end
     else
