@@ -8,7 +8,7 @@ module GitTree
 
   class ReplicateCommand < AbstractCommand
     def initialize(args)
-      $PROGRAM_NAME = 'git-tree-replicate'
+      $PROGRAM_NAME = 'git-replicate'
       super
     end
 
@@ -35,28 +35,33 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
-        #{$PROGRAM_NAME} - Replicates a tree of git repositories and writes a bash script
-        to STDOUT that clones the repositories in the tree. Replicates any remotes
+        #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script
+        to STDOUT that clones the repositories in each tree. Replicates any remotes
         defined in the source repositories to the target repositories.
 
-        The environment variable must have been exported, for example:
+        Skips directories containing a .ignore file, and all subdirectories of those.
 
-        $ export work=$HOME/work
+        Environment variables that point to the roots of git repository trees must have been exported, for example:
 
-        Directories containing a file called .ignore are ignored.
+          $ export work=$HOME/work
 
-        Options:
+        Usage: #{$PROGRAM_NAME} [OPTIONS] [QUOTED_ENV_VARS...]
+
+        OPTIONS:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
+
+        QUOTED_ENV_VARS:
+        When specifying roots, the name of the environment variable must be preceded by a dollar sign
+        and enclosed within single quotes to prevent shell expansion.
 
         Usage example:
         Assuming that 'work' is an environment variable that contains the name of a
         directory that contains a tree of git repositories:
 
-        $ #{$PROGRAM_NAME} '$work'
-
-        The name of the environment variable must be preceded by a dollar sign and enclosed within single quotes.
+        $ #{$PROGRAM_NAME}
+        $ #{$PROGRAM_NAME} '$work' '$sites'
       END_HELP
       exit 1
     end
@@ -86,7 +91,7 @@ module GitTree
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-replicate')
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-replicate')
     begin
       GitTree::ReplicateCommand.new(ARGV).run
     rescue StandardError => e

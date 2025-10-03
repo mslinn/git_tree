@@ -5,41 +5,41 @@ Directories containing a file called `.ignore` are ignored.
 Ignoring a directory means all subdirectories are also ignored.
 Multiple threads are used to dramatically boost performance.
 
-- The `git-tree-commitAll` command commits and pushes all changes to each repository in the tree.
+- The `git-commitAll` command commits and pushes all changes to each repository in the tree.
   Repositories in a detached HEAD state are skipped.
 
-- The `git-tree-evars` command writes a script that defines environment variables pointing to each git repository.
+- The `git-evars` command writes a script that defines environment variables pointing to each git repository.
 
-- The `git-tree-exec` command executes an arbitrary bash command for each repository.
+- The `git-exec` command executes an arbitrary bash command for each repository.
 
-- The `git-tree-replicate` command writes a script that clones the repos in the tree,
+- The `git-replicate` command writes a script that clones the repos in the tree,
   and adds any defined remotes.
 
   - Any git repos that have already been cloned into the target directory tree are skipped.
-    This means you can rerun `git-tree-replicate` as many times as you want, without ill effects.
+    This means you can rerun `git-replicate` as many times as you want, without ill effects.
 
   - All remotes in each repo are replicated.
 
-- The `git-tree-update` command updates each repository in the tree.
+- The `git-update` command updates each repository in the tree.
 
 You can list them by using the `gem specification` command, like this:
 
 ```shell
 $ gem specification git_tree executables
 ---
-- git-tree-commitAll
-- git-tree-evars
-- git-tree-exec
-- git-tree-replicate
-- git-tree-update
+- git-commitAll
+- git-evars
+- git-exec
+- git-replicate
+- git-update
 ```
 
 ## Usage
 
-### `git-tree-commitAll` Usage
+### `git-commitAll` Usage
 
 ```text
-git-tree-commitAll - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
+git-commitAll - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
 If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
 Skips directories containing a .ignore file.
 Repositories in a detached HEAD state are skipped.
@@ -53,9 +53,9 @@ Options:
 ```
 
 
-### `git-tree-evars` Usage
+### `git-evars` Usage
 
-The `git-tree-evars` command writes a script that defines environment variables pointing to each git repository.
+The `git-evars` command writes a script that defines environment variables pointing to each git repository.
 This command should be run on the target computer.
 
 Only one parameter is required:
@@ -66,11 +66,11 @@ The following appends to any script in the `$work` directory called `.evars`.
 The script defines environment variables that point to each git repos pointed to by `$work`:
 
 ```shell
-$ git-tree-evars '$work' >> $work/.evars
+$ git-evars '$work' >> $work/.evars
 ```
 
 
-#### Generated Script from `git-tree-evars`
+#### Generated Script from `git-evars`
 
 Following is a sample of environment variable definitions.
 You are expected to edit it to suit.
@@ -105,9 +105,9 @@ $ cd $my_project
 ```
 
 
-### `git-tree-exec` Usage
+### `git-exec` Usage
 
-The `git-tree-exec` command can be run on any computer.
+The `git-exec` command can be run on any computer.
 The command requires two parameters.
 The first parameter indicates the directory or directories to process.
 3 forms are accepted:
@@ -126,7 +126,7 @@ For all subdirectories of current directory,
 update `Gemfile.lock` and install a local copy of the gem:
 
 ```shell
-$ git-tree-exec '
+$ git-exec '
   $jekyll_plugin_logger
   $jekyll_draft
   $jekyll_plugin_support
@@ -147,7 +147,7 @@ $ git-tree-exec '
 This example shows how to display the version of projects that
 create gems under the directory pointed to by `$my_plugins`.
 
-An executable script is required on the `PATH`, so `git-tree-exec`
+An executable script is required on the `PATH`, so `git-exec`
 can invoke it as it loops through the subdirectories.
 I call this script `version`, and it is written in `bash`,
 although the language used is not significant:
@@ -171,7 +171,7 @@ fi
 Call it like this:
 
 ```shell
-$ git-tree-exec '$my_plugins' version
+$ git-exec '$my_plugins' version
 jekyll_all_collections v0.3.3
 jekyll_archive_create v1.0.2
 jekyll_archive_display v1.0.1
@@ -209,7 +209,7 @@ List the projects under the directory pointed to by `$my_plugins`
 that have a `demo/` subdirectory:
 
 ```shell
-$ git-tree-exec '$my_plugins' \
+$ git-exec '$my_plugins' \
   'if [ -d demo ]; then realpath demo; fi'
 /mnt/c/work/jekyll/my_plugins/jekyll-hello/demo
 /mnt/c/work/jekyll/my_plugins/jekyll_all_collections/demo
@@ -230,7 +230,7 @@ $ git-tree-exec '$my_plugins' \
 /mnt/c/work/jekyll/my_plugins/jekyll_time_since/demo
 ```
 
-### `git-tree-replicate` Usage
+### `git-replicate` Usage
 
 This command requires one environment variable reference to be passed to it.
 Enclose the name of the environment variable within single quotes,
@@ -240,14 +240,14 @@ The following creates a script in the current directory called `work.sh`,
 that replicates the desired portions of the directory tree of git repos pointed to by `$work`:
 
 ```shell
-$ git-tree-replicate '$work' > work.sh
+$ git-replicate '$work' > work.sh
 ```
 
 The generated environment variables will all be relative to the
 path pointed to by the expanded environment variable that you provided.
 You will understand what this means once you look at the generated script.
 
-When `git-tree-replicate` completes,
+When `git-replicate` completes,
 edit the generated script to suit, then
 copy it to the target machine and run it.
 The following example copies the script to `machine2` and runs it:
@@ -259,7 +259,7 @@ $ ssh machine2 work.sh
 ```
 
 
-#### Generated Script from `git-tree-replicate`
+#### Generated Script from `git-replicate`
 
 Following is a sample of one section, which is repeated for every git repo that is processed:
 You can edit them to suit.

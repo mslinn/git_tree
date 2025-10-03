@@ -10,7 +10,7 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args)
-      $PROGRAM_NAME = 'git-tree-evars'
+      $PROGRAM_NAME = 'git-evars'
       super
     end
 
@@ -41,20 +41,19 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
-        #{$PROGRAM_NAME} - Examines a tree of git repositories and writes a bash script to STDOUT.
-        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
-        that defines environment variables which point to the repositories in the tree.
+        #{$PROGRAM_NAME} - Generate bash environment variables for each git repository found under a specified directory tree.
 
-        Purpose: Quickly generate bash environment variables for each git repository found under a specified directory tree.
+        Examines trees of git repositories and writes a bash script to STDOUT.
+        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        These environment variables point to roots of git repository trees to walk.
+        Skips directories containing a .ignore file, and all subdirectories of those.
 
         Does not redefine existing environment variables; messages are written to
         STDERR to indicate environment variables that are not redefined.
 
-        The environment variable must have been exported, for example:
+        Environment variables that point to the roots of git repository trees must have been exported, for example:
 
-        $ export work=$HOME/work
-
-        Directories containing a file called .ignore are ignored.
+          $ export work=$HOME/work
 
         Usage: #{$PROGRAM_NAME} [OPTIONS] [QUOTED_ENV_VARS...]
 
@@ -97,7 +96,7 @@ module GitTree
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-evars')
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
     begin
       GitTree::EvarsCommand.new(ARGV).run
     rescue StandardError => e

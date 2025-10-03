@@ -9,19 +9,19 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     Installs 5 commands that process a git directory tree.
     Directories containing a file called .ignore are ignored.
 
-    The git-tree-commitAll command commits all changes to each repository in the tree.
+    The git-commitAll command commits all changes to each repository in the tree.
 
-    The git-tree-evars command writes a script that defines environment variables pointing to git repos.
+    The git-evars command writes a script that defines environment variables pointing to git repos.
 
-    The git-tree-exec command executes a bash expression on children of a directory, or a list of directories.
+    The git-exec command executes a bash expression on children of a directory, or a list of directories.
 
-    The git-tree-replicate command writes a script that clones the repos in the tree,
+    The git-replicate command writes a script that clones the repos in the tree,
     and adds any defined remotes.
 
-    The git-tree-update command updates each repository in the tree.
+    The git-update command updates each repository in the tree.
   END_OF_DESC
   spec.email       = ['mslinn@mslinn.com']
-  spec.executables = %w[git-tree-commitAll git-tree-evars git-tree-exec git-tree-replicate git-tree-update]
+  spec.executables = %w[git-commitAll git-evars git-exec git-replicate git-update]
   spec.files = Dir[
     '{exe,lib}/**/*',
     '.rubocop.yml',

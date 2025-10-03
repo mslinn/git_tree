@@ -10,7 +10,7 @@ module GitTree
 
   class ExecCommand < AbstractCommand
     def initialize(args)
-      $PROGRAM_NAME = 'git-tree-exec'
+      $PROGRAM_NAME = 'git-exec'
       super
     end
 
@@ -44,20 +44,26 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
-        #{$PROGRAM_NAME} - requires two parameters.
-        The first points to the top-level directory to process. 3 forms are accepted.
+        #{$PROGRAM_NAME} - Executes an arbitrary shell command for each repository.
+
+        If no arguments are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        These environment variables point to roots of git repository trees to walk.
+        Skips directories containing a .ignore file, and all subdirectories of those.
+
+        Environment variables that point to the roots of git repository trees must have been exported, for example:
+
+          $ export work=$HOME/work
+
+        Usage: #{$PROGRAM_NAME} [OPTIONS] TLD_ROOT SHELL_COMMAND
+
+
+        TLD_ROOT: Points to the top-level directory to process. 3 forms are accepted:
           1. A directory name, which may be relative or absolute.
           2. An environment variable reference,
              which must be preceded by a dollar sign and enclosed within single quotes
              to prevent expansion by the shell.
           3. A list of directory names, which may be relative or absolute,
              and may contain environment variables.
-
-        The environment variable must have been exported, for example:
-
-          $ export work=$HOME/work
-
-        Directories containing a file called .ignore are ignored.
 
         Usage examples:
         1) For all subdirectories of the current directory, update `Gemfile.lock` and install a local copy of the gem:
@@ -73,7 +79,7 @@ module GitTree
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-exec')
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-exec')
     begin
       GitTree::ExecCommand.new(ARGV).run
     rescue StandardError => e

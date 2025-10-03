@@ -1,10 +1,14 @@
 # Change Log
 
-## 1.0.0 (in progress)
 
-* Added spec.platform to `.gemspec` because `RubyGems.org` now requires it.
+## 1.0.0 / 2025-10-03
+
+* Made the file search breadth-first instead of depth-first,
+  greatly increasing performance.
 * Added `git-update` and `git-commitAll` commands.
-* Made the file search breadth-first instead of depth-first.
+* Renamed `git-tree-replicate`, `git-tree-evars` and `git-tree-exec` to
+  `git-replicate`, `git-evars` and `git-exec`.
+* Added spec.platform to `.gemspec` because `RubyGems.org` now requires it.
 
 
 ## 0.3.0 / 2023-06-01

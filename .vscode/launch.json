@@ -12,7 +12,7 @@
       "name": "Debug git_tree_update",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git-tree-update"
+      "script": "${workspaceRoot}/exe/git-update"
     },
     {
       "args": [
@@ -29,44 +29,44 @@
         "'$sitesUbuntu'"
       ],
       "debugPort": "0",
-      "name": "Debug git-tree-commitAll",
+      "name": "Debug git-commitAll",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git-tree-commitAll"
+      "script": "${workspaceRoot}/exe/git-commitAll"
     },
     {
       "args": [ "\"$jekyll_img $jekyll_pre\"", "version" ],
       "debugPort": "0",
-      "name": "Debug git-tree-exec",
+      "name": "Debug git-exec",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git-tree-exec"
+      "script": "${workspaceRoot}/exe/git-exec"
     },
     {
       "args": [ "'$work'" ],
       "debugPort": "0",
-      "name": "Debug git-tree-evars",
+      "name": "Debug git-evars",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git-tree-evars"
+      "script": "${workspaceRoot}/exe/git-evars"
     },
     {
       "args": [ "'$work'" ],
       "debugPort": "0",
-      "name": "Debug git-tree-replicate",
+      "name": "Debug git-replicate",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git-tree-replicate"
+      "script": "${workspaceRoot}/exe/git-replicate"
     },
     {
       "args": [
         "'$work'"
       ],
       "debugPort": "0",
-      "name": "Debug git-tree-update",
+      "name": "Debug git-update",
       "type": "rdbg",
       "request": "launch",
-      "script": "${workspaceRoot}/exe/git-tree-update"
+      "script": "${workspaceRoot}/exe/git-update"
     },
     {
       "debugPort": "0",

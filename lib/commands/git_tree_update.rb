@@ -14,7 +14,7 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args)
-      $PROGRAM_NAME = 'git-tree-update'
+      $PROGRAM_NAME = 'git-update'
       super
     end
 
@@ -54,22 +54,37 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
-        git-tree-update - Recursively updates all git repositories under the specified DIRECTORY roots.
-        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
-        Skips directories containing a .ignore file.
+        git-update - Recursively updates trees of git repositories.
 
-        Usage: #{$PROGRAM_NAME} [OPTIONS] [DIRECTORY...]
+        If no arguments are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        These environment variables point to roots of git repository trees to walk.
+        Skips directories containing a .ignore file, and all subdirectories of those.
+
+        Environment variables that point to the roots of git repository trees must have been exported, for example:
+
+          $ export work=$HOME/work
+
+        Usage: #{$PROGRAM_NAME} [OPTIONS] [QUOTED_ENV_VARS...]
 
         OPTIONS:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
+
+        QUOTED_ENV_VARS:
+        When specifying roots, the name of the environment variable must be preceded by a dollar sign
+        and enclosed within single quotes to prevent shell expansion.
+
+        Usage examples:
+
+        $ #{$PROGRAM_NAME}                   # Use default environment variables as roots
+        $ #{$PROGRAM_NAME} '$work' '$sites'  # Use specific environment variables
       END_HELP
       exit 1
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-update')
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
     begin
       GitTree::UpdateCommand.new(ARGV).run
     rescue StandardError => e

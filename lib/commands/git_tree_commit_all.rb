@@ -16,7 +16,7 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args)
-      $PROGRAM_NAME = 'git-tree-commitAll'
+      $PROGRAM_NAME = 'git-commitAll'
       super
       @options[:message] ||= '-'
     end
@@ -125,7 +125,7 @@ module GitTree
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-tree-commitAll')
+  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-commitAll')
     begin
       GitTree::CommitAllCommand.new(ARGV).run
     rescue StandardError => e
