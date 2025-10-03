@@ -92,6 +92,13 @@ but it is not conducive to debugging or structured programming.
 I rewrote the bash script in Ruby, using the `rugged` gem.
 Much better!
 
+Two years after that I used Google Gemini Code Assist to rewrite it again in Ruby,
+this time as a multithreaded program.
+Performance is now lightning-fast for most use cases.
+I was also able to use the same core logic for several of the individual
+Git-related scripts I had written over the years.
+The result is this Ruby gem.
+
 This use case is fulfilled by the
 `git-replicate`
 and `git-evars` commands
@@ -168,19 +175,22 @@ making them much easier to work with.
 
 ```shell
 $ git-evars -z '$sites'
-export 6of26=$sites/6of26
-export computers.mslinn.com=$sites/computers.mslinn.com
+export mnt=/mnt
+export c=$mnt/c
+export _6of26=$sites/6of26
+export computers=$sites/computers.mslinn.com
 export ebooks=$sites/ebooks
 export expert=$sites/expert
 export fonts=$sites/fonts
-export intranet.mslinn.com=$sites/intranet.mslinn.com
+export intranet=$sites/intranet.ancientwarmth.com
+export intranet_mslinn=$sites/intranet.mslinn.com
 export jekyllTemplate=$sites/jekyllTemplate
 export lyrics=$sites/lyrics
 export metamusic=$sites/metamusic
-export music.mslinn.com=$sites/music.mslinn.com
+export music=$sites/music.mslinn.com
 export photos=$sites/photos
 export supportingLiterature=$sites/supportingLiterature
-export www.scalacourses.com=$sites/www.scalacourses.com
+export www=$sites/www.scalacourses.com
 ```
 
 The environment variable definitions are meant to be saved into a file that is `source`d upon boot.
