@@ -240,6 +240,7 @@ Multiple roots can be specified in a single quoted string.
 $ git-replicate '$work' > work.sh                # Replicate repos under $work
 $ git-replicate '$work $sites' > replicate.sh    # Replicate repos under $work and $sites
 ```
+
 The generated environment variables will all be relative to the
 path pointed to by the expanded environment variable that you provided.
 You will understand what this means once you look at the generated script.
