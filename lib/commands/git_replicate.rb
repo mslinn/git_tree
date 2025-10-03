@@ -16,7 +16,7 @@ module GitTree
 
     def run
       result = []
-      walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
+      walker = GitTreeWalker.new(@args, options: @options)
       # Use the public API to find repos, which now yields the root argument as well.
       walker.find_and_process_repos { |dir, root_arg| result << replicate_one(dir, root_arg) }
 

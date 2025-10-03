@@ -3,6 +3,7 @@ require 'rainbow/refinement'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
+require_relative '../util/zowee_optimizer'
 using Rainbow
 
 module GitTree
@@ -16,15 +17,22 @@ module GitTree
 
     def run
       result = []
-      if @args.empty?
-        # No args provided, use default roots and substitute them in the output.
-        walker = GitTreeWalker.new([], verbosity: @options[:verbosity])
-        walker.find_and_process_repos do |dir|
+      if @options[:zowee]
+        walker = GitTreeWalker.new(@args, options: @options)
+        all_paths = []
+        walker.find_and_process_repos do |dir, _|
+          all_paths << dir
+        end
+        optimizer = ZoweeOptimizer.new(walker.root_map)
+        result = optimizer.optimize(all_paths, walker.display_roots)
+      elsif @args.empty? # No args provided, use default roots and substitute them in the output.
+        walker = GitTreeWalker.new([], options: @options)
+        walker.find_and_process_repos do |dir, _root_arg|
           result << make_env_var_with_substitution(dir, GitTreeWalker::DEFAULT_ROOTS)
         end
+      # No args provided, use default roots and substitute them in the output.
       else
         processed_args = @args.flat_map { |arg| arg.strip.split(/\s+/) }
-        # Process each argument as a root
         processed_args.each { |root| result.concat(process_root(root)) }
       end
       puts result.map { |x| "#{x}\n" }.join
@@ -58,6 +66,7 @@ module GitTree
         Options:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
+          -z, --zowee          Optimize variable definitions for size.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
         ROOTS can be directory names or environment variable references (e.g., '$work').
@@ -70,6 +79,14 @@ module GitTree
       exit 1
     end
 
+    def parse_options(args)
+      @args = super do |opts|
+        opts.on("-z", "--zowee", "Optimize variable definitions for size.") do
+          @options[:zowee] = true
+        end
+      end
+    end
+
     def process_root(root)
       help("Environment variable reference must start with a dollar sign ($).") unless root.start_with? '$'
 
@@ -79,7 +96,7 @@ module GitTree
       help("Environment variable '#{root}' points to a file (#{base}), not a directory.") unless Dir.exist?(base)
 
       result = [make_env_var(env_var_name(base), GemSupport.deref_symlink(base))]
-      walker = GitTreeWalker.new([root], verbosity: @options[:verbosity])
+      walker = GitTreeWalker.new([root], options: @options)
       walker.find_and_process_repos do |dir|
         relative_dir = dir.sub(base + '/', '')
         result << make_env_var(env_var_name(relative_dir), "#{root}/#{relative_dir}")
