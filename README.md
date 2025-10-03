@@ -329,12 +329,14 @@ Examine the newly built gem:
 $ gem info git_tree
 
 *** LOCAL GEMS ***
-git_tree (0.2.0)
+
+git_tree (0.3.0)
     Author: Mike Slinn
-    Homepage:
-    https://github.com/mslinn/git_tree_replicate
+    Homepage: https://www.mslinn.com/git/1100-git-tree.html
     License: MIT
-    Installed at: /home/mslinn/.gems
+    Installed at: /home/mslinn/.rbenv/versions/3.4.6/lib/ruby/gems/3.4.0
+
+    Installs five commands that walk a git directory tree and perform tasks.
 ```
 
 
