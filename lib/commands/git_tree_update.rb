@@ -58,12 +58,12 @@ module GitTree
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         Skips directories containing a .ignore file.
 
-        Options:
+        Usage: #{$PROGRAM_NAME} [OPTIONS] [DIRECTORY...]
+
+        OPTIONS:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
-
-        Usage: #{$PROGRAM_NAME} [DIRECTORY...]
       END_HELP
       exit 1
     end

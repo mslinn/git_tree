@@ -56,18 +56,21 @@ module GitTree
 
         Directories containing a file called .ignore are ignored.
 
-        Options:
+        Usage: #{$PROGRAM_NAME} [OPTIONS] [QUOTED_ENV_VARS...]
+
+        OPTIONS:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
-        Usage example:
-
-        $ #{$PROGRAM_NAME}               # Use default environment variables as roots
-        $ #{$PROGRAM_NAME} '$work' '$sites'  # Use specific environment variables
-
+        QUOTED_ENV_VARS:
         When specifying roots, the name of the environment variable must be preceded by a dollar sign
         and enclosed within single quotes to prevent shell expansion.
+
+        Usage examples:
+
+        $ #{$PROGRAM_NAME}                   # Use default environment variables as roots
+        $ #{$PROGRAM_NAME} '$work' '$sites'  # Use specific environment variables
       END_HELP
       exit 1
     end
