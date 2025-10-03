@@ -61,8 +61,7 @@ module GitTree
         Options:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
-          -v, --verbose        Verbose output.
-          -vv, --very-verbose  Very verbose (debug) output.
+          -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
         Usage: #{$PROGRAM_NAME} [DIRECTORY...]
       END_HELP

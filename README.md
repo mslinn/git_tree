@@ -5,7 +5,8 @@ Directories containing a file called `.ignore` are ignored.
 Ignoring a directory means all subdirectories are also ignored.
 Multiple threads are used to dramatically boost performance.
 
-- The `git-tree-commitAll` command commits all changes to each repository in the tree.
+- The `git-tree-commitAll` command commits and pushes all changes to each repository in the tree.
+  Repositories in a detached HEAD state are skipped.
 
 - The `git-tree-evars` command writes a script that defines environment variables pointing to each git repository.
 
@@ -38,16 +39,17 @@ $ gem specification git_tree executables
 ### `git-tree-commitAll` Usage
 
 ```text
-Usage: git commitAll [OPTIONS] [DIRECTORY ...]
-    Recursively updates all git repositories under the specified DIRECTORY roots.
-    If no directories are given, uses the environment variables 'sites', 'sitesUbuntu' and 'work' as roots.
-    Skips directories containing a .ignore file.
-    Options:
-      -h, --help       Show this help message and exit
-      -q, --quiet      Suppress normal output, only show errors
-      -v, --verbose    Increase verbosity (can be repeated: -vv for debug)
-    Example:
-      git commitAll $sites $work
+git-tree-commitAll - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
+If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+Skips directories containing a .ignore file.
+Repositories in a detached HEAD state are skipped.
+
+Options:
+  -h, --help                Show this help message and exit.
+  -m, --message MESSAGE     Use the given string as the commit message.
+                            (default: "-")
+  -q, --quiet               Suppress normal output, only show errors.
+  -v, --verbose             Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 ```
 
 

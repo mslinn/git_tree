@@ -36,14 +36,14 @@ module GitTree
         #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
         If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
         Skips directories containing a .ignore file.
+        Repositories in a detached HEAD state are skipped.
 
         Options:
           -h, --help                Show this help message and exit.
           -m, --message MESSAGE     Use the given string as the commit message.
                                     (default: "-")
           -q, --quiet               Suppress normal output, only show errors.
-          -v, --verbose             Verbose output.
-          -vv, --very-verbose       Very verbose (debug) output.
+          -v, --verbose             Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
         Usage:
           #{$PROGRAM_NAME} [OPTIONS] [DIRECTORY...]
@@ -78,7 +78,7 @@ module GitTree
 
         repo = Rugged::Repository.new(dir)
         if repo.head_detached?
-          git_walker_instance.log GitTreeWalker::NORMAL, "  Skipping #{short_dir} because it is in a detached HEAD state".yellow
+          git_walker_instance.log GitTreeWalker::VERBOSE, "  Skipping #{short_dir} because it is in a detached HEAD state".yellow
           return
         end
 
