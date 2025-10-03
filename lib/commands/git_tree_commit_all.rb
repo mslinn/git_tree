@@ -70,6 +70,12 @@ module GitTree
       short_dir = git_walker_instance.abbreviate_path(dir)
       git_walker_instance.log GitTreeWalker::VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
       begin
+        # The highest priority is to check for the presence of an .ignore file.
+        if File.exist?(File.join(dir, '.ignore'))
+          git_walker_instance.log GitTreeWalker::DEBUG, "  Skipping #{short_dir} due to .ignore file".yellow
+          return
+        end
+
         Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
           unless repo_has_changes?(dir)
             git_walker_instance.log GitTreeWalker::DEBUG, "  No changes to commit in #{short_dir}".yellow
