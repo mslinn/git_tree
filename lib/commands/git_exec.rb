@@ -15,12 +15,12 @@ module GitTree
     end
 
     def run
-      help("A command must be specified.") if @args.length == 1
+      help('At least one root and a command must be specified.') if @args.length < 2
 
-      root = @args[0]
-      command = @args[1]
+      roots = @args[0..-2]
+      command = @args[-1]
 
-      walker = GitTreeWalker.new([root], verbosity: @options[:verbosity])
+      walker = GitTreeWalker.new(roots, verbosity: @options[:verbosity])
       walker.process do |worker, dir, _thread_id, _git_walker_instance|
         execute(worker, dir, command)
       end

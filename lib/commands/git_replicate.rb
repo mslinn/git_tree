@@ -13,18 +13,12 @@ module GitTree
     end
 
     def run
-      root = @args[0]
-      help("Error: Environment variable reference must start with a dollar sign ($)") unless root.start_with? '$'
-
-      base = GemSupport.expand_env(root)
-      help("Environment variable '#{root}' is undefined.") if base.strip.empty?
-      help("Environment variable '#{root}' points to a non-existant directory (#{base}).") unless File.exist?(base)
-      help("Environment variable '#{root}' points to a file (#{base}), not a directory.") unless Dir.exist?(base)
+      help('At least one root must be specified.') if @args.empty?
 
       result = []
       walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
-      walker.find_and_process_repos do |dir|
-        result << replicate_one(dir, root)
+      walker.root_map.each do |root_arg, root_paths|
+        root_paths.each { |p| walker.find_git_repos_recursive(p, Set.new) { |dir| result << replicate_one(dir, root_arg) } }
       end
 
       puts result.join("\n")

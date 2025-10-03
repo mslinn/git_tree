@@ -74,8 +74,9 @@ class GitTreeWalker
         @root_map["$#{r}"] = ENV[r].split.map { |p| File.expand_path(p) } if ENV[r]
       end
     else
-      @display_roots = args.dup
-      args.each do |arg|
+      processed_args = args.flat_map { |arg| arg.strip.split(/\s+/) }
+      @display_roots = processed_args.dup
+      processed_args.each do |arg|
         path = arg
         if (match = arg.match(/\A'?\$([a-zA-Z_]\w*)'?\z/))
           var_name = match[1]

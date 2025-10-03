@@ -232,17 +232,14 @@ $ git-exec '$my_plugins' \
 
 ### `git-replicate` Usage
 
-This command requires one environment variable reference to be passed to it.
-Enclose the name of the environment variable within single quotes,
-which will prevent the shell from expanding it before invoking the command.
-
-The following creates a script in the current directory called `work.sh`,
-that replicates the desired portions of the directory tree of git repos pointed to by `$work`:
+This command generates a shell script to replicate a tree of git repositories.
+ROOTS can be directory names or environment variable references (e.g., '$work').
+Multiple roots can be specified in a single quoted string.
 
 ```shell
-$ git-replicate '$work' > work.sh
+$ git-replicate '$work' > work.sh                # Replicate repos under $work
+$ git-replicate '$work $sites' > replicate.sh    # Replicate repos under $work and $sites
 ```
-
 The generated environment variables will all be relative to the
 path pointed to by the expanded environment variable that you provided.
 You will understand what this means once you look at the generated script.
