@@ -6,10 +6,6 @@ require_relative '../util/git_tree_walker'
 require_relative '../util/thread_pool_manager'
 
 module GitTree
-  trap('INT') { exit!(-1) }
-  trap('SIGINT') { exit!(-1) }
-  using Rainbow
-
   class UpdateCommand < AbstractCommand
     self.allow_empty_args = true
 
@@ -84,12 +80,14 @@ module GitTree
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
-    begin
-      GitTree::UpdateCommand.new(ARGV).run
-    rescue StandardError => e
-      puts "An unexpected error occurred: #{e.message}".red
-      exit 1
-    end
+if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
+  begin
+    GitTree::UpdateCommand.new(ARGV).run
+  rescue Interrupt
+    warn "\nInterrupted by user".yellow
+    exit 130
+  rescue StandardError => e
+    puts "An unexpected error occurred: #{e.message}".red
+    exit 1
   end
 end

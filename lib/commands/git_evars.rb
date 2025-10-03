@@ -118,12 +118,14 @@ module GitTree
     end
   end
 
-  if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
-    begin
-      GitTree::EvarsCommand.new(ARGV).run
-    rescue StandardError => e
-      puts "An unexpected error occurred: #{e.message}".red
-      exit 1
-    end
+if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
+  begin
+    GitTree::EvarsCommand.new(ARGV).run
+  rescue Interrupt
+    warn "\nInterrupted by user".yellow
+    exit 130
+  rescue StandardError => e
+    puts "An unexpected error occurred: #{e.message}".red
+    exit 1
   end
 end
