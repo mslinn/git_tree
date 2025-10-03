@@ -80,7 +80,12 @@ class FixedThreadPoolManager
         warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if @verbosity >= 2
         last_active_count = active_workers
       end
-      sleep 0.1
+      begin
+        sleep 0.1
+      rescue Interrupt
+        # This can be interrupted by Ctrl-C. We catch it here to allow the main thread's
+        # rescue block to handle the exit gracefully without a stack trace.
+      end
     end
 
     warn (" " * 60) + "\r" # Clear the line
@@ -114,7 +119,12 @@ class FixedThreadPoolManager
           i, tasks_processed, elapsed_time, cpu_time
         )
         log_stderr shutdown_msg, :cyan if @verbosity >= 2
+      rescue Interrupt
+        # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
+        # Exit gracefully without a stack trace.
       end
+      # Suppress automatic error reporting for this thread. We handle it ourselves.
+      worker_thread.report_on_exception = false
       @workers << worker_thread
     end
   end

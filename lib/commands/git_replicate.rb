@@ -7,14 +7,14 @@ using Rainbow
 
 module GitTree
   class ReplicateCommand < GitTree::AbstractCommand
+    self.allow_empty_args = true
+
     def initialize(args)
       $PROGRAM_NAME = 'git-replicate'
       super
     end
 
     def run
-      help('At least one root must be specified.') if @args.empty?
-
       result = []
       walker = GitTreeWalker.new(@args, verbosity: @options[:verbosity])
       # Use the public API to find repos, which now yields the root argument as well.

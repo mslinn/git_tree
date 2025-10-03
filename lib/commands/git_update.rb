@@ -4,8 +4,9 @@ require 'timeout'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
+using Rainbow
+
 module GitTree
-  using Rainbow
   class UpdateCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
@@ -42,6 +43,8 @@ module GitTree
         elsif git_walker_instance.instance_variable_get(:@verbosity) >= GitTreeWalker::VERBOSE
           git_walker_instance.log GitTreeWalker::NORMAL, output.strip.green
         end
+      rescue Interrupt
+        # This handles Ctrl-C within a worker thread, preventing a stack trace.
       end
     end
 
@@ -86,7 +89,7 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
     GitTree::UpdateCommand.new(ARGV).run
   rescue Interrupt
     warn "\nInterrupted by user".yellow
-    exit 130
+    exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
     puts "An unexpected error occurred: #{e.message}".red
     exit 1
