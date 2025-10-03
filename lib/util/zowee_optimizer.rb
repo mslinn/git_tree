@@ -1,32 +1,34 @@
+# The ZoweeOptimizer class is responsible for optimizing the environment variable definitions.
+# It is used by the `git-evars` command to generate a script with shorter and more readable variable names.
 class ZoweeOptimizer
+  # Initializes the optimizer with a set of initial variables.
+  # @param initial_vars [Hash] a hash of initial variables, where the key is the variable name and the value is the path.
   def initialize(initial_vars = {})
     @defined_vars = {}
-    initial_vars.each do |var_ref, paths| # FIXME: what are all possible values of paths? See README for desired behavior.
+    initial_vars.each do |var_ref, paths|
       var_name = var_ref.tr("'$", '')
       @defined_vars[var_name] = paths.first if paths.any?
     end
   end
 
+  # Optimizes a list of paths to generate a script with environment variable definitions.
+  # @param paths [Array[String]] are provided in breadth-first order, so no sorting is needed.
+  # @param initial_roots [Array[String]] a list of initial root variables.
+  # @return [Array[String]] a list of strings, where each string is an export statement for an environment variable.
   def optimize(paths, initial_roots)
-    # Paths are provided in breadth-first order, so no sorting is needed.
     output = []
 
+    # Find common prefixes and define intermediate variables
+    define_intermediate_vars(paths)
+
     paths.each do |path|
-      var_name = env_var_name(File.basename(path))
+      var_name = generate_var_name(path)
+      next if var_name.nil?
 
       # Skip defining a var for a root that was passed in.
       next if initial_roots.include?("$#{var_name}") && @defined_vars[var_name] == path
 
-      best_substitution = nil
-      longest_match = 0
-
-      # Find the best existing variable to substitute.
-      @defined_vars.each do |sub_var, sub_path|
-        if path.start_with?("#{sub_path}/") && sub_path.length > longest_match
-          best_substitution = { var: sub_var, path: sub_path }
-          longest_match = sub_path.length
-        end
-      end
+      best_substitution = find_best_substitution(path)
 
       value = if best_substitution
                 "$#{best_substitution[:var]}/#{path.sub("#{best_substitution[:path]}/", '')}"
@@ -38,10 +40,84 @@ class ZoweeOptimizer
       @defined_vars[var_name] = path
     end
 
-    output
+    (@intermediate_vars.values + output).uniq
   end
 
-  def env_var_name(path)
-    path.tr(' ', '_').tr('-', '_')
+  # Generates a valid environment variable name from a path.
+  # @param path [String] the path to generate the variable name from.
+  # @return [String] a valid environment variable name.
+  def generate_var_name(path)
+    basename = File.basename(path)
+    return nil if basename.empty?
+
+    parts = basename.split('.')
+    name = parts.first.tr('-', '_')
+
+    name = parts.take(2).join('_').tr('-', '_') if @defined_vars.key?(name) && @defined_vars[name] != path && parts.length > 1
+
+    # Sanitize the name
+    name.gsub!(/[^a-zA-Z0-9_]/, '_')
+
+    # Prepend underscore if it starts with a digit
+    name = "_#{name}" if name.match?(/^[0-9]/)
+
+    name
+  end
+
+  private
+
+  # Defines intermediate variables based on common prefixes in the given paths.
+  # @param paths [Array[String]] a list of paths.
+  def define_intermediate_vars(paths)
+    @intermediate_vars = {}
+    prefixes = {}
+    paths.each do |path|
+      parts = path.split('/')
+      (1...parts.length).each do |i|
+        prefix = parts.take(i).join('/')
+        prefixes[prefix] ||= 0
+        prefixes[prefix] += 1
+      end
+    end
+
+    # Sort by length to define shorter prefixes first
+    sorted_prefixes = prefixes.keys.sort_by(&:length)
+
+    sorted_prefixes.each do |prefix|
+      # An intermediate variable is useful if it is a prefix to at least 2 paths
+      next unless prefixes[prefix] > 1 && !@defined_vars.value?(prefix)
+
+      var_name = generate_var_name(prefix)
+      next if var_name.nil?
+
+      best_substitution = find_best_substitution(prefix)
+      value = if best_substitution
+                "$#{best_substitution[:var]}/#{prefix.sub("#{best_substitution[:path]}/", '')}"
+              else
+                prefix
+              end
+
+      unless @defined_vars.key?(var_name)
+        @defined_vars[var_name] = prefix
+        @intermediate_vars[prefix] = "export #{var_name}=#{value}"
+      end
+    end
+  end
+
+  # Finds the best substitution for a given path from the currently defined variables.
+  # @param path [String] the path to find the best substitution for.
+  # @return [Hash] a hash containing the best substitution variable and path, or nil if no substitution is found.
+  def find_best_substitution(path)
+    best_substitution = nil
+    longest_match = 0
+
+    # Find the best existing variable to substitute.
+    @defined_vars.each do |sub_var, sub_path|
+      if path.start_with?("#{sub_path}/") && sub_path.length > longest_match
+        best_substitution = { var: sub_var, path: sub_path }
+        longest_match = sub_path.length
+      end
+    end
+    best_substitution
   end
 end
