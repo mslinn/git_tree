@@ -109,7 +109,19 @@ module GitTree
       return unless repo_has_staged_changes?(repo)
 
       system('git', '-C', dir, 'commit', '-m', message, '--quiet', '--no-gpg-sign', exception: true)
-      system('git', '-C', dir, 'push', exception: true)
+
+      if repo.head_unborn?
+        git_walker_instance.log GitTreeWalker::DEBUG, "  Skipping push for new repo in #{short_dir} (will be pushed on next run)".yellow
+        return
+      end
+
+      if repo.head_detached?
+        git_walker_instance.log GitTreeWalker::NORMAL, "  Skipping push in #{short_dir} because it is in a detached HEAD state".yellow
+        return
+      end
+
+      current_branch = repo.head.name.sub('refs/heads/', '')
+      system('git', '-C', dir, 'push', '--set-upstream', 'origin', current_branch, exception: true)
       git_walker_instance.log GitTreeWalker::NORMAL, "Committed and pushed changes in #{short_dir}".green
     end
   end
