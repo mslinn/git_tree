@@ -1,11 +1,8 @@
 require_relative '../git_tree'
-require 'rainbow/refinement'
 require_relative 'abstract_command'
 
 require_relative '../util/git_tree_walker'
 require_relative '../util/zowee_optimizer'
-
-using Rainbow
 
 module GitTree
   class EvarsCommand < GitTree::AbstractCommand
@@ -153,10 +150,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
   begin
     GitTree::EvarsCommand.new(ARGV).run
   rescue Interrupt
-    log_stderr NORMAL, "\nInterrupted by user", :yellow
+    log NORMAL, "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    log_stderr QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    log QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit 1
   end
 end

@@ -1,11 +1,8 @@
 require 'open3'
 require 'pathname'
-require 'rainbow/refinement'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 require_relative '../util/thread_pool_manager'
-
-using Rainbow
 
 module GitTree
   class ExecCommand < GitTree::AbstractCommand
@@ -35,7 +32,7 @@ module GitTree
       if status.success?
         log_stdout(output.strip) unless output.strip.empty?
       else
-        log_stderr(QUIET, output.strip, :red) unless output.strip.empty?
+        log(QUIET, output.strip, :red) unless output.strip.empty?
       end
     rescue StandardError => e
       warn "Error: '#{e.message}' from executing '#{command}' in #{dir}".red
@@ -84,10 +81,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-exec')
   begin
     GitTree::ExecCommand.new(ARGV).run
   rescue Interrupt
-    log_stderr NORMAL, "\nInterrupted by user", :yellow
+    log NORMAL, "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    log_stderr QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    log QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit 1
   end
 end

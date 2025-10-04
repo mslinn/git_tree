@@ -3,12 +3,10 @@ require 'etc'
 require 'shellwords'
 require 'optparse'
 require 'timeout'
-require 'rainbow/refinement'
 require_relative 'thread_pool_manager'
 require_relative 'log'
 
 class GitTreeWalker
-  using Rainbow
   include Logging
 
   attr_reader :display_roots, :root_map
@@ -34,9 +32,9 @@ class GitTreeWalker
   end
 
   def process(&) # Accepts a block
-    log_stderr VERBOSE, "Processing #{@display_roots.join(' ')}", :green
+    log VERBOSE, "Processing #{@display_roots.join(' ')}", :green
     if @options[:serial]
-      log_stderr VERBOSE, "Running in serial mode.", :yellow
+      log VERBOSE, "Running in serial mode.", :yellow
       find_and_process_repos do |dir, _root_arg|
         yield(self, dir, 0) # Pass self as the worker for logging
       end

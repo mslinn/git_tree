@@ -1,11 +1,9 @@
 require 'optparse'
-require 'rainbow/refinement'
 require_relative '../util/git_tree_walker'
 require_relative '../util/log'
 
 module GitTree
   class AbstractCommand
-    using Rainbow
     include Logging
 
     class << self

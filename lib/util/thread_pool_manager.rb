@@ -1,9 +1,7 @@
 require 'etc'
-require 'rainbow/refinement'
 require_relative 'log'
 
 class FixedThreadPoolManager
-  using Rainbow
   include Logging
 
   SHUTDOWN_SIGNAL = :shutdown
@@ -17,7 +15,7 @@ class FixedThreadPoolManager
         Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
         You provided #{percent_available_processors}.
       END_MSG
-      log_stderr QUIET, msg, :red
+      log QUIET, msg, :red
       exit! 1
     end
     @worker_count = [(Etc.nprocessors * percent_available_processors).floor, 1].max
@@ -75,16 +73,16 @@ class FixedThreadPoolManager
     end
 
     warn (" " * 60) + "\r" # Clear the line
-    log_stderr NORMAL, "All work is complete.", :green
+    log NORMAL, "All work is complete.", :green
   end
 
   private
 
   def initialize_workers
-    log_stderr NORMAL, "Initializing #{@worker_count} worker threads...", :green
+    log NORMAL, "Initializing #{@worker_count} worker threads...", :green
     @worker_count.times do |i|
       worker_thread = Thread.new do
-        log_stderr NORMAL, "  [Worker #{i}] Started.", :cyan
+        log NORMAL, "  [Worker #{i}] Started.", :cyan
         start_time = Time.now
         start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
         tasks_processed = 0
@@ -103,7 +101,7 @@ class FixedThreadPoolManager
           "  [Worker #{i}] Shutting down. Processed #{tasks_processed} tasks. Elapsed: %.2fs, CPU: %.2fs",
           elapsed_time, cpu_time
         )
-        log_stderr NORMAL, shutdown_msg, :cyan
+        log NORMAL, shutdown_msg, :cyan
       rescue Interrupt
         # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
         # Exit gracefully without a stack trace.
