@@ -4,8 +4,21 @@ require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 require_relative '../util/thread_pool_manager'
 
+class CommandRunner
+  # Executes a shell command in a specified directory.
+  # This is wrapped in a class to make it easy to mock in tests.
+  # @param command [String] The shell command to execute.
+  # @param dir [String] The directory to execute the command in.
+  # @return [Array] A tuple containing the output and the status object.
+  def run(command, dir)
+    Open3.capture2e(command, chdir: dir)
+  end
+end
+
 module GitTree
   class ExecCommand < GitTree::AbstractCommand
+    attr_writer :walker, :runner
+
     def initialize(args)
       $PROGRAM_NAME = 'git-exec'
       super
@@ -17,25 +30,34 @@ module GitTree
       roots = @args[0..-2]
       command = @args[-1]
 
-      walker = GitTreeWalker.new(roots, options: @options)
-      walker.process do |worker, dir, _thread_id, git_walker_instance|
-        execute(worker || git_walker_instance, dir, command)
+      @walker ||= GitTreeWalker.new(roots, options: @options)
+      @runner ||= CommandRunner.new
+
+      @walker.process do |_worker, dir, _thread_id, _git_walker|
+        output, success = execute(dir, command)
+        log_result(output, success)
       end
     end
 
     private
 
-    def execute(_worker, dir, command)
-      # Call Open3.capture2e with :chdir to be thread-safe, avoiding process-wide Dir.chdir.
-      # Redirect stdout and stderr to capture the output.
-      output, status = Open3.capture2e(command, chdir: dir)
-      if status.success?
-        log(QUIET, output.strip) unless output.strip.empty?
-      else
-        log(QUIET, output.strip, :red) unless output.strip.empty?
-      end
+    def execute(dir, command)
+      output, status = @runner.run(command, dir)
+      [output, status.success?]
     rescue StandardError => e
-      log QUIET, "Error: '#{e.message}' from executing '#{command}' in #{dir}", :red
+      ["Error: '#{e.message}' from executing '#{command}' in #{dir}", false]
+    end
+
+    def log_result(output, success)
+      return if output.strip.empty?
+
+      if success
+        # Successful command output should go to STDOUT.
+        log_stdout output.strip
+      else
+        # Errors should go to STDERR.
+        log QUIET, output.strip, :red
+      end
     end
 
     def help(msg = nil)

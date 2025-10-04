@@ -82,8 +82,14 @@ RSpec/ExampleLength:
 RSpec/MultipleExpectations:
   Max: 15
 
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
 RSpec/SpecFilePathFormat:
   IgnoreMethods: true
+
+RSpec/SubjectStub:
+  Enabled: false
 
 Style/CommandLiteral:
   Enabled: false
