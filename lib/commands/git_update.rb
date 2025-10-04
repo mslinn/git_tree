@@ -26,6 +26,7 @@ module GitTree
         status = nil
         begin
           Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
+            git_walker_instance.log GitTreeWalker::VERBOSE, "Executing: git -C #{Shellwords.escape(dir)} pull".yellow
             output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
             status = $CHILD_STATUS.exitstatus
           end
@@ -91,7 +92,8 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
     warn "\nInterrupted by user".yellow
     exit 130
   rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}".red
-    exit 1
+    puts "Error: #{e.message}".red
+    e.backtrace.join("\n").each_line { |line| printf line.red }
+    exit! 1
   end
 end

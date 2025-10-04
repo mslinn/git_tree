@@ -43,6 +43,9 @@ Lint/RedundantCopDisableDirective:
   Exclude:
     - git_tree.gemspec
 
+Lint/RedundantDirGlobSort:
+  Enabled: false
+
 Metrics/AbcSize:
   Max: 45
 
