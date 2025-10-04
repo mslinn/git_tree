@@ -1,19 +1,8 @@
-require 'open3'
 require 'pathname'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 require_relative '../util/thread_pool_manager'
-
-class CommandRunner
-  # Executes a shell command in a specified directory.
-  # This is wrapped in a class to make it easy to mock in tests.
-  # @param command [String] The shell command to execute.
-  # @param dir [String] The directory to execute the command in.
-  # @return [Array] A tuple containing the output and the status object.
-  def run(command, dir)
-    Open3.capture2e(command, chdir: dir)
-  end
-end
+require_relative '../util/command_runner'
 
 module GitTree
   class ExecCommand < GitTree::AbstractCommand
@@ -25,7 +14,7 @@ module GitTree
     end
 
     def run
-      help('At least one root and a command must be specified.') if @args.length < 2
+      return help('At least one root and a command must be specified.') if @args.length < 2
 
       roots = @args[0..-2]
       command = @args[-1]

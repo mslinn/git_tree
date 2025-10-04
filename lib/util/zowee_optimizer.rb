@@ -91,7 +91,14 @@ class ZoweeOptimizer
 
     sorted_prefixes.each do |prefix|
       # An intermediate variable is useful if it is a prefix to at least 2 paths
-      next unless prefixes[prefix] > 1 && !@defined_vars.value?(prefix)
+      # and is not one of the paths to be defined.
+      # Also, it should not be created if a more specific path from the input list can be used.
+      is_useful = prefixes[prefix] > 1 &&
+                  !@defined_vars.value?(prefix) &&
+                  paths.none? { |p| File.dirname(p) == prefix } &&
+                  @defined_vars.values.compact.none? { |v| prefix.start_with?(v) || v.start_with?(prefix) }
+      is_not_an_input_path = !paths.include?(prefix)
+      next unless is_useful && is_not_an_input_path
 
       var_name = generate_var_name(prefix)
       next if var_name.nil?

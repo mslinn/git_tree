@@ -2,11 +2,14 @@ require 'shellwords'
 require 'timeout'
 require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
+require_relative '../util/command_runner'
 
 module GitTree
   include Logging
 
   class UpdateCommand < GitTree::AbstractCommand
+    attr_writer :walker, :runner
+
     self.allow_empty_args = true
 
     def initialize(args)
@@ -15,8 +18,10 @@ module GitTree
     end
 
     def run
-      walker = GitTreeWalker.new(@args, options: @options)
-      walker.process do |_worker, dir, thread_id, git_walker|
+      @walker ||= GitTreeWalker.new(@args, options: @options)
+      @runner ||= CommandRunner.new
+
+      @walker.process do |_worker, dir, thread_id, git_walker|
         process_repo(git_walker, dir, thread_id)
       rescue StandardError
         Interrupt # Handle Ctrl-C within a worker thread, preventing a stack trace.
@@ -71,9 +76,9 @@ module GitTree
       status = nil
       begin
         Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
-          log VERBOSE, "Executing: git -C #{Shellwords.escape(dir)} pull", :yellow
-          output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
-          status = $CHILD_STATUS.exitstatus
+          log VERBOSE, "Executing: git pull in #{dir}", :yellow
+          output, status_obj = @runner.run('git pull', dir)
+          status = status_obj.exitstatus
         end
       rescue Timeout::Error
         log NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}", :red
@@ -86,7 +91,7 @@ module GitTree
       if !status.zero?
         log NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):", :red
         log NORMAL, output.strip, :red unless output.strip.empty?
-      elsif git_walker.instance_variable_get(:@verbosity) >= VERBOSE
+      elsif Logging.verbosity >= VERBOSE
         # Output from a successful pull is considered NORMAL level
         log NORMAL, output.strip, :green
       end
