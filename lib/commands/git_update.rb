@@ -7,6 +7,8 @@ require_relative '../util/git_tree_walker'
 using Rainbow
 
 module GitTree
+  include Logging
+
   class UpdateCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
@@ -56,7 +58,7 @@ module GitTree
       warn <<~END_HELP
         git-update - Recursively updates trees of git repositories.
 
-        If no arguments are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        If no arguments are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
         These environment variables point to roots of git repository trees to walk.
         Skips directories containing a .ignore file, and all subdirectories.
 
@@ -64,21 +66,21 @@ module GitTree
 
           $ export work=$HOME/work
 
-        Usage: #{$PROGRAM_NAME} [OPTIONS] [QUOTED_ENV_VARS...]
+        Usage: #{$PROGRAM_NAME} [OPTIONS] [ROOTS...]
 
         OPTIONS:
           -h, --help           Show this help message and exit.
           -q, --quiet          Suppress normal output, only show errors.
           -v, --verbose        Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
-        QUOTED_ENV_VARS:
-        When specifying roots, the name of the environment variable must be preceded by a dollar sign
-        and enclosed within single quotes to prevent shell expansion.
+        ROOTS:
+        When specifying roots, directory paths can be specified, and environment variables can be used, preceded by a dollar sign.
 
         Usage examples:
 
-        $ #{$PROGRAM_NAME}                   # Use default environment variables as roots
-        $ #{$PROGRAM_NAME} '$work' '$sites'  # Use specific environment variables
+        $ #{$PROGRAM_NAME}               # Use default environment variables as roots
+        $ #{$PROGRAM_NAME} $work $sites  # Use specific environment variables
+        $ #{$PROGRAM_NAME} $work /path/to/git/tree
       END_HELP
       exit 1
     end
@@ -89,11 +91,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
   begin
     GitTree::UpdateCommand.new(ARGV).run
   rescue Interrupt
-    warn "\nInterrupted by user".yellow
+    log_stderr "\nInterrupted by user", :yellow
     exit! 130
   rescue StandardError => e
-    puts "#{e.class}: #{e.message}".red
-    e.backtrace.join("\n").each_line { |line| printf line.red }
+    log_stderr "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit! 1
   end
 end

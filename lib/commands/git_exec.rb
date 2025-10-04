@@ -6,6 +6,7 @@ require_relative '../util/git_tree_walker'
 require_relative '../util/thread_pool_manager'
 
 using Rainbow
+include Logging
 
 module GitTree
   class ExecCommand < GitTree::AbstractCommand
@@ -46,7 +47,7 @@ module GitTree
       warn <<~END_HELP
         #{$PROGRAM_NAME} - Executes an arbitrary shell command for each repository.
 
-        If no arguments are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        If no arguments are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
         These environment variables point to roots of git repository trees to walk.
         Skips directories containing a .ignore file, and all subdirectories.
 
@@ -84,10 +85,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-exec')
   begin
     GitTree::ExecCommand.new(ARGV).run
   rescue Interrupt
-    warn "\nInterrupted by user".yellow
+    log_stderr "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}".red
+    log_stderr "An unexpected error occurred: #{e.message}", :red
     exit 1
   end
 end

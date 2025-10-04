@@ -10,9 +10,9 @@ class ZoweeOptimizer
   end
 
   # Optimizes a list of paths to generate a script with environment variable definitions.
-  # @param paths [Array[String]] are provided in breadth-first order, so no sorting is needed.
-  # @param initial_roots [Array[String]] a list of initial root variables.
-  # @return [Array[String]] a list of strings, where each string is an export statement for an environment variable.
+  # @param paths [Array<String>] are provided in breadth-first order, so no sorting is needed.
+  # @param initial_roots [Array<String>] a list of initial root variables.
+  # @return [Array<String>] a list of strings, where each string is an export statement for an environment variable.
   def optimize(paths, initial_roots)
     output = []
 
@@ -73,7 +73,7 @@ class ZoweeOptimizer
   private
 
   # Defines intermediate variables based on common prefixes in the given paths.
-  # @param paths [Array[String]] a list of paths.
+  # @param paths [Array<String>] a list of paths.
   def define_intermediate_vars(paths)
     @intermediate_vars = {}
     prefixes = {}

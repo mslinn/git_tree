@@ -1,7 +1,7 @@
 require 'pathname'
 
 module GemSupport
-  # @param paths [Array[String]] all start with a leading '/' (they are assumed to be absolute paths).
+  # @param paths [Array<String>] all start with a leading '/' (they are assumed to be absolute paths).
   # @return [String] the longest path prefix that is a prefix of all paths in array.
   #   If array is empty, return ''.
   #   If only the leading slash matches, and allow_root_match is true, return '/', else return ''.
@@ -27,7 +27,7 @@ module GemSupport
     result.empty? && allow_root_match ? '/' : result
   end
 
-  # @param paths [Array[String]] absolute paths to examine
+  # @param paths [Array<String>] absolute paths to examine
   # @param level [Int] minimum # of leading directory names in result, origin 1
   def self.roots(paths, level, allow_root_match: false)
     abort "Error: level must be positive, but it is #{level}." unless level.positive?
@@ -53,7 +53,7 @@ module GemSupport
     allow_root_match ? '/' : ''
   end
 
-  # @param paths [Array[String]] absolute paths to examine
+  # @param paths [Array<String>] absolute paths to examine
   # @param level is origin 1
   def self.trim_to_level(paths, level)
     result = paths.map do |x|

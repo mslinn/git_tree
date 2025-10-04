@@ -34,7 +34,7 @@ class GitTreeWalker
 
     return if File.exist?(File.join(root_path, '.ignore'))
 
-    log DEBUG, "Scanning #{root_path}".yellow
+    log DEBUG, "Scanning #{root_path}".green
     git_dir_or_file = File.join(root_path, '.git')
     if File.exist?(git_dir_or_file)
       log DEBUG, "  Found #{git_dir_or_file}".green
@@ -44,7 +44,7 @@ class GitTreeWalker
       end
       return # Prune search
     else
-      log DEBUG, "  No .git file/dir found in #{root_path}".blue
+      log DEBUG, "  #{root_path} is not a git directory".green
     end
 
     sort_directory_entries(root_path).each do |entry|

@@ -8,6 +8,7 @@ require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
 using Rainbow
+include Logging
 
 module GitTree
   include Logging
@@ -34,7 +35,7 @@ module GitTree
       warn "Error: #{msg}\n".red if msg
       warn <<~END_MSG
         #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified roots.
-        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', and 'work') as roots.
+        If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
         Skips directories containing a .ignore file, and all subdirectories.
         Repositories in a detached HEAD state are skipped.
 
@@ -130,10 +131,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-commitAll') # Corre
   begin
     GitTree::CommitAllCommand.new(ARGV).run
   rescue Interrupt
-    warn "\nInterrupted by user".yellow
+    log_stderr "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}".red
+    log_stderr "An unexpected error occurred: #{e.message}", :red
     exit 1
   end
 end

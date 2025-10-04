@@ -10,6 +10,9 @@ module GitTree
     Dir[File.join(__dir__, relative_path, '*.rb')].sort.each { |file| require file }
   end
 
+  # Make logging methods available at the module level (e.g., GitTree.log_stderr)
+  extend Logging
+
   # Require utilities first, as commands may depend on them.
   require_all 'util'
   require_all 'commands'

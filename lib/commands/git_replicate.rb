@@ -4,6 +4,7 @@ require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
 using Rainbow
+include Logging
 
 module GitTree
   class ReplicateCommand < GitTree::AbstractCommand
@@ -20,7 +21,7 @@ module GitTree
       # Use the public API to find repos, which now yields the root argument as well.
       walker.find_and_process_repos { |dir, root_arg| result << replicate_one(dir, root_arg) }
 
-      puts result.join("\n")
+      log_stdout result.join("\n") unless result.empty?
     end
 
     private
@@ -29,7 +30,7 @@ module GitTree
       warn "Error: #{msg}\n".red if msg
       warn <<~END_HELP
         #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
-        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
         The script clones the repositories and replicates any remotes.
         Skips directories containing a .ignore file.
 
@@ -85,10 +86,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-replicate') # Corre
   begin
     GitTree::ReplicateCommand.new(ARGV).run
   rescue Interrupt
-    warn "\nInterrupted by user".yellow
+    log_stderr "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    puts "An unexpected error occurred: #{e.message}".red
+    log_stderr "An unexpected error occurred: #{e.message}", :red
     exit 1
   end
 end
