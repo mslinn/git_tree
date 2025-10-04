@@ -5,9 +5,9 @@ require_relative '../util/git_tree_walker'
 require_relative '../util/command_runner'
 
 module GitTree
-  include Logging
-
   class UpdateCommand < GitTree::AbstractCommand
+    include Logging
+
     attr_writer :walker, :runner
 
     self.allow_empty_args = true
@@ -15,16 +15,17 @@ module GitTree
     def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-update'
       super
+      # Allow walker and runner to be injected for testing
+      @runner = @options.delete(:runner)
+      @walker = @options.delete(:walker)
     end
 
     def run
       setup
-      @runner ||= @options.delete(:runner) { CommandRunner.new }
-      @walker = @options.delete(:walker) { GitTreeWalker.new(@args, options: @options) }
-      @walker.process do |_worker, dir, thread_id, git_walker|
-        process_repo(git_walker, dir, thread_id)
-      rescue StandardError
-        Interrupt # Handle Ctrl-C within a worker thread, preventing a stack trace.
+      @runner ||= CommandRunner.new
+      @walker ||= GitTreeWalker.new(@args, options: @options)
+      @walker.process do |_worker, dir, thread_id, _repo_walker|
+        process_repo(@walker, dir, thread_id)
       end
     end
 
@@ -90,7 +91,7 @@ module GitTree
 
       if !status.zero?
         log NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):", :red
-        log NORMAL, output.strip, :red unless output.strip.empty?
+        log NORMAL, output.strip, :red unless output.to_s.strip.empty?
       elsif Logging.verbosity >= VERBOSE
         # Output from a successful pull is considered NORMAL level
         log NORMAL, output.strip, :green

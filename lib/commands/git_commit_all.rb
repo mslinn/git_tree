@@ -7,21 +7,25 @@ require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
 module GitTree
-  include Logging
-
   class CommitAllCommand < AbstractCommand
+    include Logging
+
+    attr_writer :walker
+
     self.allow_empty_args = true
 
     def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-commitAll'
       super
+      # Allow walker to be injected for testing
+      @walker = @options.delete(:walker)
     end
 
     def run
       setup
       @options[:message] ||= '-'
-      walker = GitTreeWalker.new(@args, options: @options)
-      walker.process do |_worker, dir, thread_id, repo_walker|
+      @walker ||= GitTreeWalker.new(@args, options: @options)
+      @walker.process do |_worker, dir, thread_id, repo_walker|
         process_repo(dir, thread_id, repo_walker, @options[:message])
       end
     end
