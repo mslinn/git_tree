@@ -1,4 +1,3 @@
-require 'gem_support'
 require_relative 'git_tree/version'
 
 module GitTree

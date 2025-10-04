@@ -1,7 +1,11 @@
 # Change Log
 
+## 1.0.1 / 2025-10-04
 
-## 1.0.0 / 2025-10-03
+* Removed unnecessary and problematic `gem_support` dependency.
+
+
+## 1.0.0 / 2025-10-04
 
 * Made the file search breadth-first instead of depth-first,
   greatly increasing performance.

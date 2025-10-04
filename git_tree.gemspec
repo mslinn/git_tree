@@ -50,7 +50,6 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.summary               = 'Installs five commands that walk a git directory tree and perform tasks.'
   spec.version               = GitUrlsVersion::VERSION
 
-  spec.add_dependency 'gem_support'
   spec.add_dependency 'rainbow'
   spec.add_dependency 'rugged'
 end
