@@ -5,24 +5,23 @@ require_relative '../util/log'
 
 module GitTree
   class AbstractCommand
-    include Logging
-
     using Rainbow
+    include Logging
 
     class << self
       attr_accessor :allow_empty_args
     end
 
     def initialize(args)
-      @options = {
-        # Default to NORMAL verbosity
+      @options = { # default values here
+        serial:    false,
         verbosity: NORMAL,
       }
-      # The parse_options method is expected to be defined in the subclass
+      # The parse_options method must be defined in the subclass
       # and should call super to get the base OptionParser instance.
       @args = parse_options(args)
 
-      # Show help if no arguments are provided, which is a common requirement.
+      # Show help if no arguments are provided, unless allow_empty_args is set true in a subclass.
       help if @args.empty? && !self.class.allow_empty_args
     end
 
@@ -62,12 +61,12 @@ module GitTree
 
     protected
 
+    # @param dir [String] path to a git repository
+    # @return [Boolean] true if the repository has changes, false otherwise.
     def repo_has_changes?(dir)
       repo = Rugged::Repository.new(dir)
-      repo.status do |_path, _status|
-        return true # Found a change, no need to check further
-      end
-      false # No changes found
+      repo.status { |_path, _status| return true }
+      false
     end
   end
 end

@@ -10,6 +10,7 @@ class FixedThreadPoolManager
 
   # Calculate the number of worker threads as 75% of available processors
   # (less one for the monitor thread), with a minimum of 1.
+  # @param percent_available_processors [Float] The percentage of available processors to use for worker threads.
   def initialize(percent_available_processors = 0.75, verbosity: 1)
     if percent_available_processors > 1 || percent_available_processors <= 0
       msg = <<~END_MSG
@@ -80,7 +81,6 @@ class FixedThreadPoolManager
 
   private
 
-  # @param Block of code to execute for each task.
   def initialize_workers
     log_stderr "Initializing #{@worker_count} worker threads...", :green if @verbosity > NORMAL
     @worker_count.times do |i|
