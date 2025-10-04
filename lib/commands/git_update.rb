@@ -19,30 +19,30 @@ module GitTree
       walker = GitTreeWalker.new(@args, options: @options)
       walker.process do |_worker, dir, thread_id, git_walker_instance|
         abbrev_dir = git_walker_instance.abbreviate_path(dir)
-        git_walker_instance.log Logging::NORMAL, "Updating #{abbrev_dir}".green
-        git_walker_instance.log Logging::VERBOSE, "Thread #{thread_id}: git -C #{dir} pull".yellow
+        log NORMAL, "Updating #{abbrev_dir}".green
+        log VERBOSE, "Thread #{thread_id}: git -C #{dir} pull".yellow
 
         output = nil
         status = nil
         begin
           Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
-            git_walker_instance.log Logging::VERBOSE, "Executing: git -C #{Shellwords.escape(dir)} pull".yellow
+            log VERBOSE, "Executing: git -C #{Shellwords.escape(dir)} pull".yellow
             output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
             status = $CHILD_STATUS.exitstatus
           end
         rescue Timeout::Error
-          git_walker_instance.log Logging::NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}".red
+          log NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}".red
           status = -1
         rescue StandardError => e
-          git_walker_instance.log Logging::NORMAL, "[ERROR] Thread #{thread_id}: Failed in #{abbrev_dir}: #{e.message}".red
+          log NORMAL, "[ERROR] Thread #{thread_id}: Failed in #{abbrev_dir}: #{e.message}".red
           status = -1
         end
 
         if !status.zero?
-          git_walker_instance.log Logging::NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):".red
-          git_walker_instance.log Logging::NORMAL, output.strip.red unless output.strip.empty?
-        elsif git_walker_instance.instance_variable_get(:@verbosity) >= Logging::VERBOSE
-          git_walker_instance.log Logging::NORMAL, output.strip.green
+          log NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):".red
+          log NORMAL, output.strip.red unless output.strip.empty?
+        elsif git_walker_instance.instance_variable_get(:@verbosity) >= VERBOSE
+          log NORMAL, output.strip.green
         end
       rescue Interrupt
         # This handles Ctrl-C within a worker thread, preventing a stack trace.

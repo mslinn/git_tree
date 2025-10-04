@@ -6,7 +6,6 @@ require_relative '../util/git_tree_walker'
 require_relative '../util/thread_pool_manager'
 
 using Rainbow
-include Logging
 
 module GitTree
   class ExecCommand < GitTree::AbstractCommand
@@ -34,9 +33,9 @@ module GitTree
       # Redirect stdout and stderr to capture the output.
       output, status = Open3.capture2e(command, chdir: dir)
       if status.success?
-        worker.log_stdout(output.strip) unless output.strip.empty?
+        log_stdout(output.strip) unless output.strip.empty?
       else
-        worker.log_stderr(output.strip.red) unless output.strip.empty?
+        log_stderr(output.strip.red) unless output.strip.empty?
       end
     rescue StandardError => e
       warn "Error: '#{e.message}' from executing '#{command}' in #{dir}".red

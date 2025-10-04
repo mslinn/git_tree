@@ -25,8 +25,8 @@ module GitTree
     private
 
     def help(msg = nil)
-      log_stderr "Error: #{msg}\n".red if msg
-      log_stderr <<~END_HELP
+      warn "Error: #{msg}\n".red if msg
+      warn <<~END_HELP
         #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
         If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
         The script clones the repositories and replicates any remotes.
@@ -46,7 +46,7 @@ module GitTree
         $ #{$PROGRAM_NAME} '$work'
         $ #{$PROGRAM_NAME} '$work $sites'
       END_HELP
-      exit 1
+      exit! 1
     end
 
     def replicate_one(dir, root_arg)
@@ -88,6 +88,6 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-replicate') # Corre
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
     log_stderr "An unexpected error occurred: #{e.message}", :red
-    exit 1
+    exit! 1
   end
 end
