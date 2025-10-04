@@ -9,9 +9,22 @@ module Logging
   VERBOSE = 2
   DEBUG = 3
 
+  # Class-level instance variables to hold the verbosity setting for the module
+  @verbosity = NORMAL
+
+  def self.verbosity
+    @verbosity
+  end
+
+  def self.verbosity=(level)
+    @verbosity = level
+  end
+
   # A thread-safe output method for colored text to STDERR.
-  def log_stderr(multiline_string, color = nil)
-    multiline_string.each_line do |line|
+  def log_stderr(level, multiline_string, color = nil)
+    return unless Logging.verbosity >= level
+
+    multiline_string.to_s.each_line do |line|
       line_to_print = line.chomp
       line_to_print = line_to_print.public_send(color) if color
       warn line_to_print
@@ -21,11 +34,7 @@ module Logging
 
   # A thread-safe output method for uncolored text to STDOUT.
   def log_stdout(multiline_string)
-    $stdout.puts multiline_string
+    $stdout.puts multiline_string.to_s
     $stdout.flush
-  end
-
-  def log(level, msg)
-    warn msg if @verbosity >= level
   end
 end

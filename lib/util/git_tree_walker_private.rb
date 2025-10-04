@@ -1,6 +1,10 @@
+require_relative 'log'
+
 using Rainbow
 
 class GitTreeWalker
+  include Logging
+
   private
 
   def determine_roots(args)
@@ -34,17 +38,17 @@ class GitTreeWalker
 
     return if File.exist?(File.join(root_path, '.ignore'))
 
-    log DEBUG, "Scanning #{root_path}".green
+    log_stderr DEBUG, "Scanning #{root_path}".green
     git_dir_or_file = File.join(root_path, '.git')
     if File.exist?(git_dir_or_file)
-      log DEBUG, "  Found #{git_dir_or_file}".green
+      log_stderr DEBUG, "  Found #{git_dir_or_file}".green
       unless visited.include?(root_path)
         visited.add(root_path)
         yield root_path
       end
       return # Prune search
     else
-      log DEBUG, "  #{root_path} is not a git directory".green
+      log_stderr DEBUG, "  #{root_path} is not a git directory".green
     end
 
     sort_directory_entries(root_path).each do |entry|
@@ -53,6 +57,6 @@ class GitTreeWalker
       find_git_repos_recursive(File.join(root_path, entry), visited, &block)
     end
   rescue SystemCallError => e
-    log NORMAL, "Error scanning #{root_path}: #{e.message}".red
+    log_stderr NORMAL, "Error scanning #{root_path}: #{e.message}".red
   end
 end

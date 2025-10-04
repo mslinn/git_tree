@@ -14,8 +14,8 @@ module GitTree
 
     def initialize(args)
       @options = { # default values here
-        serial:    false,
-        verbosity: NORMAL,
+        serial: false,
+        # verbosity is now managed by the Logging module
       }
       # The parse_options method must be defined in the subclass
       # and should call super to get the base OptionParser instance.
@@ -43,13 +43,13 @@ module GitTree
           help
         end
         opts.on("-q", "--quiet", "Suppress normal output, only show errors.") do
-          @options[:verbosity] = QUIET
+          Logging.verbosity = QUIET
         end
         opts.on("-v", "--verbose", "Increase verbosity. Can be used multiple times (e.g., -v, -vv).") do
-          @options[:verbosity] = case @options[:verbosity]
-                                 when NORMAL then VERBOSE
-                                 else DEBUG
-                                 end
+          Logging.verbosity = case Logging.verbosity
+                              when NORMAL then VERBOSE
+                              else DEBUG
+                              end
         end
         opts.on('-s', "--serial", "Run tasks serially in a single thread in the order specified.") do
           @options[:serial] = true

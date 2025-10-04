@@ -5,6 +5,7 @@ require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
 using Rainbow
+include Logging
 
 module GitTree
   class UpdateCommand < GitTree::AbstractCommand
@@ -17,34 +18,11 @@ module GitTree
 
     def run
       walker = GitTreeWalker.new(@args, options: @options)
-      walker.process do |_worker, dir, thread_id, git_walker_instance|
-        abbrev_dir = git_walker_instance.abbreviate_path(dir)
-        log NORMAL, "Updating #{abbrev_dir}".green
-        log VERBOSE, "Thread #{thread_id}: git -C #{dir} pull".yellow
+      walker.process do |_worker, dir, thread_id, git_walker|
+        process_repo(git_walker, dir, thread_id)
+      rescue StandardError
+        Interrupt
 
-        output = nil
-        status = nil
-        begin
-          Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
-            log VERBOSE, "Executing: git -C #{Shellwords.escape(dir)} pull".yellow
-            output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
-            status = $CHILD_STATUS.exitstatus
-          end
-        rescue Timeout::Error
-          log NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}".red
-          status = -1
-        rescue StandardError => e
-          log NORMAL, "[ERROR] Thread #{thread_id}: Failed in #{abbrev_dir}: #{e.message}".red
-          status = -1
-        end
-
-        if !status.zero?
-          log NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):".red
-          log NORMAL, output.strip.red unless output.strip.empty?
-        elsif git_walker_instance.instance_variable_get(:@verbosity) >= VERBOSE
-          log NORMAL, output.strip.green
-        end
-      rescue Interrupt
         # This handles Ctrl-C within a worker thread, preventing a stack trace.
       end
     end
@@ -82,6 +60,41 @@ module GitTree
       END_HELP
       exit 1
     end
+
+    # Updates the git repository in the given directory.
+    # @param git_walker [GitTreeWalker] The GitTreeWalker instance.
+    # @param dir [String] The path to the git repository.
+    # @param thread_id [Integer] The ID of the current worker thread.
+    # @return [nil]
+    def process_repo(git_walker, dir, thread_id)
+      abbrev_dir = git_walker.abbreviate_path(dir)
+      log_stderr NORMAL, "Updating #{abbrev_dir}", :green
+      log_stderr VERBOSE, "Thread #{thread_id}: git -C #{dir} pull", :yellow
+
+      output = nil
+      status = nil
+      begin
+        Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
+          log_stderr VERBOSE, "Executing: git -C #{Shellwords.escape(dir)} pull", :yellow
+          output = `git -C #{Shellwords.escape(dir)} pull 2>&1`
+          status = $CHILD_STATUS.exitstatus
+        end
+      rescue Timeout::Error
+        log_stderr NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}", :red
+        status = -1
+      rescue StandardError => e
+        log_stderr NORMAL, "[ERROR] Thread #{thread_id}: #{e.class} in #{abbrev_dir}; #{e.message}\n#{e.backtrace.join("\n")}", :red
+        status = -1
+      end
+
+      if !status.zero?
+        log_stderr NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):", :red
+        log_stderr NORMAL, output.strip, :red unless output.strip.empty?
+      elsif git_walker.instance_variable_get(:@verbosity) >= VERBOSE
+        # Output from a successful pull is considered NORMAL level
+        log_stderr NORMAL, output.strip, :green
+      end
+    end
   end
 end
 
@@ -89,10 +102,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
   begin
     GitTree::UpdateCommand.new(ARGV).run
   rescue Interrupt
-    log_stderr "\nInterrupted by user", :yellow
+    log_stderr NORMAL, "\nInterrupted by user", :yellow
     exit! 130
   rescue StandardError => e
-    log_stderr "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    log_stderr QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit! 1
   end
 end

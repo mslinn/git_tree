@@ -11,16 +11,15 @@ class FixedThreadPoolManager
   # Calculate the number of worker threads as 75% of available processors
   # (less one for the monitor thread), with a minimum of 1.
   # @param percent_available_processors [Float] The percentage of available processors to use for worker threads.
-  def initialize(percent_available_processors = 0.75, verbosity: 1)
+  def initialize(percent_available_processors = 0.75)
     if percent_available_processors > 1 || percent_available_processors <= 0
       msg = <<~END_MSG
         Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
         You provided #{percent_available_processors}.
       END_MSG
-      log_stderr msg, :red
+      log_stderr QUIET, msg, :red
       exit! 1
     end
-    @verbosity = verbosity
     @worker_count = [(Etc.nprocessors * percent_available_processors).floor, 1].max
     @main_work_queue = Queue.new
     @workers = []
@@ -64,7 +63,7 @@ class FixedThreadPoolManager
       break if active_workers.zero?
 
       if active_workers != last_active_count
-        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if @verbosity > NORMAL
+        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if Logging.verbosity > NORMAL
         last_active_count = active_workers
       end
       begin
@@ -76,16 +75,16 @@ class FixedThreadPoolManager
     end
 
     warn (" " * 60) + "\r" # Clear the line
-    log_stderr "All work is complete.", :green if @verbosity > NORMAL
+    log_stderr NORMAL, "All work is complete.", :green
   end
 
   private
 
   def initialize_workers
-    log_stderr "Initializing #{@worker_count} worker threads...", :green if @verbosity > NORMAL
+    log_stderr NORMAL, "Initializing #{@worker_count} worker threads...", :green
     @worker_count.times do |i|
       worker_thread = Thread.new do
-        log_stderr "  [Worker #{i}] Started.", :cyan if @verbosity > NORMAL
+        log_stderr NORMAL, "  [Worker #{i}] Started.", :cyan
         start_time = Time.now
         start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
         tasks_processed = 0
@@ -104,7 +103,7 @@ class FixedThreadPoolManager
           "  [Worker #{i}] Shutting down. Processed #{tasks_processed} tasks. Elapsed: %.2fs, CPU: %.2fs",
           elapsed_time, cpu_time
         )
-        log_stderr shutdown_msg, :cyan if @verbosity > NORMAL
+        log_stderr NORMAL, shutdown_msg, :cyan
       rescue Interrupt
         # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
         # Exit gracefully without a stack trace.

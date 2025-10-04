@@ -53,6 +53,7 @@ Metrics/BlockLength:
   Exclude:
     - git_tree.gemspec
     - spec/**/*
+  Max: 35
 
 Metrics/ClassLength:
   Exclude:

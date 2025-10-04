@@ -84,10 +84,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-replicate') # Corre
   begin
     GitTree::ReplicateCommand.new(ARGV).run
   rescue Interrupt
-    log_stderr "\nInterrupted by user", :yellow
+    log_stderr NORMAL, "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    log_stderr "An unexpected error occurred: #{e.message}", :red
+    log_stderr QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit! 1
   end
 end

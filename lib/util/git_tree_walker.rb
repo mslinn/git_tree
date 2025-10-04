@@ -14,12 +14,11 @@ class GitTreeWalker
   attr_reader :display_roots, :root_map
 
   DEFAULT_ROOTS = %w[sites sitesUbuntu work].freeze
-  GIT_TIMEOUT = 300 # 5 minutes per git pull
+  GIT_TIMEOUT = 10 # TODO: for debuggin only; should be 300 # 5 minutes per git pull
   IGNORED_DIRECTORIES = ['.', '..', '.venv'].freeze
 
   def initialize(args = ARGV, options: {})
     @options = options
-    @verbosity = @options.fetch(:verbosity, NORMAL)
     @root_map = {}
     @display_roots = []
     determine_roots(args)
@@ -35,14 +34,14 @@ class GitTreeWalker
   end
 
   def process(&) # Accepts a block
-    log VERBOSE, "Processing #{@display_roots.join(' ')}".green
+    log_stderr VERBOSE, "Processing #{@display_roots.join(' ')}", :green
     if @options[:serial]
-      log VERBOSE, "Running in serial mode.".yellow
+      log_stderr VERBOSE, "Running in serial mode.", :yellow
       find_and_process_repos do |dir, _root_arg|
         yield(self, dir, 0) # Pass self as the worker for logging
       end
     else
-      pool = FixedThreadPoolManager.new(0.75, verbosity: @verbosity)
+      pool = FixedThreadPoolManager.new(0.75)
       pool.start(&) # Pass the block to the pool's start method
 
       # Run the directory scanning in a separate thread so the main thread can handle interrupts.
@@ -72,4 +71,5 @@ class GitTreeWalker
     end
   end
 end
+
 require_relative 'git_tree_walker_private'
