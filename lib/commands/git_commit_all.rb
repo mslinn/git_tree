@@ -67,33 +67,33 @@ module GitTree
     # Processes a single git repository to check for and commit changes.
     def process_repo(dir, thread_id, git_walker_instance, message)
       short_dir = git_walker_instance.abbreviate_path(dir)
-      git_walker_instance.log GitTreeWalker::VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
+      git_walker_instance.log Logging::VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
       begin
         # The highest priority is to check for the presence of an .ignore file.
         if File.exist?(File.join(dir, '.ignore'))
-          git_walker_instance.log GitTreeWalker::DEBUG, "  Skipping #{short_dir} due to .ignore file".yellow
+          git_walker_instance.log Logging::DEBUG, "  Skipping #{short_dir} due to .ignore file".yellow
           return
         end
 
         repo = Rugged::Repository.new(dir)
         if repo.head_detached?
-          git_walker_instance.log GitTreeWalker::VERBOSE, "  Skipping #{short_dir} because it is in a detached HEAD state".yellow
+          git_walker_instance.log Logging::VERBOSE, "  Skipping #{short_dir} because it is in a detached HEAD state".yellow
           return
         end
 
         Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
           unless repo_has_changes?(dir)
-            git_walker_instance.log GitTreeWalker::DEBUG, "  No changes to commit in #{short_dir}".yellow
+            git_walker_instance.log Logging::DEBUG, "  No changes to commit in #{short_dir}".yellow
             return
           end
           commit_changes(dir, message, short_dir, git_walker_instance)
         end
       rescue Timeout::Error
-        git_walker_instance.log GitTreeWalker::NORMAL, "[TIMEOUT] Thread #{thread_id}: git operations timed out in #{short_dir}".red
+        git_walker_instance.log Logging::NORMAL, "[TIMEOUT] Thread #{thread_id}: git operations timed out in #{short_dir}".red
       rescue StandardError => e
-        git_walker_instance.log GitTreeWalker::NORMAL, "Error processing #{short_dir}: #{e.message}".red
-        git_walker_instance.log GitTreeWalker::DEBUG, "Exception class: #{e.class}".yellow
-        git_walker_instance.log GitTreeWalker::DEBUG, e.backtrace.join("\n").yellow
+        git_walker_instance.log Logging::NORMAL, "Error processing #{short_dir}: #{e.message}".red
+        git_walker_instance.log Logging::DEBUG, "Exception class: #{e.class}".yellow
+        git_walker_instance.log Logging::DEBUG, e.backtrace.join("\n").yellow
       end
     end
 
@@ -120,7 +120,7 @@ module GitTree
 
       current_branch = repo.head.name.sub('refs/heads/', '')
       system('git', '-C', dir, 'push', '--set-upstream', 'origin', current_branch, exception: true)
-      git_walker_instance.log GitTreeWalker::NORMAL, "Committed and pushed changes in #{short_dir}".green
+      git_walker_instance.log Logging::NORMAL, "Committed and pushed changes in #{short_dir}".green
     end
   end
 end

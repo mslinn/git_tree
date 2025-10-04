@@ -5,21 +5,17 @@ require 'optparse'
 require 'timeout'
 require 'rainbow/refinement'
 require_relative 'thread_pool_manager'
+require_relative 'log'
 
 class GitTreeWalker
   using Rainbow
-
-  GIT_TIMEOUT = 300 # 5 minutes max per git pull
-  IGNORED_DIRECTORIES = ['.venv'].freeze
-  DEFAULT_ROOTS = %w[sites sitesUbuntu work].freeze
-
-  # Verbosity levels
-  QUIET = 0
-  NORMAL = 1
-  VERBOSE = 2
-  DEBUG = 3
+  include Logging
 
   attr_reader :display_roots, :root_map
+
+  DEFAULT_ROOTS = %w[sites sitesUbuntu work].freeze
+  GIT_TIMEOUT = 300 # 5 minutes per git pull
+  IGNORED_DIRECTORIES = ['.', '..', '.venv'].freeze
 
   def initialize(args = ARGV, options: {})
     @options = options
@@ -36,30 +32,6 @@ class GitTreeWalker
       end
     end
     dir # Return original if no match
-  end
-
-  def log(level, msg) # Kept for external blocks to use
-    return unless @verbosity >= level
-
-    # The message might already be colored by Rainbow, so we can't just pass a color.
-    # We'll just use `warn` which is thread-safe for single lines.
-    msg.each_line { |line| warn line.chomp }
-  end
-
-  # A thread-safe output method for colored text to STDERR.
-  def log_stderr(multiline_string, color = nil)
-    multiline_string.each_line do |line|
-      line_to_print = line.chomp
-      line_to_print = line_to_print.public_send(color) if color
-      warn line_to_print
-    end
-    $stderr.flush
-  end
-
-  # A thread-safe output method for uncolored text to STDOUT.
-  def log_stdout(multiline_string)
-    $stdout.puts multiline_string
-    $stdout.flush
   end
 
   def process(&) # Accepts a block

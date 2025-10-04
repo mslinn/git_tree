@@ -37,7 +37,7 @@ class GitTreeWalker
     log DEBUG, "Scanning #{root_path}".yellow
     git_dir_or_file = File.join(root_path, '.git')
     if File.exist?(git_dir_or_file)
-      log DEBUG, "  Found .git file/dir: #{git_dir_or_file}".green
+      log DEBUG, "  Found #{git_dir_or_file}".green
       unless visited.include?(root_path)
         visited.add(root_path)
         yield root_path

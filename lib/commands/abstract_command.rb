@@ -1,9 +1,12 @@
 require 'optparse'
 require 'rainbow/refinement'
 require_relative '../util/git_tree_walker'
+require_relative '../util/log'
 
 module GitTree
   class AbstractCommand
+    include Logging
+
     using Rainbow
 
     class << self
@@ -13,7 +16,7 @@ module GitTree
     def initialize(args)
       @options = {
         # Default to NORMAL verbosity
-        verbosity: GitTreeWalker::NORMAL,
+        verbosity: NORMAL,
       }
       # The parse_options method is expected to be defined in the subclass
       # and should call super to get the base OptionParser instance.
@@ -41,12 +44,12 @@ module GitTree
           help
         end
         opts.on("-q", "--quiet", "Suppress normal output, only show errors.") do
-          @options[:verbosity] = GitTreeWalker::QUIET
+          @options[:verbosity] = QUIET
         end
         opts.on("-v", "--verbose", "Increase verbosity. Can be used multiple times (e.g., -v, -vv).") do
           @options[:verbosity] = case @options[:verbosity]
-                                 when GitTreeWalker::NORMAL then GitTreeWalker::VERBOSE
-                                 else GitTreeWalker::DEBUG
+                                 when NORMAL then VERBOSE
+                                 else DEBUG
                                  end
         end
         opts.on('-s', "--serial", "Run tasks serially in a single thread in the order specified.") do

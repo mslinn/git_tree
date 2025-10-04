@@ -1,8 +1,10 @@
 require 'etc'
 require 'rainbow/refinement'
+require_relative 'log'
 
 class FixedThreadPoolManager
   using Rainbow
+  include Logging
 
   SHUTDOWN_SIGNAL = :shutdown
 
@@ -27,22 +29,6 @@ class FixedThreadPoolManager
   # The pool must have been started with `start` first.
   def add_task(task)
     @main_work_queue.push(task)
-  end
-
-  # A thread-safe output method for colored text.
-  def log_stderr(multiline_string, color = nil)
-    multiline_string.each_line do |line|
-      line_to_print = line.chomp
-      line_to_print = line_to_print.public_send(color) if color
-      warn line_to_print
-    end
-    $stderr.flush
-  end
-
-  # A thread-safe output method for uncolored text to STDOUT.
-  def log_stdout(multiline_string)
-    $stdout.puts multiline_string
-    $stdout.flush
   end
 
   # Signals the pool to shut down after all currently queued tasks are processed.
@@ -77,7 +63,7 @@ class FixedThreadPoolManager
       break if active_workers.zero?
 
       if active_workers != last_active_count
-        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if @verbosity > GitTreeWalker::NORMAL
+        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if @verbosity > NORMAL
         last_active_count = active_workers
       end
       begin
@@ -89,17 +75,17 @@ class FixedThreadPoolManager
     end
 
     warn (" " * 60) + "\r" # Clear the line
-    log_stderr "All work is complete.", :green if @verbosity > GitTreeWalker::NORMAL
+    log_stderr "All work is complete.", :green if @verbosity > NORMAL
   end
 
   private
 
   # @param Block of code to execute for each task.
   def initialize_workers
-    log_stderr "Initializing #{@worker_count} worker threads...", :green if @verbosity > GitTreeWalker::NORMAL
+    log_stderr "Initializing #{@worker_count} worker threads...", :green if @verbosity > NORMAL
     @worker_count.times do |i|
       worker_thread = Thread.new do
-        log_stderr "  [Worker #{i}] Started.", :cyan if @verbosity > GitTreeWalker::NORMAL
+        log_stderr "  [Worker #{i}] Started.", :cyan if @verbosity > NORMAL
         start_time = Time.now
         start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
         tasks_processed = 0
@@ -118,7 +104,7 @@ class FixedThreadPoolManager
           "  [Worker #{i}] Shutting down. Processed #{tasks_processed} tasks. Elapsed: %.2fs, CPU: %.2fs",
           elapsed_time, cpu_time
         )
-        log_stderr shutdown_msg, :cyan if @verbosity > GitTreeWalker::NORMAL
+        log_stderr shutdown_msg, :cyan if @verbosity > NORMAL
       rescue Interrupt
         # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
         # Exit gracefully without a stack trace.
