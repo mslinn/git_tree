@@ -1,4 +1,5 @@
 require 'anyway'
+require_relative 'log'
 
 module GitTree
   # Centralized configuration for the git-tree gem.
@@ -17,7 +18,7 @@ module GitTree
 
     # Define attributes with their default values.
     attr_config git_timeout:   300,
-                verbosity:     1, # NORMAL
+                verbosity:     ::Logging::NORMAL,
                 default_roots: %w[sites sitesUbuntu work]
   end
 end

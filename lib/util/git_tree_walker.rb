@@ -3,9 +3,9 @@ require 'etc'
 require 'shellwords'
 require 'optparse'
 require 'timeout' # This is correct, no change needed here.
-require_relative '../git_tree/config'
-require_relative 'thread_pool_manager'
+require_relative 'config'
 require_relative 'log'
+require_relative 'thread_pool_manager'
 
 class GitTreeWalker
   include Logging
