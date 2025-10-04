@@ -12,7 +12,7 @@ class GitTreeWalker
   attr_reader :display_roots, :root_map
 
   DEFAULT_ROOTS = %w[sites sitesUbuntu work].freeze
-  GIT_TIMEOUT = 10 # TODO: for debuggin only; should be 300 # 5 minutes per git pull
+  GIT_TIMEOUT = 300 # 5 minutes per git pull
   IGNORED_DIRECTORIES = ['.', '..', '.venv'].freeze
 
   def initialize(args = ARGV, options: {})

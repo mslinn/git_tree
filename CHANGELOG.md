@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.0.2 / 2025-10-04
+
+* Increased `GitTreeWalker.GIT_TIMEOUT` to 5 minutes.
+
+
 ## 1.0.1 / 2025-10-04
 
 * Removed unnecessary and problematic `gem_support` dependency.
