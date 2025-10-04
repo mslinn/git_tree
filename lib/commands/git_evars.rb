@@ -8,8 +8,6 @@ require_relative '../util/zowee_optimizer'
 using Rainbow
 
 module GitTree
-  include Logging
-
   class EvarsCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 

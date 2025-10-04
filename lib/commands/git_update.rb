@@ -7,8 +7,6 @@ require_relative '../util/git_tree_walker'
 using Rainbow
 
 module GitTree
-  include Logging
-
   class UpdateCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 

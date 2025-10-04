@@ -4,31 +4,29 @@ require_relative 'abstract_command'
 require_relative '../util/git_tree_walker'
 
 using Rainbow
-include Logging
 
 module GitTree
   class ReplicateCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
     def initialize(args)
-      $PROGRAM_NAME = 'git-replicate' # Corrected from git-tree-replicate
+      $PROGRAM_NAME = 'git-replicate'
       super
     end
 
+    # @return [nil]
     def run
       result = []
       walker = GitTreeWalker.new(@args, options: @options)
-      # Use the public API to find repos, which now yields the root argument as well.
       walker.find_and_process_repos { |dir, root_arg| result << replicate_one(dir, root_arg) }
-
       log_stdout result.join("\n") unless result.empty?
     end
 
     private
 
     def help(msg = nil)
-      warn "Error: #{msg}\n".red if msg
-      warn <<~END_HELP
+      log_stderr "Error: #{msg}\n".red if msg
+      log_stderr <<~END_HELP
         #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
         If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
         The script clones the repositories and replicates any remotes.

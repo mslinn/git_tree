@@ -109,7 +109,7 @@ class FixedThreadPoolManager
         # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
         # Exit gracefully without a stack trace.
       end
-      # Suppress automatic error reporting for this thread. We handle it ourselves.
+      # Suppress automatic error reporting for this thread. The error should be handled elsewhere.
       worker_thread.report_on_exception = false
       @workers << worker_thread
     end
