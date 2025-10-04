@@ -40,7 +40,7 @@ describe GitTree::UpdateCommand do
       let(:pull_output) { 'Already up to date.' }
 
       it 'logs the update message' do
-        allow(mock_walker).to receive(:process).and_yield(nil, repo_dir, 0, mock_walker)
+        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, mock_walker)
         allow(mock_runner).to receive(:run).with('git pull', repo_dir)
                                            .and_return([pull_output, instance_double(Process::Status, exitstatus: 0)])
 
@@ -50,7 +50,7 @@ describe GitTree::UpdateCommand do
       end
 
       it 'logs verbose output when verbosity is high' do
-        allow(mock_walker).to receive(:process).and_yield(nil, repo_dir, 0, mock_walker)
+        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, mock_walker)
         allow(Logging).to receive(:verbosity).and_return(Logging::VERBOSE)
         allow(mock_runner).to receive(:run).with('git pull', repo_dir)
                                            .and_return([pull_output, instance_double(Process::Status, exitstatus: 0)])
@@ -65,7 +65,7 @@ describe GitTree::UpdateCommand do
       let(:error_output) { 'fatal: not a git repository' }
 
       it 'logs an error message' do
-        allow(mock_walker).to receive(:process).and_yield(nil, repo_dir, 0, mock_walker)
+        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, mock_walker)
         allow(mock_runner).to receive(:run).with('git pull', repo_dir)
                                            .and_return([error_output, instance_double(Process::Status, exitstatus: 128)])
 
@@ -78,7 +78,7 @@ describe GitTree::UpdateCommand do
 
     context 'when git pull times out' do
       it 'logs a timeout error' do
-        allow(mock_walker).to receive(:process).and_yield(nil, repo_dir, 0, mock_walker)
+        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, mock_walker)
         allow(mock_runner).to receive(:run).with('git pull', repo_dir).and_raise(Timeout::Error)
 
         command.run
