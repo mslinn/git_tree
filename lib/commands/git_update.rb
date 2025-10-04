@@ -24,8 +24,8 @@ module GitTree
       setup
       @runner ||= CommandRunner.new
       @walker ||= GitTreeWalker.new(@args, options: @options)
-      @walker.process do |_worker, dir, thread_id, _repo_walker|
-        process_repo(@walker, dir, thread_id)
+      @walker.process do |dir, thread_id, walker|
+        process_repo(walker, dir, thread_id)
       end
     end
 

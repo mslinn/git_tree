@@ -25,8 +25,8 @@ module GitTree
       setup
       @options[:message] ||= '-'
       @walker ||= GitTreeWalker.new(@args, options: @options)
-      @walker.process do |_worker, dir, thread_id, repo_walker|
-        process_repo(dir, thread_id, repo_walker, @options[:message])
+      @walker.process do |dir, thread_id, walker|
+        process_repo(dir, thread_id, walker, @options[:message])
       end
     end
 

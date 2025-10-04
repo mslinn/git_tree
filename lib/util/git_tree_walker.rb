@@ -36,12 +36,14 @@ class GitTreeWalker
     if @options[:serial]
       log VERBOSE, "Running in serial mode.", :yellow
       find_and_process_repos do |dir, _root_arg|
-        yield(self, dir, 0) # Pass self as the worker for logging
+        yield(dir, 0, self) # task, thread_id, walker
       end
     else
       pool = FixedThreadPoolManager.new(0.75)
-      pool.start(&) # Pass the block to the pool's start method
-
+      # The block passed to pool.start now receives the walker instance (self)
+      pool.start do |_worker, dir, thread_id|
+        yield(dir, thread_id, self)
+      end
       # Run the directory scanning in a separate thread so the main thread can handle interrupts.
       producer_thread = Thread.new do
         find_and_process_repos do |dir, _root_arg|

@@ -61,14 +61,16 @@ module GitTree
       if parsed_options[:verbosity] == QUIET
         Logging.verbosity = QUIET
       elsif parsed_options[:verbose_count]
-        Logging.verbosity = case parsed_options[:verbose_count]
-                            when NORMAL then VERBOSE
-                            else DEBUG
-                            end
+        verbosity_level = case parsed_options[:verbose_count]
+                          when 1 then VERBOSE
+                          else DEBUG # 2 or more -v flags
+                          end
+        Logging.verbosity = verbosity_level
+        parsed_options[:verbose] = verbosity_level
       end
 
       # Merge parsed options into existing @options, preserving initial ones.
-      @options.merge!(parsed_options.slice(:serial))
+      @options.merge!(parsed_options)
 
       remaining_args
     end

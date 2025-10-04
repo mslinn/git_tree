@@ -11,31 +11,33 @@ module GitTree
     def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-exec'
       super
-      @walker = @options.delete(:walker) { GitTreeWalker.new(@raw_args || [], options: @options) }
-      @runner = @options.delete(:runner) { CommandRunner.new }
+      # Allow walker and runner to be injected for testing
+      @runner = @options.delete(:runner)
+      @walker = @options.delete(:walker)
     end
 
     def run
       setup
       return help('At least one root and a command must be specified.') if @args.length < 2
 
-      # Re-initialize walker if roots were modified by option parsing
-      @walker = GitTreeWalker.new(@args[0..-2], options: @options) if @args.length != @raw_args.length
+      @runner ||= CommandRunner.new
+      # The last argument is the command to execute, the rest are roots for the walker.
+      @walker ||= GitTreeWalker.new(@args[0..-2], options: @options)
 
       command = @args.last
-      @walker.process do |_worker, dir, _thread_id, _git_walker|
-        output, success = execute(dir, command)
-        log_result(output, success)
+      @walker.process do |dir, _thread_id, _walker|
+        execute_and_log(dir, command)
       end
     end
 
     private
 
-    def execute(dir, command)
+    def execute_and_log(dir, command)
       output, status = @runner.run(command, dir)
-      [output, status.success?]
+      log_result(output, status.success?)
     rescue StandardError => e
-      ["Error: '#{e.message}' from executing '#{command}' in #{dir}", false]
+      error_message = "Error: '#{e.message}' from executing '#{command}' in #{dir}"
+      log_result(error_message, false)
     end
 
     def log_result(output, success)

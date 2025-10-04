@@ -21,6 +21,21 @@ describe GitTree::UpdateCommand do
   end
 
   describe '#run' do
+    it 'initializes the GitTreeWalker after parsing options' do
+      # This test ensures that the walker is created with the final, parsed arguments,
+      # not the initial ones, which was a source of a previous bug.
+      command = described_class.new(['-v', '/some/dir'], options: { runner: mock_runner })
+      allow(GitTreeWalker).to receive(:new).and_return(mock_walker)
+
+      command.run
+
+      # It should be called with the arguments left *after* option parsing.
+      expect(GitTreeWalker).to have_received(:new).with(
+        ['/some/dir'],
+        options: a_hash_including(verbose: 2)
+      )
+    end
+
     context 'when git pull is successful' do
       let(:pull_output) { 'Already up to date.' }
 
@@ -111,6 +126,22 @@ describe GitTree::UpdateCommand do
 
         command.run
         expect(mock_runner).to have_received(:run).with('git pull', repo_path).once
+      end
+
+      it 'passes the correct walker instance to process_repo' do
+        # This test guards against a regression where the wrong object (a block parameter
+        # instead of the main instance variable) was passed, causing a NoMethodError.
+        test_options = { runner: mock_runner, serial: true }
+        command = described_class.new(args, options: test_options)
+
+        # We spy on the private method `process_repo` to check its arguments.
+        allow(command).to receive(:process_repo).and_call_original
+        allow(mock_runner).to receive(:run)
+          .with('git pull', repo_path).and_return(['', instance_double(Process::Status, exitstatus: 0)])
+
+        command.run
+
+        expect(command).to have_received(:process_repo).with(an_instance_of(GitTreeWalker), repo_path, 0)
       end
     end
   end

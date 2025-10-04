@@ -95,13 +95,15 @@ class FixedThreadPoolManager
           tasks_processed += 1
         end
 
-        elapsed_time = Time.now - start_time
-        cpu_time = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID) - start_cpu
-        shutdown_msg = format(
-          "  [Worker #{i}] Shutting down. Processed #{tasks_processed} tasks. Elapsed: %.2fs, CPU: %.2fs",
-          elapsed_time, cpu_time
-        )
-        log NORMAL, shutdown_msg, :cyan
+        if Logging.verbosity >= VERBOSE
+          elapsed_time = Time.now - start_time
+          cpu_time = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID) - start_cpu
+          shutdown_msg = format(
+            "  [Worker #{i}] Shutting down. Processed #{tasks_processed} tasks. Elapsed: %.2fs, CPU: %.2fs",
+            elapsed_time, cpu_time
+          )
+          log VERBOSE, shutdown_msg, :cyan
+        end
       rescue Interrupt
         # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
         # Exit gracefully without a stack trace.

@@ -3,32 +3,31 @@ require_relative '../../lib/commands/git_commit_all'
 require_relative '../../lib/util/log'
 
 describe GitTree::CommitAllCommand do
-  subject(:command) { described_class.new(args) }
-
   include Logging
 
-  let(:mock_walker) { instance_double(GitTreeWalker) }
+  subject(:command) { described_class.new(args, options: options) }
+
+  let(:args) { ['/fake/root'] }
+  let(:mock_walker) { instance_double(GitTreeWalker, process: nil) }
+  let(:options) { { walker: mock_walker } }
 
   before do
-    # This is a simplified test focusing on argument parsing and walker interaction
-    allow(GitTreeWalker).to receive(:new).and_return(mock_walker)
-    allow(mock_walker).to receive(:process)
+    allow(command).to receive(:log)
+    allow(Logging).to receive(:verbosity).and_return(Logging::NORMAL)
   end
 
   describe '#run' do
-    context 'with a custom message' do
-      let(:args) { ['-m', 'my test message'] }
+    it 'initializes the GitTreeWalker after parsing options' do
+      # This test ensures that the walker is created with the final, parsed arguments
+      # and options, not the initial ones, which was a source of a previous bug.
+      command = described_class.new(['-v', '-m', 'test message', '/some/dir'])
+      allow(GitTreeWalker).to receive(:new).and_return(mock_walker)
 
-      it 'initializes with the correct message option' do
-        command.setup
-        expect(command.instance_variable_get(:@options)[:message]).to eq('my test message')
-      end
+      command.run
 
-      it 'creates a walker and processes' do
-        command.run
-        expect(GitTreeWalker).to have_received(:new).with([], options: hash_including(message: 'my test message'))
-        expect(mock_walker).to have_received(:process)
-      end
+      # It should be called with the arguments left *after* option parsing.
+      expect(GitTreeWalker).to have_received(:new)
+        .with(['/some/dir'], options: a_hash_including(message: 'test message', verbose: 2, serial: false))
     end
   end
 end
