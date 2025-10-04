@@ -11,18 +11,18 @@ module GitTree
     def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-exec'
       super
+      @walker = @options.delete(:walker) { GitTreeWalker.new(@raw_args || [], options: @options) }
+      @runner = @options.delete(:runner) { CommandRunner.new }
     end
 
     def run
       setup
       return help('At least one root and a command must be specified.') if @args.length < 2
 
-      roots = @args[0..-2]
-      command = @args[-1]
+      # Re-initialize walker if roots were modified by option parsing
+      @walker = GitTreeWalker.new(@args[0..-2], options: @options) if @args.length != @raw_args.length
 
-      @walker ||= @options.delete(:walker) { GitTreeWalker.new(roots, options: @options) }
-      @runner ||= @options.delete(:runner) { CommandRunner.new }
-
+      command = @args.last
       @walker.process do |_worker, dir, _thread_id, _git_walker|
         output, success = execute(dir, command)
         log_result(output, success)

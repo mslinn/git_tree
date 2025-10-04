@@ -19,7 +19,7 @@ module GitTree
 
     def run
       setup
-      @runner = @options.delete(:runner) { CommandRunner.new }
+      @runner ||= @options.delete(:runner) { CommandRunner.new }
       @walker = @options.delete(:walker) { GitTreeWalker.new(@args, options: @options) }
       @walker.process do |_worker, dir, thread_id, git_walker|
         process_repo(git_walker, dir, thread_id)

@@ -5,11 +5,9 @@ require_relative '../../lib/util/log'
 require_relative '../../lib/util/git_tree_walker_private'
 
 describe GitTree::UpdateCommand do
-  subject(:command) { described_class.new(args, options: options) }
-
-  let(:command) { described_class.new(args) }
-
   include Logging
+
+  subject(:command) { described_class.new(args, options: options) }
 
   let(:args) { ['/fake/root'] }
   let(:mock_walker) { instance_double(GitTreeWalker, abbreviate_path: '~/repo1', process: nil) }
@@ -18,9 +16,6 @@ describe GitTree::UpdateCommand do
   let(:options) { { walker: mock_walker, runner: mock_runner } }
 
   before do
-    command.walker = mock_walker
-    command.runner = mock_runner
-
     allow(command).to receive(:log)
     allow(Logging).to receive(:verbosity).and_return(Logging::NORMAL)
   end
@@ -83,9 +78,6 @@ describe GitTree::UpdateCommand do
 
     context 'when no git repositories are found' do
       it 'does not call the runner' do
-        # Configure the walker to find no repos
-        allow(mock_walker).to receive(:process) # This will not yield
-        allow(mock_runner).to receive(:run)
         allow(mock_runner).to receive(:run) # Make it a spy
 
         command.run
@@ -111,9 +103,6 @@ describe GitTree::UpdateCommand do
 
       it 'finds the repository and calls the runner' do
         # Instantiate the command with the path to the temp dir and inject the mock runner.
-        # The '--serial' flag ensures synchronous execution for the test.
-        options = { runner: mock_runner }
-        command = described_class.new(args + ['--serial'], options: options)
         # A real walker will be created by the command itself.
         test_options = { runner: mock_runner, serial: true }
         command = described_class.new(args, options: test_options)

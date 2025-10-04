@@ -37,25 +37,40 @@ module GitTree
 
     # Provides a base OptionParser. Subclasses will add their specific options.
     def parse_options(args)
+      parsed_options = {}
       parser = OptionParser.new do |opts|
         opts.on("-h", "--help", "Show this help message and exit.") do
           help
         end
         opts.on("-q", "--quiet", "Suppress normal output, only show errors.") do
-          Logging.verbosity = QUIET
+          parsed_options[:verbosity] = QUIET
         end
         opts.on("-v", "--verbose", "Increase verbosity. Can be used multiple times (e.g., -v, -vv).") do
-          Logging.verbosity = case Logging.verbosity
-                              when NORMAL then VERBOSE
-                              else DEBUG
-                              end
+          # This logic is now handled after parsing
+          parsed_options[:verbose_count] ||= 0
+          parsed_options[:verbose_count] += 1
         end
         opts.on('-s', "--serial", "Run tasks serially in a single thread in the order specified.") do
-          @options[:serial] = true
+          parsed_options[:serial] = true
         end
         yield opts if block_given?
       end
-      parser.parse!(args)
+      remaining_args = parser.parse(args)
+
+      # Apply parsed verbosity settings
+      if parsed_options[:verbosity] == QUIET
+        Logging.verbosity = QUIET
+      elsif parsed_options[:verbose_count]
+        Logging.verbosity = case parsed_options[:verbose_count]
+                            when NORMAL then VERBOSE
+                            else DEBUG
+                            end
+      end
+
+      # Merge parsed options into existing @options, preserving initial ones.
+      @options.merge!(parsed_options.slice(:serial))
+
+      remaining_args
     end
 
     protected
