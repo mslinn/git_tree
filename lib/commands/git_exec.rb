@@ -25,22 +25,22 @@ module GitTree
 
     private
 
-    def execute(worker, dir, command)
-      # Use system with :chdir to be thread-safe, avoiding process-wide Dir.chdir.
+    def execute(_worker, dir, command)
+      # Call Open3.capture2e with :chdir to be thread-safe, avoiding process-wide Dir.chdir.
       # Redirect stdout and stderr to capture the output.
       output, status = Open3.capture2e(command, chdir: dir)
       if status.success?
-        log_stdout(output.strip) unless output.strip.empty?
+        log(QUIET, output.strip) unless output.strip.empty?
       else
         log(QUIET, output.strip, :red) unless output.strip.empty?
       end
     rescue StandardError => e
-      warn "Error: '#{e.message}' from executing '#{command}' in #{dir}".red
+      log QUIET, "Error: '#{e.message}' from executing '#{command}' in #{dir}", :red
     end
 
     def help(msg = nil)
-      warn "Error: #{msg}\n".red if msg
-      warn <<~END_HELP
+      log(QUIET, "Error: #{msg}\n", :red) if msg
+      log QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Executes an arbitrary shell command for each repository.
 
         If no arguments are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.

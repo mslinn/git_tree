@@ -1,6 +1,5 @@
 require_relative '../git_tree'
 require_relative 'abstract_command'
-
 require_relative '../util/git_tree_walker'
 require_relative '../util/zowee_optimizer'
 
@@ -47,8 +46,8 @@ module GitTree
     # @param msg [String] The error message to display before the help text.
     # @return [nil]
     def help(msg = nil)
-      warn "Error: #{msg}\n".red if msg
-      warn <<~END_HELP
+      log(QUIET, "Error: #{msg}\n", :red) if msg
+      log QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Generate bash environment variables for each git repository found under specified directory trees.
 
         Examines trees of git repositories and writes a bash script to STDOUT.
@@ -154,6 +153,6 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
     log QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
-    exit 1
+    exit! 1
   end
 end

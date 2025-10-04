@@ -22,8 +22,8 @@ module GitTree
     private
 
     def help(msg = nil)
-      warn "Error: #{msg}\n".red if msg
-      warn <<~END_HELP
+      log(QUIET, "Error: #{msg}\n", :red) if msg
+      log QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
         If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
         The script clones the repositories and replicates any remotes.

@@ -19,17 +19,15 @@ module GitTree
       walker.process do |_worker, dir, thread_id, git_walker|
         process_repo(git_walker, dir, thread_id)
       rescue StandardError
-        Interrupt
-
-        # This handles Ctrl-C within a worker thread, preventing a stack trace.
+        Interrupt # Handle Ctrl-C within a worker thread, preventing a stack trace.
       end
     end
 
     private
 
     def help(msg = nil)
-      warn "Error: #{msg}\n".red if msg
-      warn <<~END_HELP
+      log(QUIET, "Error: #{msg}\n", :red) if msg
+      log QUIET, <<~END_HELP
         git-update - Recursively updates trees of git repositories.
 
         If no arguments are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.

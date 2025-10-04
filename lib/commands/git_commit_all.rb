@@ -28,8 +28,8 @@ module GitTree
     private
 
     def help(msg = nil)
-      warn "Error: #{msg}\n".red if msg
-      warn <<~END_MSG
+      log(QUIET, "Error: #{msg}\n", :red) if msg
+      log QUIET, <<~END_MSG
         #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified roots.
         If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
         Skips directories containing a .ignore file, and all subdirectories.
