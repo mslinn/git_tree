@@ -2,6 +2,7 @@ require 'pathname'
 
 module GemSupport
   # @param paths [Array<String>] all start with a leading '/' (they are assumed to be absolute paths).
+  # @param allow_root_match [Boolean]
   # @return [String] the longest path prefix that is a prefix of all paths in array.
   #   If array is empty, return ''.
   #   If only the leading slash matches, and allow_root_match is true, return '/', else return ''.
@@ -29,6 +30,8 @@ module GemSupport
 
   # @param paths [Array<String>] absolute paths to examine
   # @param level [Int] minimum # of leading directory names in result, origin 1
+  # @param allow_root_match [Boolean] Whether to return '/' if only the root matches.
+  #        Defaults to false.
   def self.roots(paths, level, allow_root_match: false)
     abort "Error: level must be positive, but it is #{level}." unless level.positive?
     return allow_root_match ? '/' : '' if paths.empty?
@@ -68,11 +71,17 @@ module GemSupport
     Pathname.new(symlink).realpath
   end
 
+  # @param string [String] The string to ensure ends with the suffix.
+  # @param suffix [String] The suffix to ensure the string ends with.
   def self.ensure_ends_with(string, suffix)
     string = string.delete_suffix suffix
     "#{string}#{suffix}"
   end
 
+  # Expands environment variables in a string.
+  #
+  # @param str [String] The string containing environment variables to expand.
+  # @return [String] The string with environment variables expanded.
   def self.expand_env(str)
     str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) do
       ENV.fetch(Regexp.last_match(1), nil)
