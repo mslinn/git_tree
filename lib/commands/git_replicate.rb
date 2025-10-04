@@ -26,7 +26,7 @@ module GitTree
       log(QUIET, "Error: #{msg}\n", :red) if msg
       log QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
-        If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
+        If no directories are given, uses default roots (#{GitTree::Config.new.default_roots.join(', ')}) as roots.
         The script clones the repositories and replicates any remotes.
         Skips directories containing a .ignore file.
 

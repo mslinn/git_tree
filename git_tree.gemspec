@@ -21,7 +21,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     The git-update command updates each repository in the tree.
   END_OF_DESC
   spec.email       = ['mslinn@mslinn.com']
-  spec.executables = %w[git-commitAll git-evars git-exec git-replicate git-update]
+  spec.executables = %w[git-commitAll git-evars git-exec git-replicate git-treeconfig git-update]
   spec.files = Dir[
     '{exe,lib}/**/*',
     '.rubocop.yml',
@@ -44,6 +44,10 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.post_install_message = <<~END_MESSAGE
 
     Thanks for installing #{spec.name}!
+
+    To customize default settings like timeout and repository roots,
+    run the interactive configuration tool:
+      git-treeconfig
 
   END_MESSAGE
   spec.required_ruby_version = '>= 3.2.0'

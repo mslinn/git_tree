@@ -18,7 +18,7 @@ module GitTree
       if @options[:zowee]
         walker = GitTreeWalker.new(@args, options: @options)
         all_paths = []
-        walker.find_and_process_repos do |dir, _|
+        walker.find_and_process_repos do |dir, _root_arg|
           all_paths << dir
         end
         optimizer = ZoweeOptimizer.new(walker.root_map)
@@ -26,7 +26,7 @@ module GitTree
       elsif @args.empty? # No args provided, use default roots and substitute them in the output
         walker = GitTreeWalker.new([], options: @options)
         walker.find_and_process_repos do |dir, _root_arg|
-          result << make_env_var_with_substitution(dir, GitTreeWalker::DEFAULT_ROOTS)
+          result << make_env_var_with_substitution(dir, walker.config.default_roots)
         end
       else # Args were provided, process them as roots
         processed_args = @args.flat_map { |arg| arg.strip.split(/\s+/) }
@@ -52,7 +52,7 @@ module GitTree
         #{$PROGRAM_NAME} - Generate bash environment variables for each git repository found under specified directory trees.
 
         Examines trees of git repositories and writes a bash script to STDOUT.
-        If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
+        If no directories are given, uses default roots (#{GitTree::Config.new.default_roots.join(', ')}) as roots.
         These environment variables point to roots of git repository trees to walk.
         Skips directories containing a .ignore file, and all subdirectories.
 

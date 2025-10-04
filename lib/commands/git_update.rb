@@ -36,7 +36,7 @@ module GitTree
       log QUIET, <<~END_HELP
         git-update - Recursively updates trees of git repositories.
 
-        If no arguments are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
+        If no arguments are given, uses default roots (#{GitTree::Config.new.default_roots.join(', ')}) as roots.
         These environment variables point to roots of git repository trees to walk.
         Skips directories containing a .ignore file, and all subdirectories.
 
@@ -76,7 +76,7 @@ module GitTree
       output = nil
       status = nil
       begin
-        Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
+        Timeout.timeout(git_walker.config.git_timeout) do
           log VERBOSE, "Executing: git pull in #{dir}", :yellow
           output, status_obj = @runner.run('git pull', dir)
           status = status_obj.exitstatus

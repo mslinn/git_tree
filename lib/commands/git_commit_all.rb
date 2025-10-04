@@ -4,7 +4,7 @@ require 'timeout'
 require 'rugged'
 
 require_relative 'abstract_command'
-require_relative '../util/git_tree_walker'
+require_relative '../util/git_tree_walker' # This is correct, no change needed here.
 
 module GitTree
   class CommitAllCommand < AbstractCommand
@@ -36,7 +36,7 @@ module GitTree
       log(QUIET, "Error: #{msg}\n", :red) if msg
       log QUIET, <<~END_MSG
         #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified roots.
-        If no directories are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
+        If no directories are given, uses default roots (#{GitTree::Config.new.default_roots.join(', ')}) as roots.
         Skips directories containing a .ignore file, and all subdirectories.
         Repositories in a detached HEAD state are skipped.
 
@@ -93,7 +93,7 @@ module GitTree
           return
         end
 
-        Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
+        Timeout.timeout(walker.config.git_timeout) do
           unless repo_has_changes?(dir)
             log DEBUG, "  No changes to commit in #{short_dir}", :green
             return

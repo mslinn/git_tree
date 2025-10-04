@@ -57,7 +57,7 @@ module GitTree
       log QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Executes an arbitrary shell command for each repository.
 
-        If no arguments are given, uses default environment variables (#{GitTreeWalker::DEFAULT_ROOTS.join(', ')}) as roots.
+        If no arguments are given, uses default roots (#{GitTree::Config.new.default_roots.join(', ')}) as roots.
         These environment variables point to roots of git repository trees to walk.
         Skips directories containing a .ignore file, and all subdirectories.
 

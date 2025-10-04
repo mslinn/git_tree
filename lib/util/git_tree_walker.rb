@@ -2,17 +2,16 @@ require 'English'
 require 'etc'
 require 'shellwords'
 require 'optparse'
-require 'timeout'
+require 'timeout' # This is correct, no change needed here.
+require_relative '../git_tree/config'
 require_relative 'thread_pool_manager'
 require_relative 'log'
 
 class GitTreeWalker
   include Logging
 
-  attr_reader :display_roots, :root_map
+  attr_reader :config, :display_roots, :root_map
 
-  DEFAULT_ROOTS = %w[sites sitesUbuntu work].freeze
-  GIT_TIMEOUT = 300 # 5 minutes per git pull
   IGNORED_DIRECTORIES = ['.', '..', '.venv'].freeze
 
   def initialize(args = ARGV, options: {})
@@ -20,6 +19,7 @@ class GitTreeWalker
     @root_map = {}
     @display_roots = []
     determine_roots(args)
+    @config = GitTree::Config.new
   end
 
   def abbreviate_path(dir)
