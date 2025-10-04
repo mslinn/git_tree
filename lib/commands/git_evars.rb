@@ -7,12 +7,13 @@ module GitTree
   class EvarsCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
-    def initialize(args)
+    def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-evars'
       super
     end
 
     def run
+      setup
       result = []
       if @options[:zowee]
         walker = GitTreeWalker.new(@args, options: @options)

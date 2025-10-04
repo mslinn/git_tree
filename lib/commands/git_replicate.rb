@@ -6,13 +6,14 @@ module GitTree
   class ReplicateCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
-    def initialize(args)
+    def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-replicate'
       super
     end
 
     # @return [nil]
     def run
+      setup
       result = []
       walker = GitTreeWalker.new(@args, options: @options)
       walker.find_and_process_repos { |dir, root_arg| result << replicate_one(dir, root_arg) }

@@ -8,19 +8,20 @@ module GitTree
   class ExecCommand < GitTree::AbstractCommand
     attr_writer :walker, :runner
 
-    def initialize(args)
+    def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-exec'
       super
     end
 
     def run
+      setup
       return help('At least one root and a command must be specified.') if @args.length < 2
 
       roots = @args[0..-2]
       command = @args[-1]
 
-      @walker ||= GitTreeWalker.new(roots, options: @options)
-      @runner ||= CommandRunner.new
+      @walker ||= @options.delete(:walker) { GitTreeWalker.new(roots, options: @options) }
+      @runner ||= @options.delete(:runner) { CommandRunner.new }
 
       @walker.process do |_worker, dir, _thread_id, _git_walker|
         output, success = execute(dir, command)

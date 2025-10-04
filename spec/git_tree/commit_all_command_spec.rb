@@ -20,6 +20,7 @@ describe GitTree::CommitAllCommand do
       let(:args) { ['-m', 'my test message'] }
 
       it 'initializes with the correct message option' do
+        command.setup
         expect(command.instance_variable_get(:@options)[:message]).to eq('my test message')
       end
 

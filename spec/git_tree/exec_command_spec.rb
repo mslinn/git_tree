@@ -41,7 +41,7 @@ describe GitTree::ExecCommand do
       it 'executes the command and logs output to stdout' do
         allow(mock_walker).to receive(:process).and_yield(nil, repo_dir, 0, nil)
         allow(mock_runner).to receive(:run).with(command_to_run, repo_dir)
-                                           .and_return([command_output, double(success?: true)])
+                                           .and_return([command_output, instance_double(Process::Status, success?: true)])
 
         command.run
         expect(command).to have_received(:log_stdout).with(command_output.strip)
@@ -56,7 +56,7 @@ describe GitTree::ExecCommand do
       it 'executes the command and logs output to stderr' do
         allow(mock_walker).to receive(:process).and_yield(nil, repo_dir, 0, nil)
         allow(mock_runner).to receive(:run).with(command_to_run, repo_dir)
-                                           .and_return([error_output, double(success?: false)])
+                                           .and_return([error_output, instance_double(Process::Status, success?: false)])
 
         command.run
         expect(command).to have_received(:log).with(Logging::QUIET, error_output.strip, :red)

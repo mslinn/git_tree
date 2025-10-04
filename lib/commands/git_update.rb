@@ -12,15 +12,15 @@ module GitTree
 
     self.allow_empty_args = true
 
-    def initialize(args)
+    def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-update'
       super
     end
 
     def run
-      @walker ||= GitTreeWalker.new(@args, options: @options)
-      @runner ||= CommandRunner.new
-
+      setup
+      @runner = @options.delete(:runner) { CommandRunner.new }
+      @walker = @options.delete(:walker) { GitTreeWalker.new(@args, options: @options) }
       @walker.process do |_worker, dir, thread_id, git_walker|
         process_repo(git_walker, dir, thread_id)
       rescue StandardError

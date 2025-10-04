@@ -12,13 +12,14 @@ module GitTree
   class CommitAllCommand < AbstractCommand
     self.allow_empty_args = true
 
-    def initialize(args)
+    def initialize(args = ARGV, options: {})
       $PROGRAM_NAME = 'git-commitAll'
       super
-      @options[:message] ||= '-'
     end
 
     def run
+      setup
+      @options[:message] ||= '-'
       walker = GitTreeWalker.new(@args, options: @options)
       walker.process do |_worker, dir, thread_id, repo_walker|
         process_repo(dir, thread_id, repo_walker, @options[:message])

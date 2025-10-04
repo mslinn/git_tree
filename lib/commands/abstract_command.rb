@@ -10,16 +10,17 @@ module GitTree
       attr_accessor :allow_empty_args
     end
 
-    def initialize(args)
-      @options = { # default values here
-        serial: false,
-        # verbosity is now managed by the Logging module
-      }
-      # The parse_options method must be defined in the subclass
-      # and should call super to get the base OptionParser instance.
-      @args = parse_options(args)
+    def initialize(args = ARGV, options: {})
+      @raw_args = args
+      @options = { serial: false }.merge(options)
+    end
 
-      # Show help if no arguments are provided, unless allow_empty_args is set true in a subclass.
+    # This method should be called after initialize to parse options
+    # and finalize setup. This makes testing easier by allowing dependency
+    # injection before options are parsed.
+    def setup
+      @args = parse_options(@raw_args)
+      # Show help if no arguments are provided, unless allow_empty_args is set.
       help if @args.empty? && !self.class.allow_empty_args
     end
 
