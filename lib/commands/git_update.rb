@@ -90,9 +90,9 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
     GitTree::UpdateCommand.new(ARGV).run
   rescue Interrupt
     warn "\nInterrupted by user".yellow
-    exit 130
+    exit! 130
   rescue StandardError => e
-    puts "Error: #{e.message}".red
+    puts "#{e.class}: #{e.message}".red
     e.backtrace.join("\n").each_line { |line| printf line.red }
     exit! 1
   end

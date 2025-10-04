@@ -10,19 +10,21 @@ require_relative '../util/git_tree_walker'
 using Rainbow
 
 module GitTree
+  include Logging
+
   class CommitAllCommand < AbstractCommand
     self.allow_empty_args = true
 
     def initialize(args)
-      $PROGRAM_NAME = 'git-commitAll' # Corrected from git-tree-commitAll
+      $PROGRAM_NAME = 'git-commitAll'
       super
       @options[:message] ||= '-'
     end
 
     def run
       walker = GitTreeWalker.new(@args, options: @options)
-      walker.process do |_worker, dir, thread_id, git_walker_instance|
-        process_repo(dir, thread_id, git_walker_instance, @options[:message])
+      walker.process do |_worker, dir, thread_id, repo_walker|
+        process_repo(dir, thread_id, repo_walker, @options[:message])
       end
     end
 
@@ -31,8 +33,8 @@ module GitTree
     def help(msg = nil)
       warn "Error: #{msg}\n".red if msg
       warn <<~END_MSG
-        #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
-        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
+        #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified roots.
+        If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', and 'work') as roots.
         Skips directories containing a .ignore file, and all subdirectories.
         Repositories in a detached HEAD state are skipped.
 
@@ -48,9 +50,9 @@ module GitTree
           #{$PROGRAM_NAME} [OPTIONS] [DIRECTORY...]
 
         Usage examples:
-          #{$PROGRAM_NAME}                             # Commit with default message "-"
+          #{$PROGRAM_NAME}                                # Commit with default message "-"
           #{$PROGRAM_NAME} -m "This is a commit message"  # Commit with a custom message
-          #{$PROGRAM_NAME} '$work' '$sites'              # Commit in repositories under specific roots
+          #{$PROGRAM_NAME} $work $sites                   # Commit in repositories under specific roots
       END_MSG
       exit 1
     end
@@ -65,35 +67,34 @@ module GitTree
     end
 
     # Processes a single git repository to check for and commit changes.
-    def process_repo(dir, thread_id, git_walker_instance, message)
-      short_dir = git_walker_instance.abbreviate_path(dir)
-      git_walker_instance.log Logging::VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
+    def process_repo(dir, thread_id, repo_walker, message)
+      short_dir = repo_walker.abbreviate_path(dir)
+      repo_walker.log VERBOSE, "Examining #{short_dir} on thread #{thread_id}".green
       begin
         # The highest priority is to check for the presence of an .ignore file.
         if File.exist?(File.join(dir, '.ignore'))
-          git_walker_instance.log Logging::DEBUG, "  Skipping #{short_dir} due to .ignore file".yellow
+          repo_walker.log DEBUG, "  Skipping #{short_dir} due to .ignore file".green
           return
         end
 
         repo = Rugged::Repository.new(dir)
         if repo.head_detached?
-          git_walker_instance.log Logging::VERBOSE, "  Skipping #{short_dir} because it is in a detached HEAD state".yellow
+          repo_walker.log VERBOSE, "  Skipping #{short_dir} because it is in a detached HEAD state".yellow
           return
         end
 
         Timeout.timeout(GitTreeWalker::GIT_TIMEOUT) do
           unless repo_has_changes?(dir)
-            git_walker_instance.log Logging::DEBUG, "  No changes to commit in #{short_dir}".yellow
+            repo_walker.log DEBUG, "  No changes to commit in #{short_dir}".green
             return
           end
-          commit_changes(dir, message, short_dir, git_walker_instance)
+          commit_changes(dir, message, short_dir, repo_walker)
         end
       rescue Timeout::Error
-        git_walker_instance.log Logging::NORMAL, "[TIMEOUT] Thread #{thread_id}: git operations timed out in #{short_dir}".red
+        repo_walker.log NORMAL, "[TIMEOUT] Thread #{thread_id}: git operations timed out in #{short_dir}".red
       rescue StandardError => e
-        git_walker_instance.log Logging::NORMAL, "Error processing #{short_dir}: #{e.message}".red
-        git_walker_instance.log Logging::DEBUG, "Exception class: #{e.class}".yellow
-        git_walker_instance.log Logging::DEBUG, e.backtrace.join("\n").yellow
+        repo_walker.log NORMAL, "#{e.class} processing #{short_dir}: #{e.message}".red
+        e.backtrace.join("\n").each_line { |line| repo_walker.log DEBUG, line.red }
       end
     end
 
@@ -107,7 +108,7 @@ module GitTree
       !repo.index.empty?
     end
 
-    def commit_changes(dir, message, short_dir, git_walker_instance)
+    def commit_changes(dir, message, short_dir, repo_walker)
       system('git', '-C', dir, 'add', '--all', exception: true)
 
       repo = Rugged::Repository.new(dir)
@@ -120,7 +121,7 @@ module GitTree
 
       current_branch = repo.head.name.sub('refs/heads/', '')
       system('git', '-C', dir, 'push', '--set-upstream', 'origin', current_branch, exception: true)
-      git_walker_instance.log Logging::NORMAL, "Committed and pushed changes in #{short_dir}".green
+      repo_walker.log NORMAL, "Committed and pushed changes in #{short_dir}".green
     end
   end
 end

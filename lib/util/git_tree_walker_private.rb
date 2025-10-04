@@ -1,6 +1,6 @@
-class GitTreeWalker
-  using Rainbow
+using Rainbow
 
+class GitTreeWalker
   private
 
   def determine_roots(args)

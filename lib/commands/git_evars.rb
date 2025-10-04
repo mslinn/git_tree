@@ -1,9 +1,10 @@
 require_relative '../git_tree'
 require 'rainbow/refinement'
 require_relative 'abstract_command'
-require_relative '../util/git_tree_walker'
 
+require_relative '../util/git_tree_walker'
 require_relative '../util/zowee_optimizer'
+
 using Rainbow
 
 module GitTree
