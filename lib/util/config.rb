@@ -20,14 +20,5 @@ module GitTree
       self.verbosity     ||= ::Logging::NORMAL
       self.default_roots ||= %w[sites sitesUbuntu work]
     end
-
-    # Temporarily sets the config path for testing purposes.
-    # This allows tests to point to a temporary config file.
-    def self.with_config_path(path)
-      config_path path
-      yield
-    ensure
-      clear_config_path!
-    end
   end
 end
