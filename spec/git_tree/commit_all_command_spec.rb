@@ -1,5 +1,7 @@
 require 'spec_helper'
 require_relative '../../lib/commands/git_commit_all'
+require 'tmpdir'
+require 'fileutils'
 require_relative '../../lib/util/log'
 
 describe GitTree::CommitAllCommand do
@@ -22,12 +24,43 @@ describe GitTree::CommitAllCommand do
       # and options, not the initial ones, which was a source of a previous bug.
       command = described_class.new(['-v', '-m', 'test message', '/some/dir'])
       allow(GitTreeWalker).to receive(:new).and_return(mock_walker)
-
       command.run
-
       # It should be called with the arguments left *after* option parsing.
       expect(GitTreeWalker).to have_received(:new)
         .with(['/some/dir'], options: a_hash_including(message: 'test message', verbose: 2, serial: false))
+    end
+
+    context 'with a real git repository' do
+      let(:tmpdir) { Dir.mktmpdir('git_commit_all_spec') }
+      let(:repo_path) { File.join(tmpdir, 'real_repo') }
+      let(:commit_message) { 'Integration test commit' }
+
+      before do
+        # Create a real git repo with an initial commit
+        system('git', 'init', '-b', 'main', repo_path, out: File::NULL, err: File::NULL)
+        system('git', '-C', repo_path, 'config', 'user.name', 'Test User', out: File::NULL, err: File::NULL)
+        system('git', '-C', repo_path, 'config', 'user.email', 'test@example.com', out: File::NULL, err: File::NULL)
+        File.write(File.join(repo_path, 'README.md'), 'Initial commit')
+        system('git', '-C', repo_path, 'add', '.', out: File::NULL, err: File::NULL)
+        system('git', '-C', repo_path, 'commit', '-m', 'Initial commit', out: File::NULL, err: File::NULL)
+
+        # Create a change to be committed by the command
+        File.write(File.join(repo_path, 'new_file.txt'), 'This is a new file.')
+      end
+
+      after do
+        FileUtils.remove_entry(tmpdir)
+      end
+
+      it 'finds the repository, commits, and pushes the changes' do
+        # We run in serial mode for test predictability
+        command = described_class.new([tmpdir, '-m', commit_message, '-s'])
+        command.run
+
+        # Verify that the new commit exists
+        log_output = `git -C #{repo_path} log -1 --pretty=%B`.strip
+        expect(log_output).to eq(commit_message)
+      end
     end
   end
 end
