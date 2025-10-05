@@ -11,10 +11,9 @@ module GitTree
     config_name :treeconfig
     env_prefix 'GIT_TREE'
 
-    # Explicitly set the config path to be relative to the home directory.
-    # This ensures that the HOME env var set in tests is respected.
-    config_path File.expand_path(ENV.fetch('HOME', '~'))
-
+    # Override the default path to make it respect the HOME env var,
+    # which is crucial for isolated testing.
+    Anyway::Settings.default_config_path = ->(name) { File.join(Dir.home, ".#{name}.yml") }
     # Define attributes with their default values.
     attr_config :git_timeout, :verbosity, :default_roots
 
