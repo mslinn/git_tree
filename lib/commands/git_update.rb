@@ -32,8 +32,8 @@ module GitTree
     private
 
     def help(msg = nil)
-      log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
-      log Logging::QUIET, <<~END_HELP
+      Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
+      Logging.log Logging::QUIET, <<~END_HELP
         git-update - Recursively updates trees of git repositories.
 
         If no arguments are given, uses default roots (#{@config.default_roots.join(', ')}) as roots.
@@ -70,31 +70,31 @@ module GitTree
     # @return [nil]
     def process_repo(git_walker, dir, thread_id)
       abbrev_dir = git_walker.abbreviate_path(dir)
-      log Logging::NORMAL, "Updating #{abbrev_dir}", :green
-      log Logging::VERBOSE, "Thread #{thread_id}: git -C #{dir} pull", :yellow
+      Logging.log Logging::NORMAL, "Updating #{abbrev_dir}", :green
+      Logging.log Logging::VERBOSE, "Thread #{thread_id}: git -C #{dir} pull", :yellow
 
       output = nil
       status = nil
       begin
         Timeout.timeout(git_walker.config.git_timeout) do
-          log Logging::VERBOSE, "Executing: git pull in #{dir}", :yellow
+          Logging.log Logging::VERBOSE, "Executing: git pull in #{dir}", :yellow
           output, status_obj = @runner.run('git pull', dir)
           status = status_obj.exitstatus
         end
       rescue Timeout::Error
-        log Logging::NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}", :red
+        Logging.log Logging::NORMAL, "[TIMEOUT] Thread #{thread_id}: git pull timed out in #{abbrev_dir}", :red
         status = -1
       rescue StandardError => e
-        log Logging::NORMAL, "[ERROR] Thread #{thread_id}: #{e.class} in #{abbrev_dir}; #{e.message}\n#{e.backtrace.join("\n")}", :red
+        Logging.log Logging::NORMAL, "[ERROR] Thread #{thread_id}: #{e.class} in #{abbrev_dir}; #{e.message}\n#{e.backtrace.join("\n")}", :red
         status = -1
       end
 
       if !status.zero?
-        log Logging::NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):", :red
-        log Logging::NORMAL, output.strip, :red unless output.to_s.strip.empty?
+        Logging.log Logging::NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):", :red
+        Logging.log Logging::NORMAL, output.strip, :red unless output.to_s.strip.empty?
       elsif Logging.verbosity >= Logging::VERBOSE
         # Output from a successful pull is considered NORMAL level
-        log Logging::NORMAL, output.strip, :green
+        Logging.log Logging::NORMAL, output.strip, :green
       end
     end
   end
@@ -104,10 +104,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-update')
   begin
     GitTree::UpdateCommand.new(ARGV).run
   rescue Interrupt
-    log Logging::NORMAL, "\nInterrupted by user", :yellow
+    Logging.log Logging::NORMAL, "\nInterrupted by user", :yellow
     exit! 130
   rescue StandardError => e
-    log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    Logging.log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit! 1
   end
 end

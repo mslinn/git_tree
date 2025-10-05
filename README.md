@@ -183,9 +183,9 @@ For those exceptions, use the `-s/--serial` option.
 ### `git-commitAll`
 
 ```text
-git-commitAll - Recursively commits and pushes changes in all git repositories under the specified DIRECTORY roots.
-If no directories are given, uses default environment variables ('sites', 'sitesUbuntu', 'work') as roots.
-Skips directories containing a .ignore file.
+git-commitAll - Recursively commits and pushes changes in all git repositories under the specified roots.
+If no directories are given, uses default roots (sites, sitesUbuntu, work) as roots.
+Skips directories containing a .ignore file, and all subdirectories.
 Repositories in a detached HEAD state are skipped.
 
 Options:
@@ -195,6 +195,14 @@ Options:
   -q, --quiet               Suppress normal output, only show errors.
   -s, --serial              Run tasks serially in a single thread in the order specified.
   -v, --verbose             Increase verbosity. Can be used multiple times (e.g., -v, -vv).
+
+Usage:
+  git-commitAll [OPTIONS] [DIRECTORY...]
+
+Usage examples:
+  git-commitAll                                # Commit with default message "-"
+  git-commitAll -m "This is a commit message"  # Commit with a custom message
+  git-commitAll $work $sites                   # Commit in repositories under specific roots
 ```
 
 ```shell

@@ -54,7 +54,7 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-treeconfig')
     puts "\n"
     exit 130
   rescue StandardError => e
-    warn "An error occurred: #{e.message}" # Cannot use `log` here as it's outside the class scope
+    Logging.log(Logging::QUIET, "An error occurred: #{e.message}", :red)
     exit 1
   end
 end

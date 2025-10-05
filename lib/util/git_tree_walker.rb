@@ -20,7 +20,7 @@ class GitTreeWalker
     @display_roots = []
     determine_roots(args)
     @config = GitTree::Config.new
-    log Logging::VERBOSE, "GitTreeWalker#initialize: verbosity is #{Logging.verbosity}"
+    Logging.log Logging::VERBOSE, "GitTreeWalker#initialize: verbosity is #{Logging.verbosity}"
   end
 
   def abbreviate_path(dir)
@@ -33,9 +33,9 @@ class GitTreeWalker
   end
 
   def process(&) # Accepts a block
-    log Logging::VERBOSE, "Processing #{@display_roots.join(' ')}", :green
+    Logging.log Logging::VERBOSE, "Processing #{@display_roots.join(' ')}", :green
     if @options[:serial]
-      log Logging::VERBOSE, "Running in serial mode.", :yellow
+      Logging.log Logging::VERBOSE, "Running in serial mode.", :yellow
       find_and_process_repos do |dir, _root_arg|
         yield(dir, 0, self) # task, thread_id, walker
       end

@@ -17,14 +17,14 @@ module GitTree
       result = []
       walker = GitTreeWalker.new(@args, options: @options)
       walker.find_and_process_repos { |dir, root_arg| result << replicate_one(dir, root_arg) }
-      log_stdout result.join("\n") unless result.empty?
+      Logging.log_stdout result.join("\n") unless result.empty?
     end
 
     private
 
     def help(msg = nil)
-      log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
-      log Logging::QUIET, <<~END_HELP
+      Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
+      Logging.log Logging::QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
         If no directories are given, uses default roots (#{@config.default_roots.join(', ')}) as roots.
         The script clones the repositories and replicates any remotes.
@@ -82,10 +82,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-replicate') # Corre
   begin
     GitTree::ReplicateCommand.new(ARGV).run
   rescue Interrupt
-    log Logging::NORMAL, "\nInterrupted by user", :yellow
+    Logging.log Logging::NORMAL, "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    Logging.log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit! 1
   end
 end

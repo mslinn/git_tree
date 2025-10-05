@@ -16,7 +16,7 @@ describe GitTree::UpdateCommand do
   let(:options) { { walker: mock_walker, runner: mock_runner } }
 
   before do
-    allow(command).to receive(:log)
+    allow(Logging).to receive(:log)
     allow(Logging).to receive(:verbosity).and_return(Logging::NORMAL)
   end
 
@@ -43,7 +43,7 @@ describe GitTree::UpdateCommand do
 
         command.run
 
-        expect(command).to have_received(:log).with(Logging::NORMAL, 'Updating ~/repo1', :green)
+        expect(Logging).to have_received(:log).with(Logging::NORMAL, 'Updating ~/repo1', :green)
       end
 
       it 'logs verbose output when verbosity is high' do
@@ -54,7 +54,7 @@ describe GitTree::UpdateCommand do
 
         command.run
 
-        expect(command).to have_received(:log).with(Logging::NORMAL, pull_output.strip, :green)
+        expect(Logging).to have_received(:log).with(Logging::NORMAL, pull_output.strip, :green)
       end
     end
 
@@ -68,8 +68,8 @@ describe GitTree::UpdateCommand do
 
         command.run
 
-        expect(command).to have_received(:log).with(Logging::NORMAL, '[ERROR] git pull failed in ~/repo1 (exit code 128):', :red)
-        expect(command).to have_received(:log).with(Logging::NORMAL, error_output.strip, :red)
+        expect(Logging).to have_received(:log).with(Logging::NORMAL, '[ERROR] git pull failed in ~/repo1 (exit code 128):', :red)
+        expect(Logging).to have_received(:log).with(Logging::NORMAL, error_output.strip, :red)
       end
     end
 
@@ -80,7 +80,7 @@ describe GitTree::UpdateCommand do
 
         command.run
 
-        expect(command).to have_received(:log).with(
+        expect(Logging).to have_received(:log).with(
           Logging::NORMAL,
           '[TIMEOUT] Thread 0: git pull timed out in ~/repo1',
           :red

@@ -1,5 +1,16 @@
 # Change Log
 
+
+## 1.0.3 / 2025-10-05
+
+* Fixed a bug where `verbosity: 0` in the configuration file was not being respected.
+* Made the `ROOTS...` argument optional for `git-exec`;
+  it now uses `default_roots` from the configuration when no roots are specified.
+* Added a comprehensive integration test suite to ensure command-line executables
+  work as expected in real-world scenarios.
+* Improved error handling for undefined environment variables.
+
+
 ## 1.0.2 / 2025-10-04
 
 * Increased `GitTreeWalker.GIT_TIMEOUT` to 5 minutes.

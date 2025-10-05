@@ -49,16 +49,16 @@ module GitTree
 
       if success
         # Successful command output should go to STDOUT.
-        log_stdout output.strip
+        Logging.log_stdout output.strip
       else
         # Errors should go to STDERR.
-        log Logging::QUIET, output.strip, :red
+        Logging.log Logging::QUIET, output.strip, :red
       end
     end
 
     def help(msg = nil)
-      log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
-      log Logging::QUIET, <<~END_HELP
+      Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
+      Logging.log Logging::QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Executes an arbitrary shell command for each repository.
 
         If no arguments are given, uses default roots (#{@config.default_roots.join(', ')}) as roots.
@@ -99,10 +99,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-exec')
   begin
     GitTree::ExecCommand.new(ARGV).run
   rescue Interrupt
-    log Logging::NORMAL, "\nInterrupted by user", :yellow
+    Logging.log Logging::NORMAL, "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    Logging.log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit 1
   end
 end

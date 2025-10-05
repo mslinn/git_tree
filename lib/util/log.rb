@@ -32,7 +32,7 @@ module Logging
   # @param multiline_string [String] The message to log.
   # @param color [Symbol, nil] The color method to apply from Rainbow, e.g., :red, :green.  If nil, no color is applied.
   # @return [nil]
-  def log(level, multiline_string, color = nil)
+  def self.log(level, multiline_string, color = nil)
     return unless Logging.verbosity >= level
 
     multiline_string.to_s.each_line do |line|
@@ -46,8 +46,23 @@ module Logging
   # A thread-safe output method for uncolored text to STDOUT.
   # @param multiline_string [String] The message to log.
   # @return [nil]
-  def log_stdout(multiline_string)
+  def self.log_stdout(multiline_string)
     $stdout.puts multiline_string.to_s
     $stdout.flush
   end
+
+  # A thread-safe output method for inline messages to STDERR (no newline).
+  # @param level [Integer] The verbosity level of the message.
+  # @param message [String] The message to log.
+  # @param color [Symbol, nil] The color method to apply from Rainbow.
+  # @return [nil]
+  def self.log_inline(level, message, color = nil)
+    return unless Logging.verbosity >= level
+
+    message = message.public_send(color) if color
+    $stderr.print message
+  end
+
+  # Make log and log_stdout available as both instance and module methods
+  module_function :log, :log_stdout, :log_inline
 end

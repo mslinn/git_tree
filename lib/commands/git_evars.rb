@@ -32,7 +32,7 @@ module GitTree
         processed_args = @args.flat_map { |arg| arg.strip.split(/\s+/) }
         processed_args.each { |root| result.concat(process_root(root)) }
       end
-      log_stdout result.join("\n") unless result.empty?
+      Logging.log_stdout result.join("\n") unless result.empty?
     end
 
     private
@@ -47,8 +47,8 @@ module GitTree
     # @param msg [String] The error message to display before the help text.
     # @return [nil]
     def help(msg = nil)
-      log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
-      log Logging::QUIET, <<~END_HELP
+      Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
+      Logging.log Logging::QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Generate bash environment variables for each git repository found under specified directory trees.
 
         Examines trees of git repositories and writes a bash script to STDOUT.
@@ -150,10 +150,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
   begin
     GitTree::EvarsCommand.new(ARGV).run
   rescue Interrupt
-    log Logging::NORMAL, "\nInterrupted by user", :yellow
+    Logging.log Logging::NORMAL, "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    Logging.log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit! 1
   end
 end

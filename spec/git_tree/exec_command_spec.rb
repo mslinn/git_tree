@@ -20,8 +20,8 @@ describe GitTree::ExecCommand do
     # Stub methods on the command object itself to act as spies
     allow(command).to receive(:exit)
     allow(command).to receive(:help)
-    allow(command).to receive(:log)
-    allow(command).to receive(:log_stdout)
+    allow(Logging).to receive(:log)
+    allow(Logging).to receive(:log_stdout)
   end
 
   describe '#run' do
@@ -44,8 +44,8 @@ describe GitTree::ExecCommand do
                                            .and_return([command_output, instance_double(Process::Status, success?: true)])
 
         command.run
-        expect(command).to have_received(:log_stdout).with(command_output.strip)
-        expect(command).not_to have_received(:log) # Verify it doesn't log to stderr
+        expect(Logging).to have_received(:log_stdout).with(command_output.strip)
+        expect(Logging).not_to have_received(:log) # Verify it doesn't log to stderr
       end
     end
 
@@ -59,8 +59,8 @@ describe GitTree::ExecCommand do
                                            .and_return([error_output, instance_double(Process::Status, success?: false)])
 
         command.run
-        expect(command).to have_received(:log).with(Logging::QUIET, error_output.strip, :red)
-        expect(command).not_to have_received(:log_stdout)
+        expect(Logging).to have_received(:log).with(Logging::QUIET, error_output.strip, :red)
+        expect(Logging).not_to have_received(:log_stdout)
       end
     end
 
@@ -74,8 +74,8 @@ describe GitTree::ExecCommand do
 
         expected_log_message = "Error: '#{error_message}' from executing '#{command_to_run}' in #{repo_dir}"
         command.run
-        expect(command).to have_received(:log).with(Logging::QUIET, expected_log_message, :red)
-        expect(command).not_to have_received(:log_stdout)
+        expect(Logging).to have_received(:log).with(Logging::QUIET, expected_log_message, :red)
+        expect(Logging).not_to have_received(:log_stdout)
       end
     end
   end

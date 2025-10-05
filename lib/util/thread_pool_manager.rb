@@ -10,13 +10,13 @@ class FixedThreadPoolManager
   # (less one for the monitor thread), with a minimum of 1.
   # @param percent_available_processors [Float] The percentage of available processors to use for worker threads.
   def initialize(percent_available_processors = 0.75)
-    log Logging::VERBOSE, "FixedThreadPoolManager#initialize: verbosity is #{Logging.verbosity}"
+    Logging.log Logging::VERBOSE, "FixedThreadPoolManager#initialize: verbosity is #{Logging.verbosity}"
     if percent_available_processors > 1 || percent_available_processors <= 0
       msg = <<~END_MSG
         Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
         You provided #{percent_available_processors}.
       END_MSG
-      log Logging::QUIET, msg, :red
+      Logging.log Logging::QUIET, msg, :red
       exit! 1
     end
     @worker_count = [(Etc.nprocessors * percent_available_processors).floor, 1].max
@@ -62,7 +62,7 @@ class FixedThreadPoolManager
       break if active_workers.zero?
 
       if active_workers != last_active_count
-        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if Logging.verbosity > ::Logging::NORMAL
+        Logging.log_inline(Logging::NORMAL, format("Waiting for %d worker threads to complete...", active_workers) + "\r")
         last_active_count = active_workers
       end
       begin
@@ -73,17 +73,17 @@ class FixedThreadPoolManager
       end
     end
 
-    warn (" " * 60) + "\r" # Clear the line
-    log Logging::VERBOSE, "All work is complete.", :green
+    Logging.log_inline(Logging::NORMAL, (" " * 60) + "\r") # Clear the line
+    Logging.log Logging::VERBOSE, "All work is complete.", :green
   end
 
   private
 
   def initialize_workers
-    log Logging::DEBUG, "Initializing #{@worker_count} worker threads...", :green
+    Logging.log Logging::DEBUG, "Initializing #{@worker_count} worker threads...", :green
     @worker_count.times do |i|
       worker_thread = Thread.new do
-        log Logging::DEBUG, "  [Worker #{i}] Started.", :cyan
+        Logging.log Logging::DEBUG, "  [Worker #{i}] Started.", :cyan
         start_time = Time.now
         start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
         tasks_processed = 0
@@ -103,7 +103,7 @@ class FixedThreadPoolManager
             "  [Worker #{i}] Shutting down. Processed #{tasks_processed} tasks. Elapsed: %.2fs, CPU: %.2fs",
             elapsed_time, cpu_time
           )
-          log Logging::VERBOSE, shutdown_msg, :cyan
+          Logging.log Logging::VERBOSE, shutdown_msg, :cyan
         end
       rescue Interrupt
         # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
