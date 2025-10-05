@@ -70,7 +70,7 @@ class FixedThreadPoolManager
       break if active_workers.zero?
 
       if active_workers != last_active_count
-        Logging.log(Logging::NORMAL, format("Waiting for %d worker threads to complete...", active_workers))
+        Logging.log Logging::VERBOSE, "Waiting for #{active_workers} worker threads to complete"
         last_active_count = active_workers
       end
       begin
