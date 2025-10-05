@@ -33,23 +33,6 @@ RSpec::Matchers.define :have_empty_stderr do
   end
 end
 
-RSpec::Matchers.define :exist_with_listing do
-  match do |filepath|
-    File.exist?(filepath)
-  end
-
-  failure_message do |filepath|
-    dir = File.dirname(filepath)
-    listing = begin
-      `ls -la #{dir}`
-    rescue StandardError
-      "Could not list directory '#{dir}'."
-    end
-    "expected file '#{filepath}' to exist, but it does not.\n" \
-      "Directory listing for '#{dir}':\n#{listing}"
-  end
-end
-
 RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeClass
   # This spec tests the end-to-end functionality of the command-line executables.
   # It creates a real file system structure with git repositories and runs the
@@ -79,7 +62,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # Create a bare repo to act as the remote origin
     bare_repo_path = File.join(@tmpdir, 'remotes', "#{name}.git")
     FileUtils.mkdir_p(bare_repo_path)
-    git("init --bare --initial-branch=master", bare_repo_path)
+    git("init --bare", bare_repo_path)
 
     # Clone it to create the working repo
     # We need to change directory to ensure the clone happens inside the tmpdir,
@@ -107,7 +90,6 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # Ensure all git commands in this test environment default to the 'master' branch
     system('git', 'config', '--global', 'init.defaultBranch', 'master', out: File::NULL, err: File::NULL)
 
-    FileUtils.mkdir_p([@home_dir, @work_dir, @sites_dir])
     FileUtils.mkdir_p([@home_dir, @work_dir, @sites_dir])
 
     # Create a default config file
@@ -199,9 +181,10 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
     end
 
-    it 'respects the -q flag', skip: "Requires file system changes during test execution which is complex." do
+    it 'respects the -q flag' do
       # This test is tricky because it requires modifying a file that is read by the subprocess.
-      # A more complex integration test could be written if needed.
+      # For now, we trust the unit tests for option parsing.
+      pending("Requires file system changes during test execution which is complex.") {}
     end
 
     context 'when run with an explicit root' do
@@ -263,7 +246,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         end
 
         it 'pulls the new file into the local repository' do
-          expect(new_remote_file).to exist_with_listing
+          expect(File.exist?(new_remote_file)).to be true
         end
       end
     end
@@ -356,8 +339,6 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
   end
 
   describe 'git-commitAll' do
-    pending("Look at this last.")
-
     context 'when committing changes' do
       before do
         # This command modifies the state of the repos, so we run it once
@@ -369,8 +350,6 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       rescue Timeout::Error
         # This is a guard; if this happens, it means there's a deadlock or hang.
         # The be_successful matcher will fail and print the (empty) output.
-        # We set @result to nil to ensure the test fails cleanly.
-        @result = nil
       end
 
       it 'succeeds' do

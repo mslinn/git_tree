@@ -25,7 +25,7 @@ module GitTree
         optimizer = ZoweeOptimizer.new(walker.root_map)
         result = optimizer.optimize(all_paths, walker.display_roots)
       else
-        walker.find_and_process_repos { |dir, root_arg| result << make_env_var_with_substitution(dir, [root_arg]) }
+        walker.find_and_process_repos { |dir, root_arg| result << make_env_var_with_substitution(dir, [root_arg.tr("'$", '')]) }
       end
       Logging.log_stdout result.join("\n") unless result.empty?
     end
