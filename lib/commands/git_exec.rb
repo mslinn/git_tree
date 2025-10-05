@@ -18,11 +18,12 @@ module GitTree
 
     def run
       setup
-      return help('At least one root and a command must be specified.') if @args.length < 2
+      return help('A SHELL_COMMAND must be specified.') if @args.empty?
 
       @runner ||= CommandRunner.new
       # The last argument is the command to execute, the rest are roots for the walker.
-      @walker ||= GitTreeWalker.new(@args[0..-2], options: @options)
+      roots = @args.length > 1 ? @args[0..-2] : []
+      @walker ||= GitTreeWalker.new(roots, options: @options)
 
       command = @args.last
       @walker.process do |dir, _thread_id, _walker|
