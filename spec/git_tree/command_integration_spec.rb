@@ -259,12 +259,19 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         # Add a new commit to the bare "remote" repo
         clone_path = File.join(@tmpdir, 'clone_for_commit')
         begin
-          git("clone #{remote_path} #{clone_path}")
+          # Helper to run a command and raise an error with output on failure
+          run_or_raise = lambda do |command, dir|
+            stdout, stderr, status = Open3.capture3(*command, chdir: dir)
+            raise "Setup command failed: '#{command.join(' ')}'\nSTDOUT:\n#{stdout}\nSTDERR:\n#{stderr}" unless status.success?
+          end
+
+          run_or_raise.call(['git', 'clone', remote_path, clone_path], @tmpdir)
+          run_or_raise.call(['git', 'config', 'user.name', 'Test User'], clone_path)
+          run_or_raise.call(['git', 'config', 'user.email', 'test@example.com'], clone_path)
           File.write(File.join(clone_path, 'new_remote_file.txt'), 'remote change')
-          git('add .', clone_path)
-          git('commit -m "Remote commit"', clone_path)
-          # Use system directly to check the exit status of the push
-          raise "Failed to push to remote" unless system('git', '-C', clone_path, 'push', 'origin', 'master', out: File::NULL, err: File::NULL)
+          run_or_raise.call(['git', 'add', '.'], clone_path)
+          run_or_raise.call(['git', 'commit', '-m', 'Remote commit'], clone_path)
+          run_or_raise.call(%w[git push origin master], clone_path)
 
           # Verify the file exists in the bare repo's history
           remote_files = `git --git-dir=#{remote_path} ls-tree -r master --name-only`.split("\n")
