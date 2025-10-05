@@ -26,8 +26,9 @@ module GitTree
         end
         optimizer = ZoweeOptimizer.new(walker.root_map)
         result = optimizer.optimize(all_paths, walker.display_roots)
-      else # Args were provided, process them as roots
-        processed_args = @args.flat_map { |arg| arg.strip.split(/\s+/) }
+      else
+        # If no args are given, use the default roots from config. Otherwise, use the provided args.
+        processed_args = @args.empty? ? @config.default_roots.map { |r| "$#{r}" } : @args.flat_map { |arg| arg.strip.split(/\s+/) }
         processed_args.each { |root| result.concat(process_root(root)) }
       end
       Logging.log_stdout result.join("\n") unless result.empty?
@@ -85,8 +86,6 @@ module GitTree
     # @param args [Array<String>] The command-line arguments.
     # @return [Array<String>] The parsed options.
     def parse_options(args)
-      raise "A block must be provided to #parse_options" unless block_given?
-
       @args = super do |opts|
         opts.on("-z", "--zowee", "Optimize variable definitions for size.") do
           @options[:zowee] = true
@@ -106,9 +105,9 @@ module GitTree
       help("Environment variable '#{root}' points to a non-existant directory (#{base}).") unless File.exist?(base)
       help("Environment variable '#{root}' points to a file (#{base}), not a directory.") unless Dir.exist?(base)
 
-      result = [make_env_var(env_var_name(base), GemSupport.deref_symlink(base))]
+      result = [make_env_var(env_var_name(base), GemSupport.deref_symlink(base).to_s)]
       walker = GitTreeWalker.new([root], options: @options)
-      walker.find_and_process_repos do |dir|
+      walker.find_and_process_repos do |dir, _root_arg|
         relative_dir = dir.sub(base + '/', '')
         result << make_env_var(env_var_name(relative_dir), "#{root}/#{relative_dir}")
       end

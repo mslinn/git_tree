@@ -36,8 +36,6 @@ module GitTree
     # Parses common options like -h, -q, -v.
     # This method can be extended by subclasses by passing a block.
     def parse_options(args)
-      raise "A block must be provided to #parse_options" unless block_given?
-
       raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
 
       parser = OptionParser.new do |opts|

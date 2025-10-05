@@ -3,6 +3,18 @@ require 'tmpdir'
 require 'fileutils'
 require 'open3'
 
+RSpec::Matchers.define :be_successful do
+  match do |actual|
+    actual[:status].success?
+  end
+
+  failure_message do |actual|
+    "expected command to be successful, but it failed.\n" \
+      "STDOUT:\n#{actual[:stdout]}\n" \
+      "STDERR:\n#{actual[:stderr]}"
+  end
+end
+
 RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeClass
   # This spec tests the end-to-end functionality of the command-line executables.
   # It creates a real file system structure with git repositories and runs the
@@ -36,8 +48,9 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
     # Clone it to create the working repo
     # We need to change directory to ensure the clone happens inside the tmpdir,
-    # as the `path` can be an absolute path.
-    Dir.chdir(@tmpdir) { git("clone #{bare_repo_path} #{path}") }
+    # as the `path` is relative to the current working directory of the test runner.
+    # By changing to @tmpdir first, we ensure the clone happens in the correct location.
+    Dir.chdir(@tmpdir) { git("clone #{bare_repo_path} #{path}", '.') }
 
     # Initial commit
     git('config user.name "Test User"', path)
@@ -69,7 +82,8 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     File.write(File.join(@home_dir, '.treeconfig.yml'), config_content)
 
     # --- Create all the test repos ---
-    setup_repo(File.join(@work_dir, 'repo_clean'), 'repo_clean')
+    @repo_clean_path = File.join(@work_dir, 'repo_clean')
+    setup_repo(@repo_clean_path, 'repo_clean')
 
     # Repo with a modified file
     @repo_modified_path = File.join(@work_dir, 'repo_modified')
@@ -116,17 +130,23 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
   end
 
   describe 'git-exec' do
-    it 'runs a command on all non-ignored repos' do
-      result = run_command("git-exec pwd")
-      expect(result[:status]).to be_success
-      expect(result[:stdout].lines.count).to eq(@all_processable_repos.count)
-      expect(result[:stdout]).to include(@repo_modified_path)
-      expect(result[:stdout]).not_to include(@repo_ignored_path)
+    context 'when run with default roots' do
+      it 'succeeds' do
+        result = run_command("git-exec pwd")
+        expect(result).to be_successful
+      end
+
+      it 'processes all processable repos' do
+        result = run_command("git-exec pwd")
+        expect(result[:stdout].lines.count).to eq(@all_processable_repos.count)
+        expect(result[:stdout]).to include(@repo_modified_path)
+        expect(result[:stdout]).not_to include(@repo_ignored_path)
+      end
     end
 
     it 'handles an invalid command' do
       result = run_command("git-exec nonexistentcommand")
-      expect(result[:status]).to be_success # The tool itself succeeds
+      expect(result).to be_successful # The tool itself succeeds
       expect(result[:stderr]).to include("Error: Command 'nonexistentcommand' not found")
     end
 
@@ -137,13 +157,17 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       expect(result[:stderr]).to be_empty
     end
 
-    it 'runs a command only on an explicitly specified root' do
-      # This test ensures that providing a root on the command line overrides the defaults.
-      # We expect it to find the 4 repos in @work_dir and not the one in @sites_dir.
-      result = run_command("git-exec '#{@work_dir}' pwd")
-      expect(result[:status]).to be_success
-      expect(result[:stdout].lines.count).to eq(@processable_work_repos.count)
-      expect(result[:stdout]).not_to include(@repo_detached_path) # This repo is in @sites_dir
+    context 'when run with an explicit root' do
+      it 'succeeds' do
+        result = run_command("git-exec '#{@work_dir}' pwd")
+        expect(result).to be_successful
+      end
+
+      it 'processes only repos under the specified root' do
+        result = run_command("git-exec '#{@work_dir}' pwd")
+        expect(result[:stdout].lines.count).to eq(@processable_work_repos.count)
+        expect(result[:stdout]).not_to include(@repo_detached_path) # This repo is in @sites_dir
+      end
     end
 
     it 'handles an undefined environment variable gracefully' do
@@ -172,7 +196,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
       it 'successfully runs git-update' do
         result = run_command("git-update '#{@work_dir}'")
-        expect(result[:status]).to be_success
+        expect(result).to be_successful
         expect(result[:stderr]).to be_empty
       end
 
@@ -190,24 +214,29 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
   end
 
   describe 'git-replicate' do
-    it 'generates a script that successfully clones repositories' do
-      result = run_command("git-replicate '$WORK'")
-      expect(result[:status]).to be_success
+    context 'when generating a replication script' do
+      it 'succeeds and generates a non-empty script' do
+        result = run_command("git-replicate '$WORK'")
+        expect(result).to be_successful
+        expect(result[:stdout]).not_to be_empty
+      end
 
-      replication_script = result[:stdout]
+      it 'generates a script that can successfully clone the repositories' do
+        result = run_command("git-replicate '$WORK'")
+        replication_script = result[:stdout]
 
-      # Run the generated script in a new temp directory
-      replication_dir = Dir.mktmpdir('replication_target')
-      File.write(File.join(replication_dir, 'replicate.sh'), replication_script)
-      system("cd #{replication_dir} && bash ./replicate.sh", out: File::NULL, err: File::NULL)
+        replication_dir = Dir.mktmpdir('replication_target')
+        File.write(File.join(replication_dir, 'replicate.sh'), replication_script)
+        system("cd #{replication_dir} && bash ./replicate.sh", out: File::NULL, err: File::NULL)
 
-      # Verify that the repos were cloned
-      expect(Dir.exist?(File.join(replication_dir, 'repo_clean',        '.git'))).to be true
-      expect(Dir.exist?(File.join(replication_dir, 'repo_modified',     '.git'))).to be true
-      expect(Dir.exist?(File.join(replication_dir, 'repo_new_file',     '.git'))).to be true
-      expect(Dir.exist?(File.join(replication_dir, 'repo_deleted_file', '.git'))).to be true
+        # Verify that the repos were cloned
+        @processable_work_repos.each do |repo_path|
+          repo_name = File.basename(repo_path)
+          expect(Dir.exist?(File.join(replication_dir, repo_name, '.git'))).to be true
+        end
 
-      FileUtils.remove_entry(replication_dir)
+        FileUtils.remove_entry(replication_dir)
+      end
     end
 
     it 'handles an undefined environment variable gracefully' do
@@ -218,11 +247,16 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
   end
 
   describe 'git-evars' do
-    it 'generates environment variables for found repos' do
-      result = run_command("git-evars '$WORK'")
-      expect(result[:status]).to be_success
-      expect(result[:stdout]).to include("export repo_clean=$WORK/repo_clean")
-      expect(result[:stdout]).to include("export repo_modified=$WORK/repo_modified")
+    context 'when generating evars for a specific root' do
+      it 'succeeds' do
+        result = run_command("git-evars '$WORK'")
+        expect(result).to be_successful
+      end
+
+      it 'generates correct export statements' do
+        result = run_command("git-evars '$WORK'")
+        expect(result[:stdout]).to include("export repo_clean=$WORK/repo_clean", "export repo_modified=$WORK/repo_modified")
+      end
     end
 
     it 'handles undefined environment variables gracefully' do
@@ -233,26 +267,44 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
   end
 
   describe 'git-commitAll' do
-    it 'commits modified, new, and deleted files' do
-      result = run_command('git-commitAll -m "Test commit"')
-      expect(result[:status]).to be_success
+    context 'when committing changes' do
+      before do
+        # This command modifies the state of the repos, so we run it once
+        # and then test the side effects in separate examples.
+        @result = run_command('git-commitAll -m "Test commit"')
+      end
 
-      # Verify repo_modified was committed
-      log_output_modified = `git -C #{@repo_modified_path} log -1 --pretty=%B 2> /dev/null`.strip
-      expect(log_output_modified).to eq("Test commit")
+      it 'succeeds' do
+        expect(@result).to be_successful
+      end
 
-      # Verify repo_new_file was committed
-      log_output_new = `git -C #{@repo_new_file_path} log -1 --pretty=%B 2> /dev/null`.strip
-      expect(log_output_new).to eq("Test commit")
+      it 'commits modified files' do
+        log_output = `git -C #{@repo_modified_path} log -1 --pretty=%B 2> /dev/null`.strip
+        expect(log_output).to eq("Test commit")
+      end
 
-      # Verify repo_deleted_file was committed
-      log_output_deleted = `git -C #{@repo_deleted_file_path} log -1 --pretty=%B 2> /dev/null`.strip
-      expect(log_output_deleted).to eq("Test commit")
+      it 'commits new files' do
+        log_output = `git -C #{@repo_new_file_path} log -1 --pretty=%B 2> /dev/null`.strip
+        expect(log_output).to eq("Test commit")
+      end
+
+      it 'commits deleted files' do
+        log_output = `git -C #{@repo_deleted_file_path} log -1 --pretty=%B 2> /dev/null`.strip
+        expect(log_output).to eq("Test commit")
+      end
     end
 
-    it 'skips detached HEAD repos' do
-      result = run_command('git-commitAll -v -m "Test commit"') # Use -v to get log output
-      expect(result[:stderr]).to include("Skipping #{@repo_detached_path} because it is in a detached HEAD state")
+    context 'when a repository has a detached HEAD' do
+      it 'succeeds' do
+        # The command should still succeed overall even if it skips one repo.
+        result = run_command('git-commitAll -v -m "Test commit"')
+        expect(result).to be_successful
+      end
+
+      it 'logs a skip message to stderr' do
+        result = run_command('git-commitAll -v -m "Test commit"') # Use -v to get log output
+        expect(result[:stderr]).to include("Skipping #{@repo_detached_path} because it is in a detached HEAD state")
+      end
     end
 
     it 'handles an undefined environment variable gracefully' do

@@ -68,8 +68,6 @@ module GitTree
     # @param args [Array<String>] The remaining command-line arguments after the AbstractCommand OptionParser has been applied.
     # @return [nil]
     def parse_options(args)
-      raise "A block must be provided to #parse_options" unless block_given?
-
       raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
 
       @args = super do |opts|
