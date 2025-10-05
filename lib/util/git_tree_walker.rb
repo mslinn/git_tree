@@ -45,6 +45,7 @@ class GitTreeWalker
       Logging.log Logging::VERBOSE, "Running in serial mode.", :yellow
       find_and_process_repos do |dir, _root_arg|
         raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+        raise "dir must be a String in find_and_process_repos block" unless dir.is_a?(String)
 
         raise "dir cannot be nil when yielding to process block" if dir.nil?
 
@@ -56,6 +57,9 @@ class GitTreeWalker
       pool.start do |_worker, dir, thread_id|
         raise "_worker cannot be nil in pool.start block" if _worker.nil?
         raise "dir cannot be nil in pool.start block" if dir.nil?
+        raise "_worker must be a FixedThreadPoolManager in pool.start block" unless _worker.is_a?(FixedThreadPoolManager)
+        raise "dir must be a String in pool.start block" unless dir.is_a?(String)
+        raise "thread_id must be an Integer in pool.start block" unless thread_id.is_a?(Integer)
         raise "thread_id cannot be nil in pool.start block" if thread_id.nil?
         raise "dir cannot be nil when yielding to process block" if dir.nil?
         raise "thread_id cannot be nil when yielding to process block" if thread_id.nil?
@@ -66,6 +70,7 @@ class GitTreeWalker
       # The worker threads will consume these tasks in parallel.
       find_and_process_repos do |dir, _root_arg|
         raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+        raise "dir must be a String in find_and_process_repos block" unless dir.is_a?(String)
 
         pool.add_task(dir)
       end
@@ -88,6 +93,7 @@ class GitTreeWalker
       paths.sort.each do |root_path|
         find_git_repos_recursive(root_path, visited) do |dir|
           raise "dir cannot be nil in find_git_repos_recursive block" if dir.nil?
+          raise "dir must be a String in find_git_repos_recursive block" unless dir.is_a?(String)
 
           raise "dir cannot be nil when yielding to find_and_process_repos block" if dir.nil?
 

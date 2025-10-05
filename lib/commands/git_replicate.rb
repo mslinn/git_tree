@@ -22,6 +22,8 @@ module GitTree
       walker.find_and_process_repos do |dir, root_arg|
         raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
         raise "root_arg cannot be nil in find_and_process_repos block" if root_arg.nil?
+        raise "dir must be a String in find_and_process_repos block" unless dir.is_a?(String)
+        raise "root_arg must be a String in find_and_process_repos block" unless root_arg.is_a?(String)
 
         result << replicate_one(dir, root_arg)
       end

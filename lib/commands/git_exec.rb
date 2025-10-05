@@ -31,7 +31,9 @@ module GitTree
       command = @args.last
       @walker.process do |dir, _thread_id, _walker|
         raise "dir cannot be nil in process block" if dir.nil?
+        raise "dir must be a String in process block" unless dir.is_a?(String)
         raise "_walker cannot be nil in process block" if _walker.nil?
+        raise "_walker must be a GitTreeWalker in process block" unless _walker.is_a?(GitTreeWalker)
 
         execute_and_log(dir, command)
       end

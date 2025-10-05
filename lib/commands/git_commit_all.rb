@@ -31,6 +31,9 @@ module GitTree
       @walker.process do |dir, thread_id, walker|
         raise "dir cannot be nil in process block" if dir.nil?
         raise "thread_id cannot be nil in process block" if thread_id.nil?
+        raise "dir must be a String in process block" unless dir.is_a?(String)
+        raise "thread_id must be an Integer in process block" unless thread_id.is_a?(Integer)
+        raise "walker must be a GitTreeWalker in process block" unless walker.is_a?(GitTreeWalker)
         raise "walker cannot be nil in process block" if walker.nil?
 
         process_repo(dir, thread_id, walker, @options[:message])
