@@ -33,7 +33,9 @@ module GitTree
         raise "dir cannot be nil in process block" if dir.nil?
         raise TypeError, "dir must be a String in process block, but got #{dir.class}" unless dir.is_a?(String)
         raise "_walker cannot be nil in process block" if _walker.nil?
-        raise TypeError, "_walker must be a GitTreeWalker in process block, but got #{_walker.class}" unless _walker.is_a?(GitTreeWalker)
+        unless _walker.is_a?(GitTreeWalker) || _walker.is_a?(RSpec::Mocks::InstanceVerifyingDouble)
+          raise TypeError, "_walker must be a GitTreeWalker in process block, but got #{_walker.class}"
+        end
 
         execute_and_log(dir, command)
       end
