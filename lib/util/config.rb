@@ -11,10 +11,9 @@ module GitTree
     config_name :treeconfig
     env_prefix 'GIT_TREE'
 
-    # The location of the user's config file.
-    def self.default_config_path
-      File.expand_path('~/.treeconfig.yml')
-    end
+    # Explicitly set the config path to be relative to the home directory.
+    # This ensures that the HOME env var set in tests is respected.
+    config_path File.expand_path(ENV.fetch('HOME', '~'))
 
     # Define attributes with their default values.
     attr_config :git_timeout, :verbosity, :default_roots
