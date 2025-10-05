@@ -17,6 +17,7 @@ module GitTree
       @options = options
       @config = GitTree::Config.new
       # Set initial verbosity from config before anything else happens.
+      # log Logging::VERBOSE, "AbstractCommand#initialize: Setting initial verbosity from config to: #{@config.verbosity}"
       Logging.verbosity = @config.verbosity
     end
 
@@ -24,6 +25,7 @@ module GitTree
     # Parses options and sets initial verbosity.
     def setup
       # CLI options can override the config verbosity.
+      log Logging::VERBOSE, "AbstractCommand#setup: verbosity before parsing options: #{Logging.verbosity}"
       parse_options(@args)
     end
 
@@ -38,15 +40,18 @@ module GitTree
         end
 
         opts.on("-q", "--quiet", "Suppress normal output, only show errors") do
+          log Logging::NORMAL, "OptionParser: -q setting verbosity to QUIET"
           Logging.verbosity = ::Logging::QUIET
         end
 
         opts.on("-s", "--serial", "Run tasks serially in a single thread") do
           @options[:serial] = true
+          log Logging::NORMAL, "OptionParser: -s setting serial mode"
         end
 
         opts.on("-v", "--verbose", "Increase verbosity. Can be used multiple times.") do
           Logging.verbosity += 1
+          log Logging::NORMAL, "OptionParser: -v increased verbosity to #{Logging.verbosity}"
         end
 
         yield(opts) if block_given?

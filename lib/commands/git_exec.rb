@@ -35,6 +35,9 @@ module GitTree
     def execute_and_log(dir, command)
       output, status = @runner.run(command, dir)
       log_result(output, status.success?)
+    rescue Errno::ENOENT
+      error_message = "Error: Command '#{command}' not found in #{dir}"
+      log_result(error_message, false)
     rescue StandardError => e
       error_message = "Error: '#{e.message}' from executing '#{command}' in #{dir}"
       log_result(error_message, false)

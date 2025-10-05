@@ -17,8 +17,14 @@ module GitTree
     end
 
     # Define attributes with their default values.
-    attr_config git_timeout:   300,
-                verbosity:     ::Logging::NORMAL,
-                default_roots: %w[sites sitesUbuntu work]
+    attr_config :git_timeout, :verbosity, :default_roots
+
+    # Override initialize to set defaults for nil values after loading.
+    def initialize(*)
+      super
+      self.git_timeout   ||= 300
+      self.verbosity     ||= ::Logging::NORMAL
+      self.default_roots ||= %w[sites sitesUbuntu work]
+    end
   end
 end

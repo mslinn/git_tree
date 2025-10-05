@@ -10,6 +10,7 @@ class FixedThreadPoolManager
   # (less one for the monitor thread), with a minimum of 1.
   # @param percent_available_processors [Float] The percentage of available processors to use for worker threads.
   def initialize(percent_available_processors = 0.75)
+    log Logging::VERBOSE, "FixedThreadPoolManager#initialize: verbosity is #{Logging.verbosity}"
     if percent_available_processors > 1 || percent_available_processors <= 0
       msg = <<~END_MSG
         Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
@@ -60,7 +61,7 @@ class FixedThreadPoolManager
       active_workers = @workers.count(&:alive?)
       break if active_workers.zero?
 
-      if active_workers != last_active_count && Logging.verbosity > ::Logging::NORMAL
+      if active_workers != last_active_count
         warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if Logging.verbosity > ::Logging::NORMAL
         last_active_count = active_workers
       end
@@ -73,16 +74,16 @@ class FixedThreadPoolManager
     end
 
     warn (" " * 60) + "\r" # Clear the line
-    log Logging::NORMAL, "All work is complete.", :green
+    log Logging::VERBOSE, "All work is complete.", :green
   end
 
   private
 
   def initialize_workers
-    log Logging::NORMAL, "Initializing #{@worker_count} worker threads...", :green
+    log Logging::DEBUG, "Initializing #{@worker_count} worker threads...", :green
     @worker_count.times do |i|
       worker_thread = Thread.new do
-        log Logging::NORMAL, "  [Worker #{i}] Started.", :cyan
+        log Logging::DEBUG, "  [Worker #{i}] Started.", :cyan
         start_time = Time.now
         start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
         tasks_processed = 0

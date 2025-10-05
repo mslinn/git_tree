@@ -11,6 +11,7 @@ module Logging
 
   # Class-level instance variables to hold the verbosity setting for the module
   @verbosity = ::Logging::NORMAL
+  # warn "Logging module loaded. Default verbosity: #{@verbosity}" if @verbosity >= NORMAL
 
   # @return [Integer] The current verbosity level.
   def self.verbosity
@@ -20,6 +21,9 @@ module Logging
   # @param level [Integer] The new verbosity level.
   # @return [nil]
   def self.verbosity=(level)
+    # warn "Logging.verbosity= called. Changing from #{@verbosity} to #{level}" \
+    #   if (@verbosity || NORMAL) >= NORMAL ||
+    #      (level || NORMAL) >= NORMAL
     @verbosity = level
   end
 

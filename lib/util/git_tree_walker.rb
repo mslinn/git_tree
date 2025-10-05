@@ -20,6 +20,7 @@ class GitTreeWalker
     @display_roots = []
     determine_roots(args)
     @config = GitTree::Config.new
+    log Logging::VERBOSE, "GitTreeWalker#initialize: verbosity is #{Logging.verbosity}"
   end
 
   def abbreviate_path(dir)
