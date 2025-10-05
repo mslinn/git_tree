@@ -258,12 +258,20 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       before do
         # Add a new commit to the bare "remote" repo
         clone_path = File.join(@tmpdir, 'clone_for_commit')
-        git("clone #{remote_path} #{clone_path}")
-        File.write(File.join(clone_path, 'new_remote_file.txt'), 'remote change')
-        git('add .', clone_path)
-        git('commit -m "Remote commit"', clone_path)
-        git('push origin master', clone_path)
-        FileUtils.rm_rf(clone_path)
+        begin
+          git("clone #{remote_path} #{clone_path}")
+          File.write(File.join(clone_path, 'new_remote_file.txt'), 'remote change')
+          git('add .', clone_path)
+          git('commit -m "Remote commit"', clone_path)
+          # Use system directly to check the exit status of the push
+          raise "Failed to push to remote" unless system('git', '-C', clone_path, 'push', 'origin', 'master', out: File::NULL, err: File::NULL)
+
+          # Verify the file exists in the bare repo's history
+          remote_files = `git --git-dir=#{remote_path} ls-tree -r master --name-only`.split("\n")
+          raise "Test setup failed: 'new_remote_file.txt' was not pushed to the bare repository." unless remote_files.include?('new_remote_file.txt')
+        ensure
+          FileUtils.rm_rf(clone_path)
+        end
       end
 
       context 'when running the command' do
@@ -280,11 +288,11 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         it 'pulls the new file into the local repository' do
           # Custom failure message to provide more context
           expect(File.exist?(new_remote_file)).to be(true), lambda {
-            dir_listing = `ls -A1 #{local_repo_path}`.strip
+            dir_listing = `ls -la #{local_repo_path}`.strip
             "Expected file '#{new_remote_file}' to exist, but it does not.\n\n" +
-              "Directory listing for #{local_repo_path}:\n#{dir_listing}\n" +
+              "Directory listing for #{local_repo_path}:\n#{dir_listing}\n\n" +
               dump_repo_history(local_repo_path, @repo_command_history) +
-              "Command Output:\n" +
+              "\nCommand Output:\n" +
               IoHelp.show_io('STDOUT', @result[:stdout]) +
               IoHelp.show_io('STDERR', @result[:stderr]) +
               IoHelp.show_io('STDAUX', @result[:stdaux])
