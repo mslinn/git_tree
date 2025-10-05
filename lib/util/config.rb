@@ -20,5 +20,10 @@ module GitTree
       self.verbosity     ||= ::Logging::NORMAL
       self.default_roots ||= %w[sites sitesUbuntu work]
     end
+
+    # Force a reload of the configuration.
+    def reload!
+      clear
+    end
   end
 end

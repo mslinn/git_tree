@@ -24,6 +24,8 @@ module GitTree
     # Parses options and sets initial verbosity.
     def setup
       @config = GitTree::Config.new
+      # Force a reload to respect the test environment's HOME variable.
+      @config.reload!
       # Set initial verbosity from config before anything else happens.
       Logging.verbosity = @config.verbosity
 
