@@ -3,6 +3,7 @@
 ## 1.0.2 / 2025-10-04
 
 * Increased `GitTreeWalker.GIT_TIMEOUT` to 5 minutes.
+* Added `git-treeconfig` command and support for configuration file and environment variable configuration.
 
 
 ## 1.0.1 / 2025-10-04
