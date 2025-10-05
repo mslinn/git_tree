@@ -270,7 +270,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
           run_or_raise.call(['git', 'config', 'user.email', 'test@example.com'], clone_path)
           File.write(File.join(clone_path, 'new_remote_file.txt'), 'remote change')
           run_or_raise.call(['git', 'add', '.'], clone_path)
-          run_or_raise.call(['git', 'commit', '-m', 'Remote commit'], clone_path)
+          run_or_raise.call(['git', 'commit', '--allow-empty', '-m', 'Remote commit'], clone_path)
           run_or_raise.call(%w[git push origin master], clone_path)
 
           # Verify the file exists in the bare repo's history
