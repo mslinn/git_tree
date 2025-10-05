@@ -11,9 +11,6 @@ module GitTree
     config_name :treeconfig
     env_prefix 'GIT_TREE'
 
-    # Add a specific environment variable to override the config path for testing.
-    config_path_env_var 'TREECONFIG_CONFIG_PATH'
-
     attr_config :git_timeout, :verbosity, :default_roots
 
     # Override initialize to set defaults for nil values after loading.

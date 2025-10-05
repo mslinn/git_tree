@@ -65,12 +65,12 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # Point to the executables in the `exe` directory
     exe_path = File.expand_path('../../exe', __dir__)
     env = {
-      'HOME'                   => @home_dir,
-      'WORK'                   => @work_dir,
-      'SITES'                  => @sites_dir,
-      'PATH'                   => "#{exe_path}:#{ENV.fetch('PATH', nil)}",
-      'GIT_TREE_GIT_TIMEOUT'   => '5', # Use a short timeout for integration tests
-      'TREECONFIG_CONFIG_PATH' => File.join(@home_dir, '.treeconfig.yml'),
+      'HOME'                 => @home_dir,
+      'WORK'                 => @work_dir,
+      'SITES'                => @sites_dir,
+      'PATH'                 => "#{exe_path}:#{ENV.fetch('PATH', nil)}",
+      'GIT_TREE_GIT_TIMEOUT' => '5', # Use a short timeout for integration tests
+      'TREECONFIG_PATH'      => File.join(@home_dir, '.treeconfig.yml'),
     }
 
     # Use popen3 to capture stdout, stderr, and stdaux (fd 3)
