@@ -13,10 +13,11 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # Point to the executables in the `exe` directory
     exe_path = File.expand_path('../../exe', __dir__)
     env = {
-      'HOME'  => @home_dir,
-      'WORK'  => @work_dir,
-      'SITES' => @sites_dir,
-      'PATH'  => "#{exe_path}:#{ENV.fetch('PATH', nil)}",
+      'HOME'                 => @home_dir,
+      'WORK'                 => @work_dir,
+      'SITES'                => @sites_dir,
+      'PATH'                 => "#{exe_path}:#{ENV.fetch('PATH', nil)}",
+      'GIT_TREE_GIT_TIMEOUT' => '15', # Use a short timeout for integration tests
     }
     stdout, stderr, status = Open3.capture3(env, command_string)
     { stdout: stdout, stderr: stderr, status: status }
@@ -88,7 +89,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # Repo with a detached HEAD
     @repo_detached_path = File.join(@sites_dir, 'repo_detached')
     setup_repo(@repo_detached_path, 'repo_detached')
-    head_commit_sha = `git -C #{@repo_detached_path} rev-parse HEAD`.strip
+    head_commit_sha = `git -C #{@repo_detached_path} rev-parse HEAD 2> /dev/null`.strip
     git("checkout #{head_commit_sha}", @repo_detached_path)
 
     # Empty repo with no commits
@@ -152,54 +153,33 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     end
   end
 
-  describe 'git-commitAll' do
-    it 'commits modified, new, and deleted files' do
-      result = run_command('git-commitAll -m "Test commit"')
-      expect(result[:status]).to be_success
-
-      # Verify repo_modified was committed
-      log_output_modified = `git -C #{@repo_modified_path} log -1 --pretty=%B`.strip
-      expect(log_output_modified).to eq("Test commit")
-
-      # Verify repo_new_file was committed
-      log_output_new = `git -C #{@repo_new_file_path} log -1 --pretty=%B`.strip
-      expect(log_output_new).to eq("Test commit")
-
-      # Verify repo_deleted_file was committed
-      log_output_deleted = `git -C #{@repo_deleted_file_path} log -1 --pretty=%B`.strip
-      expect(log_output_deleted).to eq("Test commit")
-    end
-
-    it 'skips detached HEAD repos' do
-      result = run_command('git-commitAll -v -m "Test commit"') # Use -v to get log output
-      expect(result[:stderr]).to include("Skipping #{@repo_detached_path} because it is in a detached HEAD state")
-    end
-
-    it 'handles an undefined environment variable gracefully' do
-      result = run_command("git-commitAll '$UNDEFINED_VAR'")
-      expect(result[:status].exitstatus).to eq(1)
-      expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
-    end
-  end
-
   describe 'git-update' do
-    it 'pulls changes from the remote' do
-      # Add a new commit to the bare "remote" repo
-      remote_path = File.join(@tmpdir, 'remotes', 'repo_clean.git')
-      clone_path = File.join(@tmpdir, 'clone_for_commit')
-      git("clone #{remote_path} #{clone_path}")
-      File.write(File.join(clone_path, 'new_remote_file.txt'), 'remote change')
-      git('add .', clone_path)
-      git('commit -m "Remote commit"', clone_path)
-      git('push origin main', clone_path)
-      FileUtils.rm_rf(clone_path)
+    context 'when remote is ahead' do
+      let(:remote_path) { File.join(@tmpdir, 'remotes', 'repo_clean.git') }
+      let(:local_repo_path) { File.join(@work_dir, 'repo_clean') }
+      let(:new_remote_file) { File.join(local_repo_path, 'new_remote_file.txt') }
 
-      # Run git-update
-      result = run_command("git-update '$WORK/repo_clean'")
-      expect(result[:status]).to be_success
+      before do
+        # Add a new commit to the bare "remote" repo
+        clone_path = File.join(@tmpdir, 'clone_for_commit')
+        git("clone #{remote_path} #{clone_path}")
+        File.write(File.join(clone_path, 'new_remote_file.txt'), 'remote change')
+        git('add .', clone_path)
+        git('commit -m "Remote commit"', clone_path)
+        git('push origin main', clone_path)
+        FileUtils.rm_rf(clone_path)
+      end
 
-      # Verify the local repo now has the remote file
-      expect(File.exist?(File.join(@work_dir, 'repo_clean', 'new_remote_file.txt'))).to be true
+      it 'successfully runs git-update' do
+        result = run_command("git-update '#{@work_dir}'")
+        expect(result[:status]).to be_success
+        expect(result[:stderr]).to be_empty
+      end
+
+      it 'pulls the new file into the local repository' do
+        run_command("git-update '#{@work_dir}'")
+        expect(File.exist?(new_remote_file)).to be true
+      end
     end
 
     it 'handles an undefined environment variable gracefully' do
@@ -219,7 +199,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       # Run the generated script in a new temp directory
       replication_dir = Dir.mktmpdir('replication_target')
       File.write(File.join(replication_dir, 'replicate.sh'), replication_script)
-      system("bash", File.join(replication_dir, 'replicate.sh'))
+      system("cd #{replication_dir} && bash ./replicate.sh", out: File::NULL, err: File::NULL)
 
       # Verify that the repos were cloned
       expect(Dir.exist?(File.join(replication_dir, 'repo_clean',        '.git'))).to be true
@@ -247,6 +227,36 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
     it 'handles undefined environment variables gracefully' do
       result = run_command("git-evars '$UNDEFINED_VAR'")
+      expect(result[:status].exitstatus).to eq(1)
+      expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+    end
+  end
+
+  describe 'git-commitAll' do
+    it 'commits modified, new, and deleted files' do
+      result = run_command('git-commitAll -m "Test commit"')
+      expect(result[:status]).to be_success
+
+      # Verify repo_modified was committed
+      log_output_modified = `git -C #{@repo_modified_path} log -1 --pretty=%B 2> /dev/null`.strip
+      expect(log_output_modified).to eq("Test commit")
+
+      # Verify repo_new_file was committed
+      log_output_new = `git -C #{@repo_new_file_path} log -1 --pretty=%B 2> /dev/null`.strip
+      expect(log_output_new).to eq("Test commit")
+
+      # Verify repo_deleted_file was committed
+      log_output_deleted = `git -C #{@repo_deleted_file_path} log -1 --pretty=%B 2> /dev/null`.strip
+      expect(log_output_deleted).to eq("Test commit")
+    end
+
+    it 'skips detached HEAD repos' do
+      result = run_command('git-commitAll -v -m "Test commit"') # Use -v to get log output
+      expect(result[:stderr]).to include("Skipping #{@repo_detached_path} because it is in a detached HEAD state")
+    end
+
+    it 'handles an undefined environment variable gracefully' do
+      result = run_command("git-commitAll '$UNDEFINED_VAR'")
       expect(result[:status].exitstatus).to eq(1)
       expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
     end

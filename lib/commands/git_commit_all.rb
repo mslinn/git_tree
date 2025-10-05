@@ -15,6 +15,9 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args = ARGV, options: {})
+      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+      raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
+
       $PROGRAM_NAME = 'git-commitAll'
       super
       # Allow walker to be injected for testing
@@ -33,6 +36,8 @@ module GitTree
     private
 
     def help(msg = nil)
+      raise ArgumentError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
+
       Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
       Logging.log Logging::QUIET, <<~END_MSG
         #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified roots.
@@ -63,6 +68,10 @@ module GitTree
     # @param args [Array<String>] The remaining command-line arguments after the AbstractCommand OptionParser has been applied.
     # @return [nil]
     def parse_options(args)
+      raise "A block must be provided to #parse_options" unless block_given?
+
+      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+
       @args = super do |opts|
         opts.banner = "Usage: #{$PROGRAM_NAME} [options] [DIRECTORY ...]"
         opts.on("-m MESSAGE", "--message MESSAGE", "Use the given string as the commit message.") do |m|
@@ -78,6 +87,11 @@ module GitTree
     # @param message [String] The commit message to use.
     # @return [nil]
     def process_repo(dir, thread_id, walker, message)
+      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise ArgumentError, "thread_id must be an Integer, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
+      raise ArgumentError, "walker must be a GitTreeWalker, but got #{walker.class}" unless walker.is_a?(GitTreeWalker)
+      raise ArgumentError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
+
       short_dir = walker.abbreviate_path(dir)
       Logging.log Logging::VERBOSE, "Examining #{short_dir} on thread #{thread_id}", :green
       begin
@@ -110,6 +124,8 @@ module GitTree
 
     # @return [Boolean] True if the repository has changes, false otherwise.
     def repo_has_changes?(dir)
+      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+
       repo = Rugged::Repository.new(dir)
       repo.status { |_file, status| return true if status != :current && status != :ignored }
       false
@@ -118,6 +134,8 @@ module GitTree
     # @param dir [String] The path to the git repository.
     # @return [Boolean] True if the repository has changes, false otherwise.
     def repo_has_staged_changes?(repo)
+      raise ArgumentError, "repo must be a Rugged::Repository, but got #{repo.class}" unless repo.is_a?(Rugged::Repository)
+
       # For an existing repo, diff the index against the HEAD tree.
       head_tree = repo.head.target.tree
       diff = head_tree.diff(repo.index)
@@ -132,6 +150,10 @@ module GitTree
     # @param short_dir [String] The shortened path to the git repository.
     # @return [nil]
     def commit_changes(dir, message, short_dir)
+      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise ArgumentError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
+      raise ArgumentError, "short_dir must be a String, but got #{short_dir.class}" unless short_dir.is_a?(String)
+
       system('git', '-C', dir, 'add', '--all', exception: true)
 
       repo = Rugged::Repository.new(dir)

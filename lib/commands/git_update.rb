@@ -13,6 +13,9 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args = ARGV, options: {})
+      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+      raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
+
       $PROGRAM_NAME = 'git-update'
       super
       # Allow walker and runner to be injected for testing
@@ -32,6 +35,8 @@ module GitTree
     private
 
     def help(msg = nil)
+      raise ArgumentError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
+
       Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
       Logging.log Logging::QUIET, <<~END_HELP
         git-update - Recursively updates trees of git repositories.
@@ -69,6 +74,13 @@ module GitTree
     # @param thread_id [Integer] The ID of the current worker thread.
     # @return [nil]
     def process_repo(git_walker, dir, thread_id)
+      unless git_walker.respond_to?(:abbreviate_path) && git_walker.respond_to?(:config)
+        raise ArgumentError,
+              "git_walker must respond to :abbreviate_path and :config"
+      end
+      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise ArgumentError, "thread_id must be an Integer, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
+
       abbrev_dir = git_walker.abbreviate_path(dir)
       Logging.log Logging::NORMAL, "Updating #{abbrev_dir}", :green
       Logging.log Logging::VERBOSE, "Thread #{thread_id}: git -C #{dir} pull", :yellow

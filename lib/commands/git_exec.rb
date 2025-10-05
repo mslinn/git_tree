@@ -9,6 +9,9 @@ module GitTree
     attr_writer :walker, :runner
 
     def initialize(args = ARGV, options: {})
+      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+      raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
+
       $PROGRAM_NAME = 'git-exec'
       super
       # Allow walker and runner to be injected for testing
@@ -34,6 +37,9 @@ module GitTree
     private
 
     def execute_and_log(dir, command)
+      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise ArgumentError, "command must be a String, but got #{command.class}" unless command.is_a?(String)
+
       output, status = @runner.run(command, dir)
       log_result(output, status.success?)
     rescue Errno::ENOENT
@@ -45,6 +51,9 @@ module GitTree
     end
 
     def log_result(output, success)
+      raise ArgumentError, "output must be a String, but got #{output.class}" unless output.is_a?(String)
+      raise ArgumentError, "success must be a Boolean, but got #{success.class}" unless [true, false].include?(success)
+
       return if output.strip.empty?
 
       if success
@@ -57,6 +66,8 @@ module GitTree
     end
 
     def help(msg = nil)
+      raise ArgumentError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
+
       Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
       Logging.log Logging::QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Executes an arbitrary shell command for each repository.

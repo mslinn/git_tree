@@ -7,6 +7,9 @@ class CommandRunner
   # @param dir [String] The directory to execute the command in.
   # @return [Array] A tuple containing the output and the status object.
   def run(command, dir)
+    raise ArgumentError, "command must be a String, but got #{command.class}" unless command.is_a?(String)
+    raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+
     Open3.capture2e(command, chdir: dir)
   end
 end

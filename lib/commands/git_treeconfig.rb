@@ -6,8 +6,6 @@ require_relative '../util/log'
 module GitTree
   # A command to interactively create a user-level configuration file.
   class TreeconfigCommand
-    include Logging
-
     def initialize
       $PROGRAM_NAME = 'git-treeconfig'
       @cli = HighLine.new
@@ -41,7 +39,7 @@ module GitTree
       File.write(@config_path, new_config.to_yaml)
 
       @cli.say ""
-      @cli.say @cli.color("Configuration saved to #{@config_path}", :green)
+      @cli.say "Configuration saved to #{@config_path}", :green
     end
   end
 end

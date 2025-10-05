@@ -21,6 +21,8 @@ module Logging
   # @param level [Integer] The new verbosity level.
   # @return [nil]
   def self.verbosity=(level)
+    raise ArgumentError, "verbosity level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+
     # warn "Logging.verbosity= called. Changing from #{@verbosity} to #{level}" \
     #   if (@verbosity || NORMAL) >= NORMAL ||
     #      (level || NORMAL) >= NORMAL
@@ -33,6 +35,10 @@ module Logging
   # @param color [Symbol, nil] The color method to apply from Rainbow, e.g., :red, :green.  If nil, no color is applied.
   # @return [nil]
   def log(level, multiline_string, color = nil)
+    raise ArgumentError, "multiline_string must be a String, but got #{multiline_string.class}" unless multiline_string.is_a?(String)
+    raise ArgumentError, "color must be a Symbol or nil, but got #{color.class}" unless color.is_a?(Symbol) || color.nil?
+    raise ArgumentError, "log level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+
     return unless Logging.verbosity >= level
 
     multiline_string.to_s.each_line do |line|
@@ -47,6 +53,8 @@ module Logging
   # @param multiline_string [String] The message to log.
   # @return [nil]
   def log_stdout(multiline_string)
+    raise ArgumentError, "multiline_string must be a String, but got #{multiline_string.class}" unless multiline_string.is_a?(String)
+
     $stdout.puts multiline_string.to_s
     $stdout.flush
   end
@@ -57,6 +65,10 @@ module Logging
   # @param color [Symbol, nil] The color method to apply from Rainbow.
   # @return [nil]
   def log_inline(level, message, color = nil)
+    raise ArgumentError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
+    raise ArgumentError, "color must be a Symbol or nil, but got #{color.class}" unless color.is_a?(Symbol) || color.nil?
+    raise ArgumentError, "log level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+
     return unless Logging.verbosity >= level
 
     message = message.public_send(color) if color

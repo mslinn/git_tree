@@ -15,15 +15,19 @@ class GitTreeWalker
   IGNORED_DIRECTORIES = ['.', '..', '.venv'].freeze
 
   def initialize(args = ARGV, options: {})
+    raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+    raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
+
     @options = options
+    @config = GitTree::Config.new
     @root_map = {}
     @display_roots = []
     determine_roots(args)
-    @config = GitTree::Config.new
-    Logging.log Logging::VERBOSE, "GitTreeWalker#initialize: verbosity is #{Logging.verbosity}"
   end
 
   def abbreviate_path(dir)
+    raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+
     @root_map.each do |display_root, expanded_paths|
       expanded_paths.each do |expanded_path|
         return dir.sub(expanded_path, display_root) if dir.start_with?(expanded_path)
@@ -32,7 +36,10 @@ class GitTreeWalker
     dir # Return original if no match
   end
 
-  def process(&) # Accepts a block
+  def process(&block) # Accepts a block
+    raise "A block must be provided to #process" unless block_given?
+    raise "Block passed to #process must accept 3 arguments (dir, thread_id, walker)" if block.arity != 3 && block.arity >= 0
+
     Logging.log Logging::VERBOSE, "Processing #{@display_roots.join(' ')}", :green
     if @options[:serial]
       Logging.log Logging::VERBOSE, "Running in serial mode.", :yellow
@@ -63,7 +70,10 @@ class GitTreeWalker
   end
 
   # Finds git repos and yields them to the block. Does not use thread pool.
-  def find_and_process_repos(&)
+  def find_and_process_repos(&block)
+    raise "A block must be provided to #find_and_process_repos" unless block_given?
+    raise "Block passed to #find_and_process_repos must accept 2 arguments (dir, root_arg)" if block.arity != 2 && block.arity >= 0
+
     visited = Set.new
     @root_map.each do |root_arg, paths|
       paths.sort.each do |root_path|

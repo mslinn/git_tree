@@ -7,6 +7,9 @@ module GitTree
     self.allow_empty_args = true
 
     def initialize(args = ARGV, options: {})
+      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+      raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
+
       $PROGRAM_NAME = 'git-replicate'
       super
     end
@@ -23,6 +26,8 @@ module GitTree
     private
 
     def help(msg = nil)
+      raise ArgumentError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
+
       Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
       Logging.log Logging::QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Replicates trees of git repositories and writes a bash script to STDOUT.
@@ -48,6 +53,9 @@ module GitTree
     end
 
     def replicate_one(dir, root_arg)
+      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise ArgumentError, "root_arg must be a String, but got #{root_arg.class}" unless root_arg.is_a?(String)
+
       output = []
       config_path = File.join(dir, '.git', 'config')
       return output unless File.exist?(config_path)

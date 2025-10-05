@@ -13,6 +13,9 @@ module GitTree
     end
 
     def initialize(args = ARGV, options: {})
+      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+      raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
+
       @args = args
       @options = options
       @config = GitTree::Config.new
@@ -25,7 +28,6 @@ module GitTree
     # Parses options and sets initial verbosity.
     def setup
       # CLI options can override the config verbosity.
-      Logging.log Logging::VERBOSE, "AbstractCommand#setup: verbosity before parsing options: #{Logging.verbosity}"
       parse_options(@args)
     end
 
@@ -34,24 +36,25 @@ module GitTree
     # Parses common options like -h, -q, -v.
     # This method can be extended by subclasses by passing a block.
     def parse_options(args)
+      raise "A block must be provided to #parse_options" unless block_given?
+
+      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+
       parser = OptionParser.new do |opts|
         opts.on("-h", "--help", "Show this help message and exit") do
           help
         end
 
         opts.on("-q", "--quiet", "Suppress normal output, only show errors") do
-          Logging.log Logging::NORMAL, "OptionParser: -q setting verbosity to QUIET"
           Logging.verbosity = ::Logging::QUIET
         end
 
         opts.on("-s", "--serial", "Run tasks serially in a single thread") do
           @options[:serial] = true
-          Logging.log Logging::NORMAL, "OptionParser: -s setting serial mode"
         end
 
         opts.on("-v", "--verbose", "Increase verbosity. Can be used multiple times.") do
           Logging.verbosity += 1
-          Logging.log Logging::NORMAL, "OptionParser: -v increased verbosity to #{Logging.verbosity}"
         end
 
         yield(opts) if block_given?

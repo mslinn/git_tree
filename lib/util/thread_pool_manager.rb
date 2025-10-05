@@ -10,7 +10,8 @@ class FixedThreadPoolManager
   # (less one for the monitor thread), with a minimum of 1.
   # @param percent_available_processors [Float] The percentage of available processors to use for worker threads.
   def initialize(percent_available_processors = 0.75)
-    Logging.log Logging::VERBOSE, "FixedThreadPoolManager#initialize: verbosity is #{Logging.verbosity}"
+    raise ArgumentError, "percent_available_processors must be a Numeric" unless percent_available_processors.is_a?(Numeric)
+
     if percent_available_processors > 1 || percent_available_processors <= 0
       msg = <<~END_MSG
         Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
@@ -27,6 +28,8 @@ class FixedThreadPoolManager
   # Adds a single task to the work queue.
   # The pool must have been started with `start` first.
   def add_task(task)
+    raise "Cannot add tasks before the pool has been started" if @workers.empty?
+
     @main_work_queue.push(task)
   end
 
@@ -46,6 +49,8 @@ class FixedThreadPoolManager
   # @param Block of code to execute for each task.
   # @return nil
   def start(&)
+    raise "A block must be provided to #start" unless block_given?
+
     initialize_workers(&)
   end
 
@@ -80,6 +85,8 @@ class FixedThreadPoolManager
   private
 
   def initialize_workers
+    raise "A block must be provided to #initialize_workers" unless block_given?
+
     Logging.log Logging::DEBUG, "Initializing #{@worker_count} worker threads...", :green
     @worker_count.times do |i|
       worker_thread = Thread.new do
@@ -109,9 +116,9 @@ class FixedThreadPoolManager
         # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
         # Exit gracefully without a stack trace.
       end
-      # Suppress automatic error reporting for this thread. The error should be handled elsewhere.
-      worker_thread.report_on_exception = false
       @workers << worker_thread
     end
+    # Suppress automatic error reporting for these threads. Errors should be handled elsewhere.
+    @workers.each { |t| t.report_on_exception = false }
   end
 end

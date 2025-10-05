@@ -19,18 +19,18 @@ describe GitTree::ExecCommand do
 
     # Stub methods on the command object itself to act as spies
     allow(command).to receive(:exit)
-    allow(command).to receive(:help)
     allow(Logging).to receive(:log)
     allow(Logging).to receive(:log_stdout)
   end
 
   describe '#run' do
     context 'with insufficient arguments' do
-      let(:args) { [command_to_run] } # Only one argument
+      let(:args) { [] }
 
       it 'calls help and exits' do
+        allow(command).to receive(:help) # Prevent exit
         command.run
-        expect(command).to have_received(:help).with('At least one root and a command must be specified.')
+        expect(command).to have_received(:help).with('A SHELL_COMMAND must be specified.')
       end
     end
 
