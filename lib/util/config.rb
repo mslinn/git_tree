@@ -11,10 +11,6 @@ module GitTree
     config_name :treeconfig
     env_prefix 'GIT_TREE'
 
-    # Override the default path to make it respect the HOME env var,
-    # which is crucial for isolated testing.
-    Anyway::Settings.default_config_path = ->(name) { File.join(Dir.home, ".#{name}.yml") }
-    # Define attributes with their default values.
     attr_config :git_timeout, :verbosity, :default_roots
 
     # Override initialize to set defaults for nil values after loading.
@@ -23,6 +19,15 @@ module GitTree
       self.git_timeout   ||= 300
       self.verbosity     ||= ::Logging::NORMAL
       self.default_roots ||= %w[sites sitesUbuntu work]
+    end
+
+    # Temporarily sets the config path for testing purposes.
+    # This allows tests to point to a temporary config file.
+    def self.with_config_path(path)
+      config_path path
+      yield
+    ensure
+      clear_config_path
     end
   end
 end

@@ -74,14 +74,18 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
     # Use popen3 to capture stdout, stderr, and stdaux (fd 3)
     # We create a temporary file to capture stdaux (fd 3) separately from stdout.
-    stdaux_file = Tempfile.new('stdaux')
-    Open3.popen3(env, command_string, 3 => stdaux_file) do |stdin, stdout, stderr, wait_thr|
-      stdin.close
-      stdout_str = stdout.read
-      stderr_str = stderr.read
-      stdaux_file.rewind
-      stdaux_str = stdaux_file.read
-      { stdout: stdout_str, stderr: stderr_str, stdaux: stdaux_str, status: wait_thr.value }
+    # We wrap this in `with_config_path` to ensure the command uses the test-specific config.
+    test_config_path = File.join(@home_dir, '.treeconfig.yml')
+    GitTree::Config.with_config_path(test_config_path) do
+      stdaux_file = Tempfile.new('stdaux')
+      Open3.popen3(env, command_string, 3 => stdaux_file) do |stdin, stdout, stderr, wait_thr|
+        stdin.close
+        stdout_str = stdout.read
+        stderr_str = stderr.read
+        stdaux_file.rewind
+        stdaux_str = stdaux_file.read
+        { stdout: stdout_str, stderr: stderr_str, stdaux: stdaux_str, status: wait_thr.value }
+      end
     end
   end
 
