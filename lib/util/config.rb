@@ -27,7 +27,7 @@ module GitTree
       config_path path
       yield
     ensure
-      clear_config_path
+      clear_config_path!
     end
   end
 end
