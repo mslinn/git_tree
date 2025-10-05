@@ -39,7 +39,7 @@ describe GitTree::ExecCommand do
       let(:command_output) { "file1.txt\nfile2.txt" }
 
       it 'executes the command and logs output to stdout' do
-        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, nil)
+        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, mock_walker)
         allow(mock_runner).to receive(:run).with(command_to_run, repo_dir)
                                            .and_return([command_output, instance_double(Process::Status, success?: true)])
 
@@ -54,7 +54,7 @@ describe GitTree::ExecCommand do
       let(:error_output) { 'ls: not found' }
 
       it 'executes the command and logs output to stderr' do
-        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, nil)
+        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, mock_walker)
         allow(mock_runner).to receive(:run).with(command_to_run, repo_dir)
                                            .and_return([error_output, instance_double(Process::Status, success?: false)])
 
@@ -69,7 +69,7 @@ describe GitTree::ExecCommand do
       let(:error_message) { 'A critical error occurred' }
 
       it 'rescues the exception and logs an error message to stderr' do
-        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, nil)
+        allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, mock_walker)
         allow(mock_runner).to receive(:run).with(command_to_run, repo_dir).and_raise(StandardError, error_message)
 
         expected_log_message = "Error: '#{error_message}' from executing '#{command_to_run}' in #{repo_dir}"

@@ -32,7 +32,9 @@ module GitTree
         raise "thread_id cannot be nil in process block" if thread_id.nil?
         raise TypeError, "dir must be a String in process block, but got #{dir.class}" unless dir.is_a?(String)
         raise TypeError, "thread_id must be an Integer in process block, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
-        raise TypeError, "walker must be a GitTreeWalker in process block, but got #{walker.class}" unless walker.is_a?(GitTreeWalker)
+        unless walker.is_a?(GitTreeWalker) || (walker.respond_to?(:abbreviate_path) && walker.respond_to?(:config))
+          raise TypeError, "walker must be a GitTreeWalker or respond to :abbreviate_path and :config, but got #{walker.class}"
+        end
         raise "walker cannot be nil in process block" if walker.nil?
 
         process_repo(walker, dir, thread_id)
