@@ -50,7 +50,7 @@ RSpec::Matchers.define :have_empty_stderr do
               end
     "#{message}\n" +
       IoHelp.show_io('STDAUX', command_result[:stdaux]) +
-      dump_repo_history(@repo_clean_path, @repo_command_history)
+      dump_repo_history(command_result[:repo_path_for_history], @repo_command_history)
     # ::IoHelp.show_io('STDOUT', command_result[:stdout])
   end
 end
@@ -82,7 +82,9 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       stderr_str = stderr.read
       stdaux_file.rewind
       stdaux_str = stdaux_file.read
-      { stdout: stdout_str, stderr: stderr_str, stdaux: stdaux_str, status: wait_thr.value }
+      result = { stdout: stdout_str, stderr: stderr_str, stdaux: stdaux_str, status: wait_thr.value }
+      result[:repo_path_for_history] = @repo_clean_path # Default, can be overridden
+      result
     end
   end
 
@@ -185,39 +187,41 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
   end
 
   describe 'git-exec' do
+    subject(:result) { run_command(command) }
+
     context 'when run with default roots' do
-      before { @result = run_command("git-exec pwd") }
+      let(:command) { "git-exec pwd" }
 
       it 'succeeds' do
-        expect(@result).to be_successful
+        expect(result).to be_successful
       end
 
       it 'yields empty stderr' do
-        expect(@result).to have_empty_stderr
+        expect(result).to have_empty_stderr
       end
 
       it 'processes all processable repos' do
-        actual_lines = @result[:stdout].lines.map(&:strip).sort
+        actual_lines = result[:stdout].lines.map(&:strip).sort
         expected_lines = @all_processable_repos.sort
         expect(actual_lines.count).to eq(expected_lines.count), lambda {
           "Expected to process #{expected_lines.count} repos, but found #{actual_lines.count}.\n\n" +
             "Expected Repos:\n" + expected_lines.join("\n") + "\n\n" +
             "Actual Repos Found:\n" + actual_lines.join("\n")
         }
-        expect(@result[:stdout]).to include(@repo_modified_path)
-        expect(@result[:stdout]).not_to include(@repo_ignored_path)
+        expect(result[:stdout]).to include(@repo_modified_path)
+        expect(result[:stdout]).not_to include(@repo_ignored_path)
       end
     end
 
     context 'when an invalid command is given' do
-      before { @result = run_command("git-exec nonexistentcommand") }
+      let(:command) { "git-exec nonexistentcommand" }
 
       it 'succeeds' do
-        expect(@result).to be_successful
+        expect(result).to be_successful
       end
 
       it 'logs an error to stderr' do
-        expect(@result[:stderr]).to include("Error: Command 'nonexistentcommand' not found")
+        expect(result[:stderr]).to include("Error: Command 'nonexistentcommand' not found")
       end
     end
 
@@ -227,37 +231,39 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     end
 
     context 'when run with an explicit root' do
-      before { @result = run_command("git-exec '#{@work_dir}' pwd") }
+      let(:command) { "git-exec '#{@work_dir}' pwd" }
 
       it 'succeeds' do
-        expect(@result).to be_successful
+        expect(result).to be_successful
       end
 
       it 'yields empty stderr' do
-        expect(@result).to have_empty_stderr
+        expect(result).to have_empty_stderr
       end
 
       it 'processes only repos under the specified root' do
-        expect(@result[:stdout].lines.count).to eq(@processable_work_repos.count)
-        expect(@result[:stdout]).not_to include(@repo_detached_path) # This repo is in @sites_dir
+        expect(result[:stdout].lines.count).to eq(@processable_work_repos.count)
+        expect(result[:stdout]).not_to include(@repo_detached_path) # This repo is in @sites_dir
       end
     end
 
     context 'when an undefined environment variable is given as a root' do
-      before { @result = run_command("git-exec '$UNDEFINED_VAR' pwd") }
+      let(:command) { "git-exec '$UNDEFINED_VAR' pwd" }
 
       it 'exits with a non-zero status' do
-        expect(@result[:status].exitstatus).to eq(1)
+        expect(result[:status].exitstatus).to eq(1)
       end
 
       it 'logs an error to stderr' do
-        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+        expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
       end
     end
   end
 
   describe 'git-update' do
     context 'when remote is ahead' do
+      subject(:result) { run_command("git-update '#{@work_dir}'") }
+
       let(:remote_path) { File.join(@tmpdir, 'remotes', 'repo_clean.git') }
       let(:local_repo_path) { File.join(@work_dir, 'repo_clean') }
       let(:new_remote_file) { File.join(local_repo_path, 'new_remote_file.txt') }
@@ -289,53 +295,59 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
 
       context 'when running the command' do
-        before { @result = run_command("git-update '#{@work_dir}'") }
+        before { result[:repo_path_for_history] = local_repo_path }
 
         it 'succeeds' do
-          expect(@result).to be_successful
+          expect(result).to be_successful
         end
 
         it 'yields empty stderr' do
-          expect(@result).to have_empty_stderr
+          expect(result).to have_empty_stderr
         end
 
         it 'pulls the new file into the local repository' do
           # Custom failure message to provide more context
           expect(File.exist?(new_remote_file)).to be(true), lambda {
+            # Run the command inside the lambda to ensure the expectation is checked after the action
+            result
             dir_listing = `ls -la #{local_repo_path}`.strip
             "Expected file '#{new_remote_file}' to exist, but it does not.\n\n" +
               "Directory listing for #{local_repo_path}:\n#{dir_listing}\n\n" +
               dump_repo_history(local_repo_path, @repo_command_history) +
               "\nCommand Output:\n" +
-              IoHelp.show_io('STDOUT', @result[:stdout]) +
-              IoHelp.show_io('STDERR', @result[:stderr]) +
-              IoHelp.show_io('STDAUX', @result[:stdaux])
+              IoHelp.show_io('STDOUT', result[:stdout]) +
+              IoHelp.show_io('STDERR', result[:stderr]) +
+              IoHelp.show_io('STDAUX', result[:stdaux])
           }
         end
       end
     end
 
     context 'when an undefined environment variable is given as a root' do
+      subject(:result) { run_command("git-update '$UNDEFINED_VAR'") }
+
       before { @result = run_command("git-update '$UNDEFINED_VAR'") }
 
       it 'exits with a non-zero status' do
-        expect(@result[:status].exitstatus).to eq(1)
+        expect(result[:status].exitstatus).to eq(1)
       end
 
       it 'logs an error to stderr' do
-        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+        expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
       end
     end
   end
 
   describe 'git-replicate' do
+    subject(:result) { run_command(command) }
+
     context 'when generating a replication script' do
-      before { @result = run_command("git-replicate '$WORK'") }
+      let(:command) { "git-replicate '$WORK'" }
 
       it 'succeeds and generates a non-empty script' do
-        expect(@result).to be_successful
-        expect(@result).to have_empty_stderr
-        expect(@result[:stdout]).not_to be_empty
+        expect(result).to be_successful
+        expect(result).to have_empty_stderr
+        expect(result[:stdout]).not_to be_empty
       end
 
       it 'generates a script that can successfully clone the repositories' do
@@ -359,45 +371,49 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     end
 
     context 'when an undefined environment variable is given as a root' do
-      before { @result = run_command("git-replicate '$UNDEFINED_VAR'") }
+      let(:command) { "git-replicate '$UNDEFINED_VAR'" }
 
       it 'exits with a non-zero status' do
-        expect(@result[:status].exitstatus).to eq(1)
+        expect(result[:status].exitstatus).to eq(1)
       end
 
       it 'logs an error to stderr' do
-        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+        expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
       end
     end
   end
 
   describe 'git-evars' do
     context 'when generating evars for a specific root' do
+      subject(:result) { run_command("git-evars '$WORK'") }
+
       before { @result = run_command("git-evars '$WORK'") }
 
       it 'succeeds' do
-        expect(@result).to be_successful
+        expect(result).to be_successful
       end
 
       it 'yields empty stderr' do
-        expect(@result).to have_empty_stderr
+        expect(result).to have_empty_stderr
       end
 
       it 'generates correct export statements' do
-        expect(@result[:stdout]).to include("export repo_clean=$WORK/repo_clean")
-        expect(@result[:stdout]).to include("export repo_modified=$WORK/repo_modified")
+        expect(result[:stdout]).to include("export repo_clean=$WORK/repo_clean")
+        expect(result[:stdout]).to include("export repo_modified=$WORK/repo_modified")
       end
     end
 
     context 'when an undefined environment variable is given as a root' do
+      subject(:result) { run_command("git-evars '$UNDEFINED_VAR'") }
+
       before { @result = run_command("git-evars '$UNDEFINED_VAR'") }
 
       it 'exits with a non-zero status' do
-        expect(@result[:status].exitstatus).to eq(1)
+        expect(result[:status].exitstatus).to eq(1)
       end
 
       it 'logs an error to stderr' do
-        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+        expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
       end
     end
   end

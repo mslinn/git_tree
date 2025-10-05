@@ -20,6 +20,7 @@ describe GitTree::ExecCommand do
     # Stub methods on the command object itself to act as spies
     allow(command).to receive(:exit)
     allow(Logging).to receive(:log)
+    allow(Logging).to receive(:log_stderr)
     allow(Logging).to receive(:log_stdout)
   end
 
@@ -59,7 +60,7 @@ describe GitTree::ExecCommand do
                                            .and_return([error_output, instance_double(Process::Status, success?: false)])
 
         command.run
-        expect(Logging).to have_received(:log).with(Logging::QUIET, error_output.strip, :red)
+        expect(Logging).to have_received(:log_stderr).with(Logging::QUIET, error_output.strip, :red)
         expect(Logging).not_to have_received(:log_stdout)
       end
     end
@@ -72,9 +73,9 @@ describe GitTree::ExecCommand do
         allow(mock_walker).to receive(:process).and_yield(repo_dir, 0, mock_walker)
         allow(mock_runner).to receive(:run).with(command_to_run, repo_dir).and_raise(StandardError, error_message)
 
-        expected_log_message = "Error: '#{error_message}' from executing '#{command_to_run}' in #{repo_dir}"
+        expected_log_message = "Error: '#{error_message}' from executing '#{command_to_run}'"
         command.run
-        expect(Logging).to have_received(:log).with(Logging::QUIET, expected_log_message, :red)
+        expect(Logging).to have_received(:log_stderr).with(Logging::QUIET, expected_log_message, :red)
         expect(Logging).not_to have_received(:log_stdout)
       end
     end
