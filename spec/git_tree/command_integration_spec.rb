@@ -16,7 +16,7 @@ end
 module IoHelp
   def self.show_io(name, value)
     length = value ? value.length : 0
-    "#{name} (#{length} characters):\n'#{value}'\n"
+    "#{name} (#{length} characters): '#{value}'\n"
   end
 end
 
@@ -280,9 +280,14 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         it 'pulls the new file into the local repository' do
           # Custom failure message to provide more context
           expect(File.exist?(new_remote_file)).to be(true), lambda {
+            dir_listing = `ls -la #{local_repo_path}`.strip
             "Expected file '#{new_remote_file}' to exist, but it does not.\n\n" +
+              "Directory listing for #{local_repo_path}:\n#{dir_listing}\n" +
               dump_repo_history(local_repo_path, @repo_command_history) +
-              "Command Output:\n" + IoHelp.show_io('STDOUT', @result[:stdout]) + IoHelp.show_io('STDERR', @result[:stderr]) + IoHelp.show_io('STDAUX', @result[:stdaux])
+              "Command Output:\n" +
+              IoHelp.show_io('STDOUT', @result[:stdout]) +
+              IoHelp.show_io('STDERR', @result[:stderr]) +
+              IoHelp.show_io('STDAUX', @result[:stdaux])
           }
         end
       end
