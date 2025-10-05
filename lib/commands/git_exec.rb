@@ -50,10 +50,10 @@ module GitTree
       output, status = @runner.run(command, dir)
       log_result(output, status.success?)
     rescue Errno::ENOENT
-      error_message = "Error: Command '#{command}' not found in #{dir}"
+      error_message = "Error: Command '#{command}' not found"
       log_result(error_message, false)
     rescue StandardError => e
-      error_message = "Error: '#{e.message}' from executing '#{command}' in #{dir}"
+      error_message = "Error: '#{e.message}' from executing '#{command}'"
       log_result(error_message, false)
     end
 
@@ -67,8 +67,8 @@ module GitTree
         # Successful command output should go to STDOUT.
         Logging.log_stdout output.strip
       else
-        # Errors should go to STDERR.
-        Logging.log Logging::QUIET, output.strip, :red
+        # Errors should go to STDERR. We use a dedicated method for this.
+        Logging.log_stderr Logging::QUIET, output.strip, :red
       end
     end
 

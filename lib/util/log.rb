@@ -36,7 +36,7 @@ module Logging
     @verbosity = level
   end
 
-  # A thread-safe output method for colored text to STDERR.
+  # A thread-safe output method for colored text to STDAUX for informational messages.
   # @param level [Integer] The verbosity level of the message.
   # @param multiline_string [String] The message to log.
   # @param color [Symbol, nil] The color method to apply from Rainbow, e.g., :red, :green.  If nil, no color is applied.
@@ -56,7 +56,7 @@ module Logging
     STDAUX.flush
   end
 
-  # A thread-safe output method for uncolored text to STDOUT.
+  # A thread-safe output method for uncolored text to STDOUT for pipes.
   # @param multiline_string [String] The message to log.
   # @return [nil]
   def log_stdout(multiline_string)
@@ -83,6 +83,21 @@ module Logging
     STDAUX.flush
   end
 
+  # A thread-safe output method for printing messages to STDERR.
+  # @param level [Integer] The verbosity level of the message.
+  # @param message [String] The message to log.
+  # @param color [Symbol, nil] The color method to apply from Rainbow.
+  # @return [nil]
+  def log_stderr(level, message, color = nil)
+    raise TypeError, "log level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+    return unless Logging.verbosity >= level
+
+    raise TypeError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
+    raise TypeError, "color must be a Symbol or nil, but got #{color.class}" unless color.is_a?(Symbol) || color.nil?
+
+    warn(color ? message.public_send(color) : message)
+  end
+
   # Make log and log_stdout available as both instance and module methods
-  module_function :log, :log_stdout, :log_stdaux
+  module_function :log, :log_stdout, :log_stdaux, :log_stderr
 end

@@ -2,6 +2,16 @@ require 'spec_helper'
 require 'tmpdir'
 require 'fileutils'
 require 'open3'
+require 'tempfile'
+
+def dump_repo_history(repo_path, history_hash)
+  return "No command history found for #{repo_path}.\n" unless history_hash.key?(repo_path)
+
+  history = history_hash[repo_path]
+  return "No commands recorded for #{repo_path}.\n" if history.empty?
+
+  "Command history for #{repo_path}:\n" + history.map { |cmd| "  - #{cmd}" }.join("\n") + "\n"
+end
 
 module IoHelp
   def self.show_io(name, value)
@@ -32,15 +42,15 @@ RSpec::Matchers.define :have_empty_stderr do
   failure_message do |command_result| # actual is the same as command_result
     stderr = command_result[:stderr]
     message = if stderr&.empty?
-                "Expected stderr to be empty, and it was. Why is this considered an error?"
+                nil # "Expected stderr to be empty, and it was. This is not an error."
               elsif command_result[:stderr]&.strip&.empty?
                 "Expected stderr to be empty, but it only contained whitespace."
               else
                 "Expected stderr to be empty, but it contained '#{stderr}'\n"
               end
     "#{message}\n" +
-      IoHelp.show_io('STDERR', command_result[:stderr]) +
-      IoHelp.show_io('STDAUX', command_result[:stdaux])
+      IoHelp.show_io('STDAUX', command_result[:stdaux]) +
+      dump_repo_history(@repo_clean_path, @repo_command_history)
     # ::IoHelp.show_io('STDOUT', command_result[:stdout])
   end
 end
@@ -61,12 +71,23 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       'PATH'                 => "#{exe_path}:#{ENV.fetch('PATH', nil)}",
       'GIT_TREE_GIT_TIMEOUT' => '5', # Use a short timeout for integration tests
     }
-    stdout, stderr, status = Open3.capture3(env, command_string)
-    { stdout: stdout, stderr: stderr, status: status }
+
+    # Use popen3 to capture stdout, stderr, and stdaux (fd 3)
+    # We create a temporary file to capture stdaux (fd 3) separately from stdout.
+    stdaux_file = Tempfile.new('stdaux')
+    Open3.popen3(env, command_string, 3 => stdaux_file) do |stdin, stdout, stderr, wait_thr|
+      stdin.close
+      stdout_str = stdout.read
+      stderr_str = stderr.read
+      stdaux_file.rewind
+      stdaux_str = stdaux_file.read
+      { stdout: stdout_str, stderr: stderr_str, stdaux: stdaux_str, status: wait_thr.value }
+    end
   end
 
   # --- Git test environment setup ---
   def git(command, dir = @tmpdir)
+    @repo_command_history[dir] << "git -C #{dir} #{command}"
     system('git', '-C', dir, *command.split, out: File::NULL, err: File::NULL)
   end
 
@@ -95,6 +116,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # This setup runs once for the entire test file.
     # We need to use instance variables because `let` is not available in `before(:all)`.
     @tmpdir = Dir.mktmpdir('git_tree_integration_spec_all')
+    @repo_command_history = Hash.new { |h, k| h[k] = [] }
     @home_dir = File.join(@tmpdir, 'home')
     @work_dir = File.join(@tmpdir, 'work')
     @sites_dir = File.join(@tmpdir, 'sites')

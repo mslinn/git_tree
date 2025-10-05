@@ -22,7 +22,7 @@ class GitTreeWalker
           var_name = match[1]
           path = ENV.fetch(var_name, nil)
           unless path
-            Logging.log(Logging::QUIET, "Environment variable '#{arg}' is undefined.", :red)
+            Logging.log_stderr(Logging::QUIET, "Environment variable '#{arg}' is undefined.", :red)
             exit 1
           end
         end
