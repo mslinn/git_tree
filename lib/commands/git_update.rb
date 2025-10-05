@@ -93,7 +93,7 @@ module GitTree
       raise TypeError, "thread_id must be an Integer, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
 
       abbrev_dir = git_walker.abbreviate_path(dir)
-      Logging.log Logging::NORMAL, "Updating #{abbrev_dir}", :green
+      Logging.log Logging::NORMAL, "git update processing #{abbrev_dir}", :green
       Logging.log Logging::VERBOSE, "Thread #{thread_id}: git -C #{dir} pull", :yellow
 
       output = nil
