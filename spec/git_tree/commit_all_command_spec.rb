@@ -37,7 +37,9 @@ describe GitTree::CommitAllCommand do
 
       before do
         # Create a real git repo with an initial commit
-        system('git', 'init', '-b', 'master', repo_path, out: File::NULL, err: File::NULL)
+        bare_repo_path = File.join(tmpdir, 'remote.git')
+        system('git', 'init', '--bare', bare_repo_path, out: File::NULL, err: File::NULL)
+        system('git', 'clone', bare_repo_path, repo_path, out: File::NULL, err: File::NULL)
         system('git', '-C', repo_path, 'config', 'user.name', 'Test User', out: File::NULL, err: File::NULL)
         system('git', '-C', repo_path, 'config', 'user.email', 'test@example.com', out: File::NULL, err: File::NULL)
         File.write(File.join(repo_path, 'README.md'), 'Initial commit')
@@ -58,7 +60,7 @@ describe GitTree::CommitAllCommand do
         command.run
 
         # Verify that the new commit exists
-        log_output = `git -C #{repo_path} log -1 --pretty=%B`.strip
+        log_output = `git -C #{repo_path} log -1 --pretty=%B 2> /dev/null`.strip
         expect(log_output).to eq(commit_message)
       end
     end
