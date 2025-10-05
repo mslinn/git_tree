@@ -3,33 +3,45 @@ require 'tmpdir'
 require 'fileutils'
 require 'open3'
 
+module IoHelp
+  def self.show_io(name, value)
+    length = value ? value.length : 0
+    "#{name} (#{length} characters):\n'#{value}'\n"
+  end
+end
+
 RSpec::Matchers.define :be_successful do
   match do |actual|
     actual[:status].success?
   end
 
   failure_message do |actual|
-    "expected command to be successful, but it failed.\n" \
-      "STDOUT:\n#{actual[:stdout]}\n" \
-      "STDERR:\n#{actual[:stderr]}"
+    "expected command to be successful, but it failed.\n" +
+      IoHelp.show_io('STDOUT', actual[:stdout]) +
+      IoHelp.show_io('STDERR', actual[:stderr]) +
+      IoHelp.show_io('STDAUX', actual[:stdaux])
   end
 end
 
 RSpec::Matchers.define :have_empty_stderr do
   match do |command_result|
-    command_result[:stderr].strip.empty?
+    value = command_result[:stderr]
+    value.nil? || value.strip.empty?
   end
 
-  failure_message do |command_result|
-    message = if command_result[:stderr].empty?
-                "expected stderr to be empty, but it was not (it was an empty string)."
-              elsif command_result[:stderr].strip.empty?
-                "expected stderr to be empty, but it only contained whitespace."
+  failure_message do |command_result| # actual is the same as command_result
+    stderr = command_result[:stderr]
+    message = if stderr&.empty?
+                "Expected stderr to be empty, and it was. Why is this considered an error?"
+              elsif command_result[:stderr]&.strip&.empty?
+                "Expected stderr to be empty, but it only contained whitespace."
               else
-                "expected stderr to be empty, but it was not.\n"
+                "Expected stderr to be empty, but it contained '#{stderr}'\n"
               end
-    "#{message}\n" \
-      "STDERR:\n#{command_result[:stderr]}"
+    "#{message}\n" +
+      IoHelp.show_io('STDERR', command_result[:stderr]) +
+      IoHelp.show_io('STDAUX', command_result[:stdaux])
+    # ::IoHelp.show_io('STDOUT', command_result[:stdout])
   end
 end
 
@@ -129,7 +141,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
     # Empty repo with no commits
     @repo_empty_path = File.join(@sites_dir, 'repo_empty')
-    setup_repo(@repo_empty_path, 'repo_empty')
+    setup_repo(@repo_empty_path, 'repo_empty') # This correctly creates a repo with a remote
 
     # Ignored repo
     ignored_dir = File.join(@work_dir, 'ignored_projects')
@@ -157,7 +169,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         expect(@result).to be_successful
       end
 
-      it 'produces no errors on stderr' do
+      it 'yields empty stderr' do
         expect(@result).to have_empty_stderr
       end
 
@@ -192,7 +204,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         expect(@result).to be_successful
       end
 
-      it 'produces no errors on stderr' do
+      it 'yields empty stderr' do
         expect(@result).to have_empty_stderr
       end
 
@@ -239,7 +251,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
           expect(@result).to be_successful
         end
 
-        it 'produces no errors on stderr' do
+        it 'yields empty stderr' do
           expect(@result).to have_empty_stderr
         end
 
@@ -313,7 +325,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         expect(@result).to be_successful
       end
 
-      it 'produces no errors on stderr' do
+      it 'yields empty stderr' do
         expect(@result).to have_empty_stderr
       end
 
@@ -377,7 +389,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         expect(@result).to be_successful
       end
 
-      it 'produces no errors on stderr' do
+      it 'yields empty stderr' do
         expect(@result).to have_empty_stderr
       end
 

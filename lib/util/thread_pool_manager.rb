@@ -70,7 +70,7 @@ class FixedThreadPoolManager
       break if active_workers.zero?
 
       if active_workers != last_active_count
-        Logging.log_inline(Logging::NORMAL, format("Waiting for %d worker threads to complete...", active_workers) + "\r")
+        Logging.log_inline(Logging::NORMAL, format("Waiting for %d worker threads to complete...", active_workers))
         last_active_count = active_workers
       end
       begin
@@ -81,7 +81,6 @@ class FixedThreadPoolManager
       end
     end
 
-    Logging.log_inline(Logging::NORMAL, (" " * 60) + "\r") # Clear the line
     Logging.log Logging::VERBOSE, "All work is complete.", :green
   end
 
