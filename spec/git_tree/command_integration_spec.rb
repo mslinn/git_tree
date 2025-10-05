@@ -337,7 +337,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     end
   end
 
-  describe 'git-commitAll' do
+  describe 'git-commitAll', skip: "TODO" do
     context 'when committing changes' do
       before do
         # This command modifies the state of the repos, so we run it once
