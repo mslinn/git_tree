@@ -25,16 +25,21 @@ module GitTree
 
       @runner ||= CommandRunner.new
       # The last argument is the command to execute, the rest are roots for the walker.
-      roots = @args.length > 1 ? @args[0..-2] : []
-      @walker ||= GitTreeWalker.new(roots, options: @options)
+      command_args = @args.length > 1 ? @args[0..-2] : []
+
+      # If no roots are provided on the command line, use the default_roots from config.
+      # This prevents the walker from accidentally using the user's global config.
+      roots_to_walk = command_args.empty? ? @config.default_roots.map { |r| "$#{r}" } : command_args
+
+      @walker ||= GitTreeWalker.new(roots_to_walk, options: @options)
 
       command = @args.last
-      @walker.process do |dir, _thread_id, _walker|
+      @walker.process do |dir, _thread_id, walker|
         raise "dir cannot be nil in process block" if dir.nil?
         raise TypeError, "dir must be a String in process block, but got #{dir.class}" unless dir.is_a?(String)
-        raise "_walker cannot be nil in process block" if _walker.nil?
-        unless _walker.is_a?(GitTreeWalker) || _walker.is_a?(RSpec::Mocks::InstanceVerifyingDouble)
-          raise TypeError, "_walker must be a GitTreeWalker in process block, but got #{_walker.class}"
+        raise "walker cannot be nil in process block" if walker.nil?
+        unless walker.is_a?(GitTreeWalker) || walker.is_a?(RSpec::Mocks::InstanceVerifyingDouble)
+          raise TypeError, "walker must be a GitTreeWalker in process block, but got #{walker.class}"
         end
 
         execute_and_log(dir, command)

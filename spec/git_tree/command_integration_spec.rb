@@ -196,7 +196,13 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
 
       it 'processes all processable repos' do
-        expect(@result[:stdout].lines.count).to eq(@all_processable_repos.count)
+        actual_lines = @result[:stdout].lines.map(&:strip).sort
+        expected_lines = @all_processable_repos.sort
+        expect(actual_lines.count).to eq(expected_lines.count), lambda {
+          "Expected to process #{expected_lines.count} repos, but found #{actual_lines.count}.\n\n" +
+            "Expected Repos:\n" + expected_lines.join("\n") + "\n\n" +
+            "Actual Repos Found:\n" + actual_lines.join("\n")
+        }
         expect(@result[:stdout]).to include(@repo_modified_path)
         expect(@result[:stdout]).not_to include(@repo_ignored_path)
       end
