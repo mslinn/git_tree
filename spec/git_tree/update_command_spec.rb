@@ -30,7 +30,7 @@ describe GitTree::UpdateCommand do
       command.run
 
       # It should be called with the arguments left *after* option parsing.
-      expect(GitTreeWalker).to have_received(:new).with(['/some/dir'], options: { runner: mock_runner })
+      expect(GitTreeWalker).to have_received(:new).with(['/some/dir'], options: {})
     end
 
     context 'when git pull is successful' do
