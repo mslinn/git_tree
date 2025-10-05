@@ -32,9 +32,9 @@ class GitTreeWalker
   end
 
   def process(&) # Accepts a block
-    log VERBOSE, "Processing #{@display_roots.join(' ')}", :green
+    log Logging::VERBOSE, "Processing #{@display_roots.join(' ')}", :green
     if @options[:serial]
-      log VERBOSE, "Running in serial mode.", :yellow
+      log Logging::VERBOSE, "Running in serial mode.", :yellow
       find_and_process_repos do |dir, _root_arg|
         yield(dir, 0, self) # task, thread_id, walker
       end

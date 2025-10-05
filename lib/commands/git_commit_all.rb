@@ -33,10 +33,10 @@ module GitTree
     private
 
     def help(msg = nil)
-      log(QUIET, "Error: #{msg}\n", :red) if msg
-      log QUIET, <<~END_MSG
+      log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
+      log Logging::QUIET, <<~END_MSG
         #{$PROGRAM_NAME} - Recursively commits and pushes changes in all git repositories under the specified roots.
-        If no directories are given, uses default roots (#{GitTree::Config.new.default_roots.join(', ')}) as roots.
+        If no directories are given, uses default roots (#{@config.default_roots.join(', ')}) as roots.
         Skips directories containing a .ignore file, and all subdirectories.
         Repositories in a detached HEAD state are skipped.
 
@@ -79,32 +79,32 @@ module GitTree
     # @return [nil]
     def process_repo(dir, thread_id, walker, message)
       short_dir = walker.abbreviate_path(dir)
-      log VERBOSE, "Examining #{short_dir} on thread #{thread_id}", :green
+      log Logging::VERBOSE, "Examining #{short_dir} on thread #{thread_id}", :green
       begin
         # The highest priority is to check for the presence of an .ignore file.
         if File.exist?(File.join(dir, '.ignore'))
-          log DEBUG, "  Skipping #{short_dir} due to .ignore file", :green
+          log Logging::DEBUG, "  Skipping #{short_dir} due to .ignore file", :green
           return
         end
 
         repo = Rugged::Repository.new(dir)
         if repo.head_detached?
-          log VERBOSE, "  Skipping #{short_dir} because it is in a detached HEAD state", :yellow
+          log Logging::VERBOSE, "  Skipping #{short_dir} because it is in a detached HEAD state", :yellow
           return
         end
 
         Timeout.timeout(walker.config.git_timeout) do
           unless repo_has_changes?(dir)
-            log DEBUG, "  No changes to commit in #{short_dir}", :green
+            log Logging::DEBUG, "  No changes to commit in #{short_dir}", :green
             return
           end
           commit_changes(dir, message, short_dir)
         end
       rescue Timeout::Error
-        log NORMAL, "[TIMEOUT] Thread #{thread_id}: git operations timed out in #{short_dir}", :red
+        log Logging::NORMAL, "[TIMEOUT] Thread #{thread_id}: git operations timed out in #{short_dir}", :red
       rescue StandardError => e
-        log NORMAL, "#{e.class} processing #{short_dir}: #{e.message}", :red
-        e.backtrace.join("\n").each_line { |line| log DEBUG, line, :red }
+        log Logging::NORMAL, "#{e.class} processing #{short_dir}: #{e.message}", :red
+        e.backtrace.join("\n").each_line { |line| log Logging::DEBUG, line, :red }
       end
     end
 
@@ -137,7 +137,7 @@ module GitTree
 
       current_branch = repo.head.name.sub('refs/heads/', '')
       system('git', '-C', dir, 'push', '--set-upstream', 'origin', current_branch, exception: true)
-      log NORMAL, "Committed and pushed changes in #{short_dir}", :green
+      log Logging::NORMAL, "Committed and pushed changes in #{short_dir}", :green
     end
   end
 end
@@ -146,10 +146,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-commitAll') # Corre
   begin
     GitTree::CommitAllCommand.new(ARGV).run
   rescue Interrupt
-    log NORMAL, "\nInterrupted by user", :yellow
+    log Logging::NORMAL, "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    log QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit 1
   end
 end

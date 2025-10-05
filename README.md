@@ -47,6 +47,61 @@ $ gem install git_tree
 
 To register the new commands, either log out and log back in, or open a new console.
 
+
+## Configuration
+
+The `git_tree` commands can be configured to suit your preferences. Settings are resolved in the following order of precedence,
+where items higher in the list override those lower down:
+
+1. **Environment Variables**
+2. **User Configuration File** (`~/.treeconfig.yml`)
+3. **Default values** built into the gem.
+
+This allows for flexible customization of the gem's behavior.
+
+### Interactive Setup: `git-treeconfig`
+
+The easiest way to get started is to use the `git-treeconfig` command. This interactive tool will ask you a few questions
+and create a configuration file for you at `~/.treeconfig.yml`.
+
+```shell
+$ git-treeconfig
+Welcome to git-tree configuration.
+This utility will help you create a configuration file at: /home/user/.treeconfig.yml
+Press Enter to accept the default value in brackets.
+
+Git command timeout in seconds? |300| 600
+Default verbosity level (0=quiet, 1=normal, 2=verbose)? |1|
+Default root directories (space-separated)? |sites sitesUbuntu work| dev projects
+
+Configuration saved to /home/user/.treeconfig.yml
+```
+
+### Configuration File
+
+The `git-treeconfig` command generates a YAML file (`~/.treeconfig.yml`) that you can also edit manually.
+
+Here is an example:
+
+```yaml
+---
+git_timeout: 600
+verbosity: 1
+default_roots:
+- dev
+- projects
+```
+
+### Environment Variables
+
+For temporary overrides or use in CI/CD environments, you can use environment variables.
+They must be prefixed with `GIT_TREE_` and be in uppercase.
+
+- `export GIT_TREE_GIT_TIMEOUT=900`
+- `export GIT_TREE_VERBOSITY=2`
+- `export GIT_TREE_DEFAULT_ROOTS="dev projects personal"` (space-separated string)
+
+
 ## Use Cases
 
 ### Dependent Gem Maintenance
@@ -63,6 +118,7 @@ Several years ago I wrote a bash script to perform this task, but as its require
 the bash script proved difficult to maintain. This use case is now fulfilled by the `git-exec` command
 provided by the `git_tree` gem.
 See below for further details.
+
 
 ### Replicating Trees of Git Repositories
 

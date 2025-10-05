@@ -47,12 +47,12 @@ module GitTree
     # @param msg [String] The error message to display before the help text.
     # @return [nil]
     def help(msg = nil)
-      log(QUIET, "Error: #{msg}\n", :red) if msg
-      log QUIET, <<~END_HELP
+      log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
+      log Logging::QUIET, <<~END_HELP
         #{$PROGRAM_NAME} - Generate bash environment variables for each git repository found under specified directory trees.
 
         Examines trees of git repositories and writes a bash script to STDOUT.
-        If no directories are given, uses default roots (#{GitTree::Config.new.default_roots.join(', ')}) as roots.
+        If no directories are given, uses default roots (#{@config.default_roots.join(', ')}) as roots.
         These environment variables point to roots of git repository trees to walk.
         Skips directories containing a .ignore file, and all subdirectories.
 
@@ -150,10 +150,10 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
   begin
     GitTree::EvarsCommand.new(ARGV).run
   rescue Interrupt
-    log NORMAL, "\nInterrupted by user", :yellow
+    log Logging::NORMAL, "\nInterrupted by user", :yellow
     exit! 130 # Use exit! to prevent further exceptions on shutdown
   rescue StandardError => e
-    log QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
+    log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit! 1
   end
 end

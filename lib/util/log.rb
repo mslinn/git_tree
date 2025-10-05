@@ -4,13 +4,13 @@ module Logging
   using Rainbow
 
   # Verbosity levels
-  QUIET = 0
-  NORMAL = 1
+  QUIET   = 0
+  NORMAL  = 1
   VERBOSE = 2
-  DEBUG = 3
+  DEBUG   = 3
 
   # Class-level instance variables to hold the verbosity setting for the module
-  @verbosity = NORMAL
+  @verbosity = ::Logging::NORMAL
 
   # @return [Integer] The current verbosity level.
   def self.verbosity

@@ -15,7 +15,7 @@ class FixedThreadPoolManager
         Error: The allowable range for the ThreadPool.initialize percent_available_processors is between 0 and 1.
         You provided #{percent_available_processors}.
       END_MSG
-      log QUIET, msg, :red
+      log Logging::QUIET, msg, :red
       exit! 1
     end
     @worker_count = [(Etc.nprocessors * percent_available_processors).floor, 1].max
@@ -60,8 +60,8 @@ class FixedThreadPoolManager
       active_workers = @workers.count(&:alive?)
       break if active_workers.zero?
 
-      if active_workers != last_active_count
-        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if Logging.verbosity > NORMAL
+      if active_workers != last_active_count && Logging.verbosity > ::Logging::NORMAL
+        warn format("Waiting for %d worker threads to complete...", active_workers) + "\r" if Logging.verbosity > ::Logging::NORMAL
         last_active_count = active_workers
       end
       begin
@@ -73,16 +73,16 @@ class FixedThreadPoolManager
     end
 
     warn (" " * 60) + "\r" # Clear the line
-    log NORMAL, "All work is complete.", :green
+    log Logging::NORMAL, "All work is complete.", :green
   end
 
   private
 
   def initialize_workers
-    log NORMAL, "Initializing #{@worker_count} worker threads...", :green
+    log Logging::NORMAL, "Initializing #{@worker_count} worker threads...", :green
     @worker_count.times do |i|
       worker_thread = Thread.new do
-        log NORMAL, "  [Worker #{i}] Started.", :cyan
+        log Logging::NORMAL, "  [Worker #{i}] Started.", :cyan
         start_time = Time.now
         start_cpu = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
         tasks_processed = 0
@@ -95,14 +95,14 @@ class FixedThreadPoolManager
           tasks_processed += 1
         end
 
-        if Logging.verbosity >= VERBOSE
+        if Logging.verbosity >= ::Logging::VERBOSE
           elapsed_time = Time.now - start_time
           cpu_time = Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID) - start_cpu
           shutdown_msg = format(
             "  [Worker #{i}] Shutting down. Processed #{tasks_processed} tasks. Elapsed: %.2fs, CPU: %.2fs",
             elapsed_time, cpu_time
           )
-          log VERBOSE, shutdown_msg, :cyan
+          log Logging::VERBOSE, shutdown_msg, :cyan
         end
       rescue Interrupt
         # This thread was interrupted by Ctrl-C, likely while waiting on the queue.
