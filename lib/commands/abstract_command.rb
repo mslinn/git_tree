@@ -18,17 +18,14 @@ module GitTree
 
       @args = args
       @options = options
+      @config = GitTree::Config.new
+      # Set initial verbosity from config before anything else happens.
+      Logging.verbosity = @config.verbosity
     end
 
     # Common setup for all commands.
     # Parses options and sets initial verbosity.
     def setup
-      @config = GitTree::Config.new
-      # Force a reload to respect the test environment's HOME variable.
-      @config.reload!
-      # Set initial verbosity from config before anything else happens.
-      Logging.verbosity = @config.verbosity
-
       # CLI options can override the config verbosity.
       parse_options(@args)
     end

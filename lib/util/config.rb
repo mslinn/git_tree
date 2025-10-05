@@ -11,6 +11,9 @@ module GitTree
     config_name :treeconfig
     env_prefix 'GIT_TREE'
 
+    # Add a specific environment variable to override the config path for testing.
+    config_path_env_var 'TREECONFIG_CONFIG_PATH'
+
     attr_config :git_timeout, :verbosity, :default_roots
 
     # Override initialize to set defaults for nil values after loading.
@@ -19,14 +22,6 @@ module GitTree
       self.git_timeout   ||= 300
       self.verbosity     ||= ::Logging::NORMAL
       self.default_roots ||= %w[sites sitesUbuntu work]
-    end
-
-    # Force a reload of the configuration.
-    def reload!
-      clear
-      # Re-initialize to apply defaults after clearing.
-      # This is crucial for tests to have a valid default state.
-      initialize
     end
   end
 end
