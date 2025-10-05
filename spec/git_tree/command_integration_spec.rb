@@ -365,22 +365,12 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
         Timeout.timeout(10) do # Add a timeout to prevent hangs
           @result = run_command('git-commitAll -m "Test commit"')
-          begin
-            Timeout.timeout(10) do # Add a timeout to prevent hangs
-              @result = run_command('git-commitAll -m "Test commit"')
-            end
-          rescue Timeout::Error => e
-            # A deadlock or hang was detected.
-            # The be_successful matcher should fail and print the (empty) output.
-            puts "@result=#{@result}}"
-            puts "e=#{e.class}: #{e.message}\n#{e.backtrace.join('\n')}"
-          end
-      rescue Timeout::Error => e
+        end
+      rescue Timeout::Error
         # This is a guard; if this happens, it means there's a deadlock or hang.
-        # A deadlock or hang was detected.
-        # The be_successful matcher should fail and print the (empty) output.
-        puts "@result=#{@result}}"
-        puts "e=#{e.class}: #{e.message}\n#{e.backtrace.join('\n')}"
+        # The be_successful matcher will fail and print the (empty) output.
+        # We set @result to nil to ensure the test fails cleanly.
+        @result = nil
       end
 
       it 'succeeds' do
