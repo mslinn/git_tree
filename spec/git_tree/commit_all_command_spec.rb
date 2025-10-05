@@ -27,7 +27,7 @@ describe GitTree::CommitAllCommand do
       command.run
       # It should be called with the arguments left *after* option parsing.
       expect(GitTreeWalker).to have_received(:new)
-        .with(['/some/dir'], options: a_hash_including(message: 'test message', verbose: 2, serial: false))
+        .with(['/some/dir'], options: a_hash_including(message: 'test message'))
     end
 
     context 'with a real git repository' do

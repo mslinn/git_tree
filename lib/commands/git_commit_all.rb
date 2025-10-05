@@ -108,6 +108,13 @@ module GitTree
       end
     end
 
+    # @return [Boolean] True if the repository has changes, false otherwise.
+    def repo_has_changes?(dir)
+      repo = Rugged::Repository.new(dir)
+      repo.status { |_file, status| return true if status != :current && status != :ignored }
+      false
+    end
+
     # @param dir [String] The path to the git repository.
     # @return [Boolean] True if the repository has changes, false otherwise.
     def repo_has_staged_changes?(repo)
