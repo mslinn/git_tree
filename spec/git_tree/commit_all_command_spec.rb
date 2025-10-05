@@ -37,7 +37,7 @@ describe GitTree::CommitAllCommand do
 
       before do
         # Create a real git repo with an initial commit
-        system('git', 'init', '-b', 'main', repo_path, out: File::NULL, err: File::NULL)
+        system('git', 'init', '-b', 'master', repo_path, out: File::NULL, err: File::NULL)
         system('git', '-C', repo_path, 'config', 'user.name', 'Test User', out: File::NULL, err: File::NULL)
         system('git', '-C', repo_path, 'config', 'user.email', 'test@example.com', out: File::NULL, err: File::NULL)
         File.write(File.join(repo_path, 'README.md'), 'Initial commit')

@@ -44,7 +44,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # Create a bare repo to act as the remote origin
     bare_repo_path = File.join(@tmpdir, 'remotes', "#{name}.git")
     FileUtils.mkdir_p(bare_repo_path)
-    git("init --bare --initial-branch=main", bare_repo_path)
+    git("init --bare", bare_repo_path)
 
     # Clone it to create the working repo
     # We need to change directory to ensure the clone happens inside the tmpdir,
@@ -58,7 +58,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     File.write(File.join(path, 'README.md'), "This is #{name}")
     git('add README.md', path)
     git('commit -m "Initial commit"', path)
-    git('push origin main', path)
+    git('push origin master', path)
   end
 
   before(:all) do # rubocop:disable RSpec/BeforeAfterAll
@@ -69,8 +69,8 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     @work_dir = File.join(@tmpdir, 'work')
     @sites_dir = File.join(@tmpdir, 'sites')
 
-    # Ensure all git commands in this test environment default to the 'main' branch
-    system('git', 'config', '--global', 'init.defaultBranch', 'main', out: File::NULL, err: File::NULL)
+    # Ensure all git commands in this test environment default to the 'master' branch
+    system('git', 'config', '--global', 'init.defaultBranch', 'master', out: File::NULL, err: File::NULL)
 
     FileUtils.mkdir_p([@home_dir, @work_dir, @sites_dir])
 
@@ -205,7 +205,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         File.write(File.join(clone_path, 'new_remote_file.txt'), 'remote change')
         git('add .', clone_path)
         git('commit -m "Remote commit"', clone_path)
-        git('push origin main', clone_path)
+        git('push origin master', clone_path)
         FileUtils.rm_rf(clone_path)
       end
 
