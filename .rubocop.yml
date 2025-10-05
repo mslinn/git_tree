@@ -89,6 +89,9 @@ RSpec/MultipleExpectations:
 RSpec/MultipleMemoizedHelpers:
   Enabled: false
 
+RSpec/NestedGroups:
+  Enabled: false
+
 RSpec/SpecFilePathFormat:
   IgnoreMethods: true
 

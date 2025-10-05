@@ -75,9 +75,9 @@ class GitTreeWalker
     raise "Block passed to #find_and_process_repos must accept 2 arguments (dir, root_arg)" if block.arity != 2 && block.arity >= 0
 
     visited = Set.new
-    @root_map.each do |root_arg, paths|
+    @root_map.each_value do |paths|
       paths.sort.each do |root_path|
-        find_git_repos_recursive(root_path, visited) { |dir| yield(dir, root_arg) }
+        find_git_repos_recursive(root_path, visited, &block)
       end
     end
   end
