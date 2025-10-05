@@ -34,7 +34,9 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     git("init --bare", bare_repo_path)
 
     # Clone it to create the working repo
-    git("clone #{bare_repo_path} #{path}")
+    # We need to change directory to ensure the clone happens inside the tmpdir,
+    # as the `path` can be an absolute path.
+    Dir.chdir(@tmpdir) { git("clone #{bare_repo_path} #{path}") }
 
     # Initial commit
     git('config user.name "Test User"', path)
