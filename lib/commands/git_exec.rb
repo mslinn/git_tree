@@ -31,9 +31,9 @@ module GitTree
       command = @args.last
       @walker.process do |dir, _thread_id, _walker|
         raise "dir cannot be nil in process block" if dir.nil?
-        raise "dir must be a String in process block" unless dir.is_a?(String)
+        raise TypeError, "dir must be a String in process block, but got #{dir.class}" unless dir.is_a?(String)
         raise "_walker cannot be nil in process block" if _walker.nil?
-        raise "_walker must be a GitTreeWalker in process block" unless _walker.is_a?(GitTreeWalker)
+        raise TypeError, "_walker must be a GitTreeWalker in process block, but got #{_walker.class}" unless _walker.is_a?(GitTreeWalker)
 
         execute_and_log(dir, command)
       end
@@ -42,8 +42,8 @@ module GitTree
     private
 
     def execute_and_log(dir, command)
-      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
-      raise ArgumentError, "command must be a String, but got #{command.class}" unless command.is_a?(String)
+      raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise TypeError, "command must be a String, but got #{command.class}" unless command.is_a?(String)
 
       output, status = @runner.run(command, dir)
       log_result(output, status.success?)
@@ -56,8 +56,8 @@ module GitTree
     end
 
     def log_result(output, success)
-      raise ArgumentError, "output must be a String, but got #{output.class}" unless output.is_a?(String)
-      raise ArgumentError, "success must be a Boolean, but got #{success.class}" unless [true, false].include?(success)
+      raise TypeError, "output must be a String, but got #{output.class}" unless output.is_a?(String)
+      raise TypeError, "success must be a Boolean, but got #{success.class}" unless [true, false].include?(success)
 
       return if output.strip.empty?
 
@@ -71,7 +71,7 @@ module GitTree
     end
 
     def help(msg = nil)
-      raise ArgumentError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
+      raise TypeError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
 
       Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
       Logging.log Logging::QUIET, <<~END_HELP

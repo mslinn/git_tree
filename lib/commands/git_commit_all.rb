@@ -31,9 +31,9 @@ module GitTree
       @walker.process do |dir, thread_id, walker|
         raise "dir cannot be nil in process block" if dir.nil?
         raise "thread_id cannot be nil in process block" if thread_id.nil?
-        raise "dir must be a String in process block" unless dir.is_a?(String)
-        raise "thread_id must be an Integer in process block" unless thread_id.is_a?(Integer)
-        raise "walker must be a GitTreeWalker in process block" unless walker.is_a?(GitTreeWalker)
+        raise TypeError, "dir must be a String in process block, but got #{dir.class}" unless dir.is_a?(String)
+        raise TypeError, "thread_id must be an Integer in process block, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
+        raise TypeError, "walker must be a GitTreeWalker in process block, but got #{walker.class}" unless walker.is_a?(GitTreeWalker)
         raise "walker cannot be nil in process block" if walker.nil?
 
         process_repo(dir, thread_id, walker, @options[:message])
@@ -92,10 +92,10 @@ module GitTree
     # @param message [String] The commit message to use.
     # @return [nil]
     def process_repo(dir, thread_id, walker, message)
-      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
-      raise ArgumentError, "thread_id must be an Integer, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
-      raise ArgumentError, "walker must be a GitTreeWalker, but got #{walker.class}" unless walker.is_a?(GitTreeWalker)
-      raise ArgumentError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
+      raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise TypeError, "thread_id must be an Integer, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
+      raise TypeError, "walker must be a GitTreeWalker, but got #{walker.class}" unless walker.is_a?(GitTreeWalker)
+      raise TypeError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
 
       short_dir = walker.abbreviate_path(dir)
       Logging.log Logging::VERBOSE, "Examining #{short_dir} on thread #{thread_id}", :green
@@ -129,7 +129,7 @@ module GitTree
 
     # @return [Boolean] True if the repository has changes, false otherwise.
     def repo_has_changes?(dir)
-      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
 
       repo = Rugged::Repository.new(dir)
       repo.status { |_file, status| return true if status != :current && status != :ignored }
@@ -139,7 +139,7 @@ module GitTree
     # @param dir [String] The path to the git repository.
     # @return [Boolean] True if the repository has changes, false otherwise.
     def repo_has_staged_changes?(repo)
-      raise ArgumentError, "repo must be a Rugged::Repository, but got #{repo.class}" unless repo.is_a?(Rugged::Repository)
+      raise TypeError, "repo must be a Rugged::Repository, but got #{repo.class}" unless repo.is_a?(Rugged::Repository)
 
       # For an existing repo, diff the index against the HEAD tree.
       head_tree = repo.head.target.tree
@@ -155,9 +155,9 @@ module GitTree
     # @param short_dir [String] The shortened path to the git repository.
     # @return [nil]
     def commit_changes(dir, message, short_dir)
-      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
-      raise ArgumentError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
-      raise ArgumentError, "short_dir must be a String, but got #{short_dir.class}" unless short_dir.is_a?(String)
+      raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise TypeError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
+      raise TypeError, "short_dir must be a String, but got #{short_dir.class}" unless short_dir.is_a?(String)
 
       system('git', '-C', dir, 'add', '--all', exception: true)
 

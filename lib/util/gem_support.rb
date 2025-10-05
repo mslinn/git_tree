@@ -7,7 +7,7 @@ module GemSupport
   #   If array is empty, return ''.
   #   If only the leading slash matches, and allow_root_match is true, return '/', else return ''.
   def self.common_prefix(paths, allow_root_match: false)
-    raise ArgumentError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
+    raise TypeError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
     return '' if paths.empty?
 
     relative_paths = paths.reject { |x| x.start_with? '/' }
@@ -34,8 +34,8 @@ module GemSupport
   # @param allow_root_match [Boolean] Whether to return '/' if only the root matches.
   #        Defaults to false.
   def self.roots(paths, level, allow_root_match: false)
-    raise ArgumentError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
-    raise ArgumentError, "level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+    raise TypeError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
+    raise TypeError, "level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
 
     abort "Error: level must be positive, but it is #{level}." unless level.positive?
     return allow_root_match ? '/' : '' if paths.empty?
@@ -63,8 +63,8 @@ module GemSupport
   # @param paths [Array<String>] absolute paths to examine
   # @param level is origin 1
   def self.trim_to_level(paths, level)
-    raise ArgumentError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
-    raise ArgumentError, "level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+    raise TypeError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
+    raise TypeError, "level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
 
     result = paths.map do |x|
       elements = x.split('/').reject(&:empty?)
@@ -75,7 +75,7 @@ module GemSupport
 
   # @return Path to symlink
   def self.deref_symlink(symlink)
-    raise ArgumentError, "symlink must be a String, but got #{symlink.class}" unless symlink.is_a?(String)
+    raise TypeError, "symlink must be a String, but got #{symlink.class}" unless symlink.is_a?(String)
 
     Pathname.new(symlink).realpath
   end
@@ -83,8 +83,8 @@ module GemSupport
   # @param string [String] The string to ensure ends with the suffix.
   # @param suffix [String] The suffix to ensure the string ends with.
   def self.ensure_ends_with(string, suffix)
-    raise ArgumentError, "string must be a String, but got #{string.class}" unless string.is_a?(String)
-    raise ArgumentError, "suffix must be a String, but got #{suffix.class}" unless suffix.is_a?(String)
+    raise TypeError, "string must be a String, but got #{string.class}" unless string.is_a?(String)
+    raise TypeError, "suffix must be a String, but got #{suffix.class}" unless suffix.is_a?(String)
 
     string = string.delete_suffix suffix
     "#{string}#{suffix}"
@@ -95,7 +95,7 @@ module GemSupport
   # @param str [String] The string containing environment variables to expand.
   # @return [String] The string with environment variables expanded.
   def self.expand_env(str)
-    raise ArgumentError, "str must be a String, but got #{str.class}" unless str.is_a?(String)
+    raise TypeError, "str must be a String, but got #{str.class}" unless str.is_a?(String)
 
     str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) do
       ENV.fetch(Regexp.last_match(1), nil)

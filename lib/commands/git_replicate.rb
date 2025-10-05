@@ -22,8 +22,8 @@ module GitTree
       walker.find_and_process_repos do |dir, root_arg|
         raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
         raise "root_arg cannot be nil in find_and_process_repos block" if root_arg.nil?
-        raise "dir must be a String in find_and_process_repos block" unless dir.is_a?(String)
-        raise "root_arg must be a String in find_and_process_repos block" unless root_arg.is_a?(String)
+        raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
+        raise TypeError, "root_arg must be a String in find_and_process_repos block, but got #{root_arg.class}" unless root_arg.is_a?(String)
 
         result << replicate_one(dir, root_arg)
       end
@@ -33,7 +33,7 @@ module GitTree
     private
 
     def help(msg = nil)
-      raise ArgumentError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
+      raise TypeError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
 
       Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
       Logging.log Logging::QUIET, <<~END_HELP
@@ -60,8 +60,8 @@ module GitTree
     end
 
     def replicate_one(dir, root_arg)
-      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
-      raise ArgumentError, "root_arg must be a String, but got #{root_arg.class}" unless root_arg.is_a?(String)
+      raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise TypeError, "root_arg must be a String, but got #{root_arg.class}" unless root_arg.is_a?(String)
 
       output = []
       config_path = File.join(dir, '.git', 'config')

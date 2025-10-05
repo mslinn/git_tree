@@ -2,7 +2,7 @@ class ZoweeOptimizer
   # The ZoweeOptimizer class is responsible for optimizing the environment variable definitions.
   # It is used by the `git-evars` command to generate a script with shorter and more readable variable names.
   def initialize(initial_vars = {})
-    raise ArgumentError, "initial_vars must be a Hash, but got #{initial_vars.class}" unless initial_vars.is_a?(Hash)
+    raise TypeError, "initial_vars must be a Hash, but got #{initial_vars.class}" unless initial_vars.is_a?(Hash)
 
     @defined_vars = {}
     initial_vars.each do |var_ref, paths|
@@ -16,8 +16,8 @@ class ZoweeOptimizer
   # @param initial_roots [Array<String>] a list of initial root variables.
   # @return [Array<String>] a list of strings, where each string is an export statement for an environment variable.
   def optimize(paths, initial_roots)
-    raise ArgumentError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
-    raise ArgumentError, "initial_roots must be an Array, but got #{initial_roots.class}" unless initial_roots.is_a?(Array)
+    raise TypeError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
+    raise TypeError, "initial_roots must be an Array, but got #{initial_roots.class}" unless initial_roots.is_a?(Array)
 
     output = []
 
@@ -50,7 +50,7 @@ class ZoweeOptimizer
   # @param path [String] the path to generate the variable name from.
   # @return [String] a valid environment variable name.
   def generate_var_name(path)
-    raise ArgumentError, "path must be a String, but got #{path.class}" unless path.is_a?(String)
+    raise TypeError, "path must be a String, but got #{path.class}" unless path.is_a?(String)
 
     basename = File.basename(path)
     return nil if basename.empty?
@@ -82,7 +82,7 @@ class ZoweeOptimizer
   # Defines intermediate variables based on common prefixes in the given paths.
   # @param paths [Array<String>] a list of paths.
   def define_intermediate_vars(paths)
-    raise ArgumentError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
+    raise TypeError, "paths must be an Array, but got #{paths.class}" unless paths.is_a?(Array)
 
     @intermediate_vars = {}
     prefixes = {}
@@ -130,7 +130,7 @@ class ZoweeOptimizer
   # @param path [String] the path to find the best substitution for.
   # @return [Hash] a hash containing the best substitution variable and path, or nil if no substitution is found.
   def find_best_substitution(path)
-    raise ArgumentError, "path must be a String, but got #{path.class}" unless path.is_a?(String)
+    raise TypeError, "path must be a String, but got #{path.class}" unless path.is_a?(String)
 
     best_substitution = nil
     longest_match = 0

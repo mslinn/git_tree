@@ -30,9 +30,9 @@ module GitTree
       @walker.process do |dir, thread_id, walker|
         raise "dir cannot be nil in process block" if dir.nil?
         raise "thread_id cannot be nil in process block" if thread_id.nil?
-        raise "dir must be a String in process block" unless dir.is_a?(String)
-        raise "thread_id must be an Integer in process block" unless thread_id.is_a?(Integer)
-        raise "walker must be a GitTreeWalker in process block" unless walker.is_a?(GitTreeWalker)
+        raise TypeError, "dir must be a String in process block, but got #{dir.class}" unless dir.is_a?(String)
+        raise TypeError, "thread_id must be an Integer in process block, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
+        raise TypeError, "walker must be a GitTreeWalker in process block, but got #{walker.class}" unless walker.is_a?(GitTreeWalker)
         raise "walker cannot be nil in process block" if walker.nil?
 
         process_repo(walker, dir, thread_id)
@@ -42,7 +42,7 @@ module GitTree
     private
 
     def help(msg = nil)
-      raise ArgumentError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
+      raise TypeError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
 
       Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
       Logging.log Logging::QUIET, <<~END_HELP
@@ -85,8 +85,8 @@ module GitTree
         raise ArgumentError,
               "git_walker must respond to :abbreviate_path and :config"
       end
-      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
-      raise ArgumentError, "thread_id must be an Integer, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
+      raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise TypeError, "thread_id must be an Integer, but got #{thread_id.class}" unless thread_id.is_a?(Integer)
 
       abbrev_dir = git_walker.abbreviate_path(dir)
       Logging.log Logging::NORMAL, "Updating #{abbrev_dir}", :green

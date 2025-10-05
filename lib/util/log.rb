@@ -28,7 +28,7 @@ module Logging
   # @param level [Integer] The new verbosity level.
   # @return [nil]
   def self.verbosity=(level)
-    raise ArgumentError, "verbosity level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+    raise TypeError, "verbosity level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
 
     # warn "Logging.verbosity= called. Changing from #{@verbosity} to #{level}" \
     #   if (@verbosity || NORMAL) >= NORMAL ||
@@ -42,9 +42,9 @@ module Logging
   # @param color [Symbol, nil] The color method to apply from Rainbow, e.g., :red, :green.  If nil, no color is applied.
   # @return [nil]
   def log(level, multiline_string, color = nil)
-    raise ArgumentError, "multiline_string must be a String, but got #{multiline_string.class}" unless multiline_string.is_a?(String)
-    raise ArgumentError, "color must be a Symbol or nil, but got #{color.class}" unless color.is_a?(Symbol) || color.nil?
-    raise ArgumentError, "log level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+    raise TypeError, "multiline_string must be a String, but got #{multiline_string.class}" unless multiline_string.is_a?(String)
+    raise TypeError, "color must be a Symbol or nil, but got #{color.class}" unless color.is_a?(Symbol) || color.nil?
+    raise TypeError, "log level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
 
     return unless Logging.verbosity >= level
 
@@ -60,7 +60,7 @@ module Logging
   # @param multiline_string [String] The message to log.
   # @return [nil]
   def log_stdout(multiline_string)
-    raise ArgumentError, "multiline_string must be a String, but got #{multiline_string.class}" unless multiline_string.is_a?(String)
+    raise TypeError, "multiline_string must be a String, but got #{multiline_string.class}" unless multiline_string.is_a?(String)
 
     $stdout.puts multiline_string.to_s
     $stdout.flush
@@ -72,9 +72,9 @@ module Logging
   # @param color [Symbol, nil] The color method to apply from Rainbow.
   # @return [nil]
   def log_inline(level, message, color = nil)
-    raise ArgumentError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
-    raise ArgumentError, "color must be a Symbol or nil, but got #{color.class}" unless color.is_a?(Symbol) || color.nil?
-    raise ArgumentError, "log level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
+    raise TypeError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
+    raise TypeError, "color must be a Symbol or nil, but got #{color.class}" unless color.is_a?(Symbol) || color.nil?
+    raise TypeError, "log level must be an Integer, but got #{level.class}" unless level.is_a?(Integer)
 
     return unless Logging.verbosity >= level
 

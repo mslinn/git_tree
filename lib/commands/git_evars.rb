@@ -23,7 +23,7 @@ module GitTree
         all_paths = []
         walker.find_and_process_repos do |dir, _root_arg|
           raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
-          raise "dir must be a String in find_and_process_repos block" unless dir.is_a?(String)
+          raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
 
           all_paths << dir
         end
@@ -32,7 +32,7 @@ module GitTree
       else
         walker.find_and_process_repos do |dir, root_arg|
           raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
-          raise "dir must be a String in find_and_process_repos block" unless dir.is_a?(String)
+          raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
 
           result << make_env_var_with_substitution(dir, [root_arg.tr("'$", '')])
         end
@@ -45,7 +45,7 @@ module GitTree
     # @param path [String] The path to convert to an environment variable name.
     # @return [String] The converted environment variable name.
     def env_var_name(path)
-      raise ArgumentError, "path must be a String, but got #{path.class}" unless path.is_a?(String)
+      raise TypeError, "path must be a String, but got #{path.class}" unless path.is_a?(String)
 
       name = path.include?('/') ? File.basename(path) : path
       name.tr(' ', '_').tr('-', '_')
@@ -54,7 +54,7 @@ module GitTree
     # @param msg [String] The error message to display before the help text.
     # @return [nil]
     def help(msg = nil)
-      raise ArgumentError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
+      raise TypeError, "msg must be a String or nil, but got #{msg.class}" unless msg.is_a?(String) || msg.nil?
 
       Logging.log(Logging::QUIET, "Error: #{msg}\n", :red) if msg
       Logging.log Logging::QUIET, <<~END_HELP
@@ -102,7 +102,7 @@ module GitTree
     # @param root [String] The root environment variable reference (e.g., '$work').
     # @return [Array<String>] An array of environment variable definitions.
     def process_root(root)
-      raise ArgumentError, "root must be a String, but got #{root.class}" unless root.is_a?(String)
+      raise TypeError, "root must be a String, but got #{root.class}" unless root.is_a?(String)
 
       help("Environment variable reference must start with a dollar sign ($).") unless root.start_with? '$'
 
@@ -124,8 +124,8 @@ module GitTree
     # @param value [String] The value of the environment variable.
     # @return [String] The environment variable definition string.
     def make_env_var(name, value)
-      raise ArgumentError, "name must be a String, but got #{name.class}" unless name.is_a?(String)
-      raise ArgumentError, "value must be a String, but got #{value.class}" unless value.is_a?(String)
+      raise TypeError, "name must be a String, but got #{name.class}" unless name.is_a?(String)
+      raise TypeError, "value must be a String, but got #{value.class}" unless value.is_a?(String)
 
       "export #{env_var_name(name)}=#{value}"
     end
@@ -135,8 +135,8 @@ module GitTree
     # @param roots [Array<String>] An array of root environment variable names (e.g., ['work', 'sites']).
     # @return [String] The environment variable definition string, or nil if no root matches.
     def make_env_var_with_substitution(dir, roots)
-      raise ArgumentError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
-      raise ArgumentError, "roots must be an Array, but got #{roots.class}" unless roots.is_a?(Array)
+      raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
+      raise TypeError, "roots must be an Array, but got #{roots.class}" unless roots.is_a?(Array)
 
       found_root_var = nil
       found_root_path = nil

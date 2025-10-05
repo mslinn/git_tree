@@ -10,7 +10,10 @@ class FixedThreadPoolManager
   # (less one for the monitor thread), with a minimum of 1.
   # @param percent_available_processors [Float] The percentage of available processors to use for worker threads.
   def initialize(percent_available_processors = 0.75)
-    raise ArgumentError, "percent_available_processors must be a Numeric" unless percent_available_processors.is_a?(Numeric)
+    unless percent_available_processors.is_a?(Numeric)
+      raise TypeError,
+            "percent_available_processors must be a Numeric, but got #{percent_available_processors.class}"
+    end
 
     if percent_available_processors > 1 || percent_available_processors <= 0
       msg = <<~END_MSG
@@ -102,7 +105,7 @@ class FixedThreadPoolManager
           raise "task cannot be nil when yielding to worker block" if task.nil?
           raise "worker_id cannot be nil when yielding to worker block" if i.nil?
           # task can be of any type, so we don't check it.
-          raise "worker_id must be an Integer in worker block" unless i.is_a?(Integer)
+          raise TypeError, "worker_id must be an Integer in worker block, but got #{i.class}" unless i.is_a?(Integer)
 
           yield(self, task, i) # Execute the provided block of work.
           tasks_processed += 1
