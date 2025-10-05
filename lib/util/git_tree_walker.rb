@@ -93,16 +93,9 @@ class GitTreeWalker
     raise "Block passed to #find_and_process_repos must accept 2 arguments (dir, root_arg)" if block.arity != 2 && block.arity >= 0
 
     visited = Set.new
-    @root_map.each do |root_arg, paths|
+    @root_map.each_value do |paths|
       paths.sort.each do |root_path|
-        find_git_repos_recursive(root_path, visited) do |dir|
-          raise "dir cannot be nil in find_git_repos_recursive block" if dir.nil?
-          raise TypeError, "dir must be a String in find_git_repos_recursive block, but got #{dir.class}" unless dir.is_a?(String)
-
-          raise "dir cannot be nil when yielding to find_and_process_repos block" if dir.nil?
-
-          yield(dir, root_arg)
-        end
+        find_git_repos_recursive(root_path, visited, &block)
       end
     end
   end

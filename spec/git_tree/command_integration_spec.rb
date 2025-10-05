@@ -129,8 +129,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
     # Empty repo with no commits
     @repo_empty_path = File.join(@sites_dir, 'repo_empty')
-    FileUtils.mkdir_p(@repo_empty_path)
-    git("init", @repo_empty_path)
+    setup_repo(@repo_empty_path, 'repo_empty')
 
     # Ignored repo
     ignored_dir = File.join(@work_dir, 'ignored_projects')
