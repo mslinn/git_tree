@@ -9,14 +9,9 @@ RSpec::Matchers.define :be_successful do
   end
 
   failure_message do |actual|
-    history_log = @repo_history.map do |repo, commands|
-      "  History for #{repo}:\n" + commands.map { |c| "    - #{c}" }.join("\n")
-    end.join("\n\n")
-
     "expected command to be successful, but it failed.\n" \
       "STDOUT:\n#{actual[:stdout]}\n" \
-      "STDERR:\n#{actual[:stderr]}\n\n" \
-      "GIT COMMAND HISTORY:\n#{history_log}"
+      "STDERR:\n#{actual[:stderr]}"
   end
 end
 
@@ -60,9 +55,6 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
   # --- Git test environment setup ---
   def git(command, dir = @tmpdir)
-    # Record the command history for debugging
-    @repo_history[dir] ||= []
-    @repo_history[dir] << "git #{command}"
     system('git', '-C', dir, *command.split, out: File::NULL, err: File::NULL)
   end
 
@@ -91,7 +83,6 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # This setup runs once for the entire test file.
     # We need to use instance variables because `let` is not available in `before(:all)`.
     @tmpdir = Dir.mktmpdir('git_tree_integration_spec_all')
-    @repo_history = {} # Initialize history log
     @home_dir = File.join(@tmpdir, 'home')
     @work_dir = File.join(@tmpdir, 'work')
     @sites_dir = File.join(@tmpdir, 'sites')
