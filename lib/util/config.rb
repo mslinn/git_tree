@@ -24,6 +24,9 @@ module GitTree
     # Force a reload of the configuration.
     def reload!
       clear
+      # Re-initialize to apply defaults after clearing.
+      # This is crucial for tests to have a valid default state.
+      initialize
     end
   end
 end
