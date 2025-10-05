@@ -44,7 +44,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # Create a bare repo to act as the remote origin
     bare_repo_path = File.join(@tmpdir, 'remotes', "#{name}.git")
     FileUtils.mkdir_p(bare_repo_path)
-    git("init --bare", bare_repo_path)
+    git("init --bare --initial-branch=main", bare_repo_path)
 
     # Clone it to create the working repo
     # We need to change directory to ensure the clone happens inside the tmpdir,
@@ -144,10 +144,16 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
     end
 
-    it 'handles an invalid command' do
-      result = run_command("git-exec nonexistentcommand")
-      expect(result).to be_successful # The tool itself succeeds
-      expect(result[:stderr]).to include("Error: Command 'nonexistentcommand' not found")
+    context 'when an invalid command is given' do
+      before { @result = run_command("git-exec nonexistentcommand") }
+
+      it 'succeeds' do
+        expect(@result).to be_successful
+      end
+
+      it 'logs an error to stderr' do
+        expect(@result[:stderr]).to include("Error: Command 'nonexistentcommand' not found")
+      end
     end
 
     it 'respects the -q flag' do
@@ -170,10 +176,16 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
     end
 
-    it 'handles an undefined environment variable gracefully' do
-      result = run_command("git-exec '$UNDEFINED_VAR' pwd")
-      expect(result[:status].exitstatus).to eq(1)
-      expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+    context 'when an undefined environment variable is given as a root' do
+      before { @result = run_command("git-exec '$UNDEFINED_VAR' pwd") }
+
+      it 'exits with a non-zero status' do
+        expect(@result[:status].exitstatus).to eq(1)
+      end
+
+      it 'logs an error to stderr' do
+        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+      end
     end
   end
 
@@ -206,10 +218,16 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
     end
 
-    it 'handles an undefined environment variable gracefully' do
-      result = run_command("git-update '$UNDEFINED_VAR'")
-      expect(result[:status].exitstatus).to eq(1)
-      expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+    context 'when an undefined environment variable is given as a root' do
+      before { @result = run_command("git-update '$UNDEFINED_VAR'") }
+
+      it 'exits with a non-zero status' do
+        expect(@result[:status].exitstatus).to eq(1)
+      end
+
+      it 'logs an error to stderr' do
+        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+      end
     end
   end
 
@@ -239,10 +257,16 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
     end
 
-    it 'handles an undefined environment variable gracefully' do
-      result = run_command("git-replicate '$UNDEFINED_VAR'")
-      expect(result[:status].exitstatus).to eq(1)
-      expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+    context 'when an undefined environment variable is given as a root' do
+      before { @result = run_command("git-replicate '$UNDEFINED_VAR'") }
+
+      it 'exits with a non-zero status' do
+        expect(@result[:status].exitstatus).to eq(1)
+      end
+
+      it 'logs an error to stderr' do
+        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+      end
     end
   end
 
@@ -259,10 +283,16 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
     end
 
-    it 'handles undefined environment variables gracefully' do
-      result = run_command("git-evars '$UNDEFINED_VAR'")
-      expect(result[:status].exitstatus).to eq(1)
-      expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+    context 'when an undefined environment variable is given as a root' do
+      before { @result = run_command("git-evars '$UNDEFINED_VAR'") }
+
+      it 'exits with a non-zero status' do
+        expect(@result[:status].exitstatus).to eq(1)
+      end
+
+      it 'logs an error to stderr' do
+        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+      end
     end
   end
 
@@ -271,7 +301,16 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       before do
         # This command modifies the state of the repos, so we run it once
         # and then test the side effects in separate examples.
-        @result = run_command('git-commitAll -m "Test commit"')
+
+        Timeout.timeout(15) do # Add a 15-second timeout to prevent hangs
+          @result = run_command('git-commitAll -m "Test commit"')
+        end
+      rescue Timeout::Error
+        warn "Timeout running git-commitAll. Dumping stacks:"
+        Thread.list.each do |thread|
+          warn "--- Thread #{thread.object_id} status: #{thread.status} ---\n#{thread.backtrace&.join("\n")}\n"
+        end
+        raise # Re-raise the timeout error to fail the test
       end
 
       it 'succeeds' do
@@ -307,10 +346,16 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
     end
 
-    it 'handles an undefined environment variable gracefully' do
-      result = run_command("git-commitAll '$UNDEFINED_VAR'")
-      expect(result[:status].exitstatus).to eq(1)
-      expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+    context 'when an undefined environment variable is given as a root' do
+      before { @result = run_command("git-commitAll '$UNDEFINED_VAR'") }
+
+      it 'exits with a non-zero status' do
+        expect(@result[:status].exitstatus).to eq(1)
+      end
+
+      it 'logs an error to stderr' do
+        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+      end
     end
   end
 end

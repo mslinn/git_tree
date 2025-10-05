@@ -13,6 +13,13 @@ module Logging
   @verbosity = ::Logging::NORMAL
   # warn "Logging module loaded. Default verbosity: #{@verbosity}" if @verbosity >= NORMAL
 
+  # Define a custom I/O stream for auxiliary/informational messages. Defaults to STDERR.
+  STDAUX = begin
+    IO.for_fd(3, 'w')
+  rescue StandardError
+    $stderr
+  end
+
   # @return [Integer] The current verbosity level.
   def self.verbosity
     @verbosity
@@ -44,9 +51,9 @@ module Logging
     multiline_string.to_s.each_line do |line|
       line_to_print = line.chomp
       line_to_print = line_to_print.public_send(color) if color
-      warn line_to_print
+      STDAUX.puts line_to_print
     end
-    $stderr.flush
+    STDAUX.flush
   end
 
   # A thread-safe output method for uncolored text to STDOUT.
@@ -72,7 +79,7 @@ module Logging
     return unless Logging.verbosity >= level
 
     message = message.public_send(color) if color
-    $stderr.print message
+    STDAUX.print message
   end
 
   # Make log and log_stdout available as both instance and module methods
