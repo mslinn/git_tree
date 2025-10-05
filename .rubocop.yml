@@ -79,6 +79,9 @@ Naming/FileName:
 RSpec/ExampleLength:
   Max: 20
 
+RSpec/InstanceVariable:
+  Enabled: false
+
 RSpec/MultipleExpectations:
   Max: 15
 

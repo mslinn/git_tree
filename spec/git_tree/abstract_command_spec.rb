@@ -13,6 +13,21 @@ describe GitTree::AbstractCommand do
 
     # Expose parse_options for direct testing
     public :parse_options
+
+    # Override run to expose the walker for testing
+    def run
+      args_for_walker = @args.empty? ? @config.default_roots : @args
+      @walker ||= GitTreeWalker.new(args_for_walker, options: @options) # rubocop:disable Naming/MemoizedInstanceVariableName
+    end
+
+    # Simulate a subclass that adds its own options
+    def parse_options(args)
+      super do |opts|
+        opts.on("--dummy-opt VALUE", "A dummy option for testing") do |val|
+          @options[:dummy] = val
+        end
+      end
+    end
   end
 
   subject(:command) { DummyCommand.new(args) }
@@ -20,8 +35,9 @@ describe GitTree::AbstractCommand do
   let(:args) { [] }
 
   describe 'initialization' do
+    let(:mock_config) { instance_double(GitTree::Config, verbosity: 99, default_roots: %w[root1 root2]) }
+
     it 'loads config and sets initial verbosity' do
-      mock_config = instance_double(GitTree::Config, verbosity: 99)
       allow(GitTree::Config).to receive(:new).and_return(mock_config)
       allow(Logging).to receive(:verbosity=)
 
@@ -29,6 +45,21 @@ describe GitTree::AbstractCommand do
 
       expect(GitTree::Config).to have_received(:new)
       expect(Logging).to have_received(:verbosity=).with(99)
+    end
+  end
+
+  describe 'argument handling' do
+    let(:mock_config) { instance_double(GitTree::Config, verbosity: 1, default_roots: %w[configured_root]) }
+
+    it 'uses default_roots from config when no args are given' do
+      allow(GitTree::Config).to receive(:new).and_return(mock_config)
+      mock_walker = instance_double(GitTreeWalker)
+      allow(GitTreeWalker).to receive(:new).and_return(mock_walker)
+
+      command = DummyCommand.new([]) # No arguments
+      command.run
+
+      expect(GitTreeWalker).to have_received(:new).with(%w[configured_root], options: {})
     end
   end
 
@@ -99,6 +130,43 @@ describe GitTree::AbstractCommand do
         command.parse_options(args)
         expect(command).to have_received(:help)
       end
+    end
+
+    context 'with a command-specific option' do
+      let(:args) { ['--dummy-opt', 'test-value', '/some/dir'] }
+
+      it 'adds the specific option to the options hash' do
+        command.parse_options(args)
+        expect(command.options).to have_key(:dummy)
+        expect(command.options[:dummy]).to eq('test-value')
+      end
+
+      it 'removes the option and its value from the args array' do
+        command.parse_options(args)
+        expect(args).to eq(['/some/dir'])
+      end
+    end
+  end
+
+  context 'when a subclass modifies options during initialization' do
+    # This dummy class mimics GitTree::UpdateCommand's behavior of
+    # removing a key from the options hash for its own use.
+    class ModifyingDummyCommand < GitTree::AbstractCommand
+      def initialize(args = ARGV, options: {})
+        super
+        @internal_dependency = @options.delete(:internal)
+      end
+
+      def run
+        @walker ||= GitTreeWalker.new(@args, options: @options) # rubocop:disable Naming/MemoizedInstanceVariableName
+      end
+    end
+
+    it 'does not pass the modified option to the walker' do
+      allow(GitTreeWalker).to receive(:new)
+      command = ModifyingDummyCommand.new(['/some/dir'], options: { internal: 'dependency' })
+      command.run
+      expect(GitTreeWalker).to have_received(:new).with(['/some/dir'], options: {})
     end
   end
 end
