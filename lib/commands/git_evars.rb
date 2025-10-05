@@ -23,6 +23,7 @@ module GitTree
         all_paths = []
         walker.find_and_process_repos do |dir, _root_arg|
           raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+
           raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
 
           all_paths << dir
@@ -32,6 +33,8 @@ module GitTree
       else
         walker.find_and_process_repos do |dir, root_arg|
           raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+          raise "root_arg cannot be nil in find_and_process_repos block" if root_arg.nil?
+
           raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
 
           result << make_env_var_with_substitution(dir, [root_arg.tr("'$", '')])
@@ -114,6 +117,8 @@ module GitTree
       result = [make_env_var(env_var_name(base), GemSupport.deref_symlink(base).to_s)]
       walker = GitTreeWalker.new([root], options: @options)
       walker.find_and_process_repos do |dir, _root_arg|
+        raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+
         relative_dir = dir.sub(base + '/', '')
         result << make_env_var(env_var_name(relative_dir), "#{root}/#{relative_dir}")
       end

@@ -32,7 +32,7 @@ class GitTreeWalker
   end
 
   def sort_directory_entries(directory_path)
-    raise TypeError, "directory_path must be a String, but got #{directory_path.class}" unless directory_path.is_a?(String)
+    raise ArgumentError, "directory_path must be a String, but got #{directory_path.class}" unless directory_path.is_a?(String)
 
     Dir.children(directory_path).select do |entry|
       File.directory?(File.join(directory_path, entry))
@@ -40,8 +40,8 @@ class GitTreeWalker
   end
 
   def find_git_repos_recursive(root_path, visited, &block)
-    raise TypeError, "root_path must be a String, but got #{root_path.class}" unless root_path.is_a?(String)
-    raise TypeError, "visited must be a Set, but got #{visited.class}" unless visited.is_a?(Set)
+    raise ArgumentError, "root_path must be a String, but got #{root_path.class}" unless root_path.is_a?(String)
+    raise ArgumentError, "visited must be a Set, but got #{visited.class}" unless visited.is_a?(Set)
     raise "A block must be provided to #find_git_repos_recursive" unless block_given?
 
     return unless File.directory?(root_path)

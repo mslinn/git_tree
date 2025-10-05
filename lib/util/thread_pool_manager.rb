@@ -104,6 +104,7 @@ class FixedThreadPoolManager
 
           raise "task cannot be nil when yielding to worker block" if task.nil?
           raise "worker_id cannot be nil when yielding to worker block" if i.nil?
+
           # task can be of any type, so we don't check it.
           raise TypeError, "worker_id must be an Integer in worker block, but got #{i.class}" unless i.is_a?(Integer)
 
