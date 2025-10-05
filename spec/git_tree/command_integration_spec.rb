@@ -69,6 +69,9 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     @work_dir = File.join(@tmpdir, 'work')
     @sites_dir = File.join(@tmpdir, 'sites')
 
+    # Ensure all git commands in this test environment default to the 'main' branch
+    system('git', 'config', '--global', 'init.defaultBranch', 'main', out: File::NULL, err: File::NULL)
+
     FileUtils.mkdir_p([@home_dir, @work_dir, @sites_dir])
 
     # Create a default config file
