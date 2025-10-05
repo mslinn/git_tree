@@ -29,7 +29,7 @@ module GitTree
 
       # If no roots are provided on the command line, use the default_roots from config.
       # This prevents the walker from accidentally using the user's global config.
-      roots_to_walk = command_args.empty? ? @config.default_roots : command_args
+      roots_to_walk = command_args
 
       @walker ||= GitTreeWalker.new(roots_to_walk, options: @options)
 
