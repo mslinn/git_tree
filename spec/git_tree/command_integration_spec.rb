@@ -280,7 +280,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
         it 'pulls the new file into the local repository' do
           # Custom failure message to provide more context
           expect(File.exist?(new_remote_file)).to be(true), lambda {
-            dir_listing = `ls -la #{local_repo_path}`.strip
+            dir_listing = `ls -l1 #{local_repo_path}`.strip
             "Expected file '#{new_remote_file}' to exist, but it does not.\n\n" +
               "Directory listing for #{local_repo_path}:\n#{dir_listing}\n" +
               dump_repo_history(local_repo_path, @repo_command_history) +
