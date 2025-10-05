@@ -99,6 +99,9 @@ class FixedThreadPoolManager
           task = @main_work_queue.pop # The worker blocks here, waiting for a task.
           break if task == SHUTDOWN_SIGNAL
 
+          raise "task cannot be nil when yielding to worker block" if task.nil?
+          raise "worker_id cannot be nil when yielding to worker block" if i.nil?
+
           yield(self, task, i) # Execute the provided block of work.
           tasks_processed += 1
         end

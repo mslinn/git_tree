@@ -21,11 +21,19 @@ module GitTree
       walker = GitTreeWalker.new(@args, options: @options)
       if @options[:zowee]
         all_paths = []
-        walker.find_and_process_repos { |dir, _root_arg| all_paths << dir }
+        walker.find_and_process_repos do |dir, _root_arg|
+          raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+
+          all_paths << dir
+        end
         optimizer = ZoweeOptimizer.new(walker.root_map)
         result = optimizer.optimize(all_paths, walker.display_roots)
       else
-        walker.find_and_process_repos { |dir, root_arg| result << make_env_var_with_substitution(dir, [root_arg.tr("'$", '')]) }
+        walker.find_and_process_repos do |dir, root_arg|
+          raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+
+          result << make_env_var_with_substitution(dir, [root_arg.tr("'$", '')])
+        end
       end
       Logging.log_stdout result.join("\n") unless result.empty?
     end

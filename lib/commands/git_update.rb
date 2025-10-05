@@ -28,6 +28,10 @@ module GitTree
       @runner ||= CommandRunner.new
       @walker ||= GitTreeWalker.new(@args, options: @options)
       @walker.process do |dir, thread_id, walker|
+        raise "dir cannot be nil in process block" if dir.nil?
+        raise "thread_id cannot be nil in process block" if thread_id.nil?
+        raise "walker cannot be nil in process block" if walker.nil?
+
         process_repo(walker, dir, thread_id)
       end
     end

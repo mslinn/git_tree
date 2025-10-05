@@ -30,6 +30,9 @@ module GitTree
 
       command = @args.last
       @walker.process do |dir, _thread_id, _walker|
+        raise "dir cannot be nil in process block" if dir.nil?
+        raise "_walker cannot be nil in process block" if _walker.nil?
+
         execute_and_log(dir, command)
       end
     end

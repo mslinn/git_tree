@@ -44,17 +44,29 @@ class GitTreeWalker
     if @options[:serial]
       Logging.log Logging::VERBOSE, "Running in serial mode.", :yellow
       find_and_process_repos do |dir, _root_arg|
+        raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+
+        raise "dir cannot be nil when yielding to process block" if dir.nil?
+
         yield(dir, 0, self) # task, thread_id, walker
       end
     else
       pool = FixedThreadPoolManager.new(0.75)
       # The block passed to pool.start now receives the walker instance (self)
       pool.start do |_worker, dir, thread_id|
+        raise "_worker cannot be nil in pool.start block" if _worker.nil?
+        raise "dir cannot be nil in pool.start block" if dir.nil?
+        raise "thread_id cannot be nil in pool.start block" if thread_id.nil?
+        raise "dir cannot be nil when yielding to process block" if dir.nil?
+        raise "thread_id cannot be nil when yielding to process block" if thread_id.nil?
+
         yield(dir, thread_id, self)
       end
       # Find all repositories and add them to the work queue.
       # The worker threads will consume these tasks in parallel.
       find_and_process_repos do |dir, _root_arg|
+        raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+
         pool.add_task(dir)
       end
 
@@ -72,9 +84,15 @@ class GitTreeWalker
     raise "Block passed to #find_and_process_repos must accept 2 arguments (dir, root_arg)" if block.arity != 2 && block.arity >= 0
 
     visited = Set.new
-    @root_map.each_value do |paths|
+    @root_map.each do |root_arg, paths|
       paths.sort.each do |root_path|
-        find_git_repos_recursive(root_path, visited, &block)
+        find_git_repos_recursive(root_path, visited) do |dir|
+          raise "dir cannot be nil in find_git_repos_recursive block" if dir.nil?
+
+          raise "dir cannot be nil when yielding to find_and_process_repos block" if dir.nil?
+
+          yield(dir, root_arg)
+        end
       end
     end
   end

@@ -19,7 +19,12 @@ module GitTree
       setup
       result = []
       walker = GitTreeWalker.new(@args, options: @options)
-      walker.find_and_process_repos { |dir, root_arg| result << replicate_one(dir, root_arg) }
+      walker.find_and_process_repos do |dir, root_arg|
+        raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
+        raise "root_arg cannot be nil in find_and_process_repos block" if root_arg.nil?
+
+        result << replicate_one(dir, root_arg)
+      end
       Logging.log_stdout result.join("\n") unless result.empty?
     end
 

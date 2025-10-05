@@ -54,6 +54,8 @@ class GitTreeWalker
       log DEBUG, "  Found #{git_dir_or_file}", :green
       unless visited.include?(root_path)
         visited.add(root_path)
+        raise "root_path cannot be nil when yielding to find_git_repos_recursive block" if root_path.nil?
+
         yield root_path
       end
       return # Prune search
