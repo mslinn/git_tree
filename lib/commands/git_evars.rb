@@ -18,18 +18,14 @@ module GitTree
     def run
       setup
       result = []
+      walker = GitTreeWalker.new(@args, options: @options)
       if @options[:zowee]
-        walker = GitTreeWalker.new(@args, options: @options)
         all_paths = []
-        walker.find_and_process_repos do |dir, _root_arg|
-          all_paths << dir
-        end
+        walker.find_and_process_repos { |dir, _root_arg| all_paths << dir }
         optimizer = ZoweeOptimizer.new(walker.root_map)
         result = optimizer.optimize(all_paths, walker.display_roots)
       else
-        # If no args are given, use the default roots from config. Otherwise, use the provided args.
-        processed_args = @args.empty? ? @config.default_roots.map { |r| "$#{r}" } : @args.flat_map { |arg| arg.strip.split(/\s+/) }
-        processed_args.each { |root| result.concat(process_root(root)) }
+        walker.find_and_process_repos { |dir, root_arg| result << make_env_var_with_substitution(dir, [root_arg]) }
       end
       Logging.log_stdout result.join("\n") unless result.empty?
     end

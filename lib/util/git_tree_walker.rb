@@ -52,15 +52,12 @@ class GitTreeWalker
       pool.start do |_worker, dir, thread_id|
         yield(dir, thread_id, self)
       end
-      # Run the directory scanning in a separate thread so the main thread can handle interrupts.
-      producer_thread = Thread.new do
-        find_and_process_repos do |dir, _root_arg|
-          pool.add_task(dir)
-        end
+      # Find all repositories and add them to the work queue.
+      # The worker threads will consume these tasks in parallel.
+      find_and_process_repos do |dir, _root_arg|
+        pool.add_task(dir)
       end
 
-      # Wait for the producer to finish, then wait for the pool to complete.
-      producer_thread.join
       pool.wait_for_completion
     end
   rescue Interrupt
