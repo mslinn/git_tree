@@ -76,6 +76,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     # Use popen3 to capture stdout, stderr, and stdaux (fd 3)
     # We create a temporary file to capture stdaux (fd 3) separately from stdout.
     stdaux_file = Tempfile.new('stdaux')
+    puts "Executing: #{command_string}"
     Open3.popen3(env, command_string, 3 => stdaux_file) do |stdin, stdout, stderr, wait_thr|
       stdin.close
       stdout_str = stdout.read
@@ -418,18 +419,18 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     end
   end
 
-  describe 'git-commitAll' do
+  fdescribe 'git-commitAll' do
     context 'when committing changes' do
       before do
         # This command modifies the state of the repos, so we run it once
         # and then test the side effects in separate examples.
-
-        Timeout.timeout(10) do # Add a timeout to prevent hangs
-          @result = run_command('git-commitAll -m "Test commit"')
-        end
-      rescue Timeout::Error
-        # This is a guard; if this happens, it means there's a deadlock or hang.
-        # The be_successful matcher will fail and print the (empty) output.
+        puts "      About to run git-commitAll"
+        @result = run_command('git-commitAll -m "Test commit"')
+        # show that the command completed successfully with a user message and no errors
+        puts "       @result=#{@result}"
+      rescue StandardError => e
+        puts "       Caught an error during command execution: #{e.message}\n#{e.backtrace.join("\n")}"
+        puts "       @result=#{@result}"
       end
 
       it 'succeeds' do

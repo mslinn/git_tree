@@ -37,6 +37,7 @@ class GitTreeWalker
   end
 
   def process(&block) # Accepts a block
+    pool = nil # Define pool in the outer scope
     raise "A block must be provided to #process" unless block_given?
     raise "Block passed to #process must accept 3 arguments (dir, thread_id, walker)" if block.arity != 3 && block.arity >= 0
 
@@ -76,7 +77,6 @@ class GitTreeWalker
       # The worker threads will consume these tasks in parallel.
       find_and_process_repos do |dir, _root_arg|
         raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
-
         raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
 
         pool.add_task(dir)
@@ -88,6 +88,9 @@ class GitTreeWalker
     # If interrupted, ensure the pool is shut down and then let the main command handle the exit.
     pool&.shutdown
     raise
+  ensure
+    # Ensure the pool is always shut down to release resources and threads.
+    pool&.shutdown
   end
 
   # Finds git repos and yields them to the block. Does not use thread pool.
