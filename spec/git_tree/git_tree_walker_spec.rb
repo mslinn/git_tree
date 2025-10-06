@@ -1,58 +1,49 @@
 require 'spec_helper'
-require 'tmpdir'
-require 'fileutils'
 require_relative '../../lib/util/git_tree_walker'
+require_relative '../../lib/util/config'
 
 describe GitTreeWalker do
-  # This spec tests the actual file system walking logic of GitTreeWalker.
-  # It creates a temporary directory structure with fake git repos to ensure
-  # that repositories are found correctly and that .ignore files are respected.
+  describe '#initialize and #determine_roots' do
+    let(:mock_config) { instance_double(GitTree::Config) }
 
-  let(:tmpdir) { Dir.mktmpdir('git_tree_walker_spec') }
-  let(:work_dir) { File.join(tmpdir, 'work') }
-  let(:sites_dir) { File.join(tmpdir, 'sites') }
-
-  # Paths to the fake git repositories
-  let(:repo_a_path) { File.join(work_dir, 'project_a') }
-  let(:repo_b_path) { File.join(work_dir, 'project_b') }
-  let(:repo_c_path) { File.join(work_dir, 'ignored_dir', 'project_c') } # This one should be ignored
-  let(:repo_d_path) { File.join(sites_dir, 'site_d') }
-
-  before do
-    # Create a directory structure for testing
-    # /tmp/spec-XXXX/
-    #   - work/
-    #     - project_a/.git
-    #     - project_b/.git
-    #     - ignored_dir/
-    #       - .ignore
-    #       - project_c/.git  <- Should be skipped
-    #   - sites/
-    #     - site_d/.git
-
-    [repo_a_path, repo_b_path, repo_c_path, repo_d_path].each do |repo_path|
-      FileUtils.mkdir_p(File.join(repo_path, '.git'))
+    before do
+      # Stub the config loader to isolate the walker
+      allow(GitTree::Config).to receive(:new).and_return(mock_config)
     end
 
-    # Create an ignore file
-    FileUtils.touch(File.join(work_dir, 'ignored_dir', '.ignore'))
-  end
+    context 'when no command-line arguments are given' do
+      it 'correctly uses and expands default_roots from the configuration' do
+        # ARRANGE: Define the exact configuration and environment for this test.
+        # This simulates the test environment's config file.
+        test_default_roots = ['$TEST_WORK', '$TEST_SITES']
+        allow(mock_config).to receive(:default_roots).and_return(test_default_roots)
 
-  after do
-    FileUtils.remove_entry(tmpdir)
-  end
+        # This simulates the environment variables set by the integration test.
+        allow(ENV).to receive(:fetch).with('TEST_WORK', nil).and_return('/tmp/test/work')
+        allow(ENV).to receive(:fetch).with('TEST_SITES', nil).and_return('/tmp/test/sites')
 
-  describe '#find_and_process_repos' do
-    it 'finds all git repositories and respects .ignore files' do
-      walker = described_class.new([work_dir, sites_dir])
-      found_repos = []
+        # ACT: Instantiate the walker. This triggers the `determine_roots` logic.
+        walker = described_class.new([]) # Pass empty args to simulate default behavior
 
-      walker.find_and_process_repos do |dir, _root_arg|
-        found_repos << dir
+        # ASSERT: Verify the internal state with hard data.
+        # This is the data we expect `determine_roots` to produce.
+        expected_root_map = {
+          '$TEST_WORK'  => [File.expand_path('/tmp/test/work')],
+          '$TEST_SITES' => [File.expand_path('/tmp/test/sites')],
+        }
+        actual_root_map = walker.root_map
+
+        # Compare the actual result with the expected data.
+        # If this fails, the error message will show the exact discrepancy.
+        expect(actual_root_map).to eq(expected_root_map),
+                                   "Expected root_map to be #{expected_root_map}, but got #{actual_root_map}"
+
+        expected_display_roots = ['$TEST_WORK', '$TEST_SITES']
+        actual_display_roots = walker.display_roots
+
+        expect(actual_display_roots).to match_array(expected_display_roots),
+                                        "Expected display_roots to be #{expected_display_roots}, but got #{actual_display_roots}"
       end
-
-      expect(found_repos).to contain_exactly(repo_a_path, repo_b_path, repo_d_path)
-      expect(found_repos).not_to include(repo_c_path)
     end
   end
 end

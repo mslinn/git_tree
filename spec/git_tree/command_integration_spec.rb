@@ -139,6 +139,9 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       - $SITES
     YAML
     File.write(File.join(@home_dir, '.treeconfig.yml'), config_content)
+    # Verify and log the config for debugging purposes
+    loaded_config = YAML.safe_load(config_content)
+    puts "Integration Spec: Test .treeconfig.yml created with default_roots: #{loaded_config['default_roots'].inspect}"
 
     # --- Create all the test repos ---
     @repo_clean_path = File.join(@work_dir, 'repo_clean')

@@ -25,7 +25,7 @@ class GitTreeWalker
         exit 1
       end
     end
-    @root_map[arg] = [File.expand_path(path)] if path
+    @root_map[arg] = path.split.map { |p| File.expand_path(p) } if path
   end
 
   def sort_directory_entries(directory_path)
