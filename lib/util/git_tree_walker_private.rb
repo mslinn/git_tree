@@ -10,8 +10,10 @@ class GitTreeWalker
 
     if args.empty?
       # When no args are provided, use the default_roots from the configuration.
-      # These are expected to be environment variable names.
-      determine_roots(@config.default_roots)
+      # The default_roots are expected to be strings like '$WORK', which we process here.
+      processed_args = @config.default_roots.flat_map { |arg| arg.strip.split(/\s+/) }
+      @display_roots = processed_args.dup
+      processed_args.each { |arg| process_root_arg(arg) }
     else
       processed_args = args.flat_map { |arg| arg.strip.split(/\s+/) }
       @display_roots = processed_args.dup
@@ -28,6 +30,19 @@ class GitTreeWalker
         @root_map[arg] = [File.expand_path(path)] if path
       end
     end
+  end
+
+  def process_root_arg(arg)
+    path = arg
+    if (match = arg.match(/\A'?\$([a-zA-Z_]\w*)'?\z/))
+      var_name = match[1]
+      path = ENV.fetch(var_name, nil)
+      unless path
+        Logging.log_stderr(Logging::QUIET, "Environment variable '#{arg}' is undefined.", :red)
+        exit 1
+      end
+    end
+    @root_map[arg] = [File.expand_path(path)] if path
   end
 
   def sort_directory_entries(directory_path)
