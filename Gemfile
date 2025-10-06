@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 group :test, :development do
+  gem 'anyway_config', '~> 2.0'
   gem 'debug', '>= 1.0.0', require: false
   gem 'rake', require: false
   gem 'rspec', require: false
