@@ -4,11 +4,11 @@ require_relative '../../lib/util/config'
 
 describe GitTreeWalker do
   describe '#initialize and #determine_roots' do
-    let(:mock_config) { instance_double(GitTree::Config) }
+    let(:mock_config) { instance_double(GitTree::GTConfig) }
 
     before do
       # Stub the config loader to isolate the walker
-      allow(GitTree::Config).to receive(:new).and_return(mock_config)
+      allow(GitTree::GTConfig).to receive(:new).and_return(mock_config)
     end
 
     context 'when no command-line arguments are given' do

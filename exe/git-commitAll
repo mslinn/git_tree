@@ -1,3 +1,5 @@
 #!/usr/bin/env ruby
 
+Anyway::Settings.current_environment = "production" unless ENV['ANYWAY_ENV']
+
 require_relative '../lib/commands/git_commit_all'

@@ -35,24 +35,24 @@ describe GitTree::AbstractCommand do
   let(:args) { [] }
 
   describe 'initialization' do
-    let(:mock_config) { instance_double(GitTree::Config, verbosity: 99, default_roots: %w[root1 root2]) }
+    let(:mock_config) { instance_double(GitTree::GTConfig, verbosity: 99, default_roots: %w[root1 root2]) }
 
     it 'loads config and sets initial verbosity' do
-      allow(GitTree::Config).to receive(:new).and_return(mock_config)
+      allow(GitTree::GTConfig).to receive(:new).and_return(mock_config)
       allow(Logging).to receive(:verbosity=)
 
       described_class.new
 
-      expect(GitTree::Config).to have_received(:new)
+      expect(GitTree::GTConfig).to have_received(:new)
       expect(Logging).to have_received(:verbosity=).with(99)
     end
   end
 
   describe 'argument handling' do
-    let(:mock_config) { instance_double(GitTree::Config, verbosity: 1, default_roots: %w[configured_root]) }
+    let(:mock_config) { instance_double(GitTree::GTConfig, verbosity: 1, default_roots: %w[configured_root]) }
 
     it 'uses default_roots from config when no args are given' do
-      allow(GitTree::Config).to receive(:new).and_return(mock_config)
+      allow(GitTree::GTConfig).to receive(:new).and_return(mock_config)
       mock_walker = instance_double(GitTreeWalker)
       allow(GitTreeWalker).to receive(:new).and_return(mock_walker)
 

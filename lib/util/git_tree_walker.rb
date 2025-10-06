@@ -19,7 +19,7 @@ class GitTreeWalker
     raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
 
     @options = options
-    @config = GitTree::Config.new
+    @config = GitTree::GTConfig.new
     @root_map = {}
     @display_roots = []
     determine_roots(args)

@@ -9,7 +9,7 @@ module GitTree
     def initialize
       $PROGRAM_NAME = 'git-treeconfig'
       @cli = HighLine.new
-      @config_path = GitTree::Config.default_config_path
+      @config_path = GitTree::GTConfig.default_config_path
       @existing_config = File.exist?(@config_path) ? YAML.load_file(@config_path) : {}
     end
 
@@ -19,7 +19,7 @@ module GitTree
       @cli.say "Press Enter to accept the default value in brackets."
       @cli.say ""
 
-      defaults = GitTree::Config.new
+      defaults = GitTree::GTConfig.new
 
       new_config = {}
       new_config['git_timeout'] = @cli.ask("Git command timeout in seconds? ", Integer) do |q|

@@ -10,7 +10,7 @@ describe GitTree::UpdateCommand do
   subject(:command) { described_class.new(args, options: options) }
 
   let(:args) { ['/fake/root'] }
-  let(:mock_walker) { instance_double(GitTreeWalker, abbreviate_path: '~/repo1', process: nil, config: instance_double(GitTree::Config, git_timeout: 30)) }
+  let(:mock_walker) { instance_double(GitTreeWalker, abbreviate_path: '~/repo1', process: nil, config: instance_double(GitTree::GTConfig, git_timeout: 30)) }
   let(:mock_runner) { instance_double(CommandRunner) }
   let(:repo_dir) { '/fake/root/repo1' }
   let(:options) { { walker: mock_walker, runner: mock_runner } }

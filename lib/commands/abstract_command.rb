@@ -18,7 +18,7 @@ module GitTree
 
       @args = args
       @options = options
-      @config = GitTree::Config.new
+      @config = GitTree::GTConfig.new
       # Set initial verbosity from config before anything else happens.
       Logging.verbosity = @config.verbosity
     end
