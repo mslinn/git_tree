@@ -421,63 +421,49 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
 
   fdescribe 'git-commitAll' do
     context 'when committing changes' do
-      before do
-        # This command modifies the state of the repos, so we run it once
-        # and then test the side effects in separate examples.
-        puts "      About to run git-commitAll"
-        @result = run_command('git-commitAll -m "Test commit"')
-        # show that the command completed successfully with a user message and no errors
-        puts "       @result=#{@result}"
-      rescue StandardError => e
-        puts "       Caught an error during command execution: #{e.message}\n#{e.backtrace.join("\n")}"
-        puts "       @result=#{@result}"
-      end
+      it 'succeeds and commits all changes' do
+        result = run_command('git-commitAll -m "Test commit"')
+        expect(result).to be_successful
 
-      it 'succeeds' do
-        expect(@result).to be_successful
-      end
-
-      it 'commits modified files' do
+        # Check that the modified file was committed
         log_output = `git -C #{@repo_modified_path} log -1 --pretty=%B 2> /dev/null`.strip
         expect(log_output).to eq("Test commit")
-      end
 
-      it 'commits new files' do
+        # Check that the new file was committed
         log_output = `git -C #{@repo_new_file_path} log -1 --pretty=%B 2> /dev/null`.strip
         expect(log_output).to eq("Test commit")
-      end
 
-      it 'commits deleted files' do
+        # Check that the deleted file was committed
         log_output = `git -C #{@repo_deleted_file_path} log -1 --pretty=%B 2> /dev/null`.strip
         expect(log_output).to eq("Test commit")
       end
     end
 
     context 'when a repository has a detached HEAD' do
-      before { @result = run_command('git-commitAll -v -m "Test commit"') }
+      subject(:result) { run_command('git-commitAll -v -m "Test commit"') }
 
       it 'succeeds' do
-        expect(@result).to be_successful
+        expect(result).to be_successful
       end
 
       it 'yields empty stderr' do
-        expect(@result).to have_empty_stderr
+        expect(result).to have_empty_stderr
       end
 
       it 'logs a skip message to stdaux' do
-        expect(@result[:stdaux]).to include("Skipping #{@repo_detached_path} because it is in a detached HEAD state")
+        expect(result[:stdaux]).to include("Skipping #{@repo_detached_path} because it is in a detached HEAD state")
       end
     end
 
     context 'when an undefined environment variable is given as a root' do
-      before { @result = run_command("git-commitAll '$UNDEFINED_VAR'") }
+      subject(:result) { run_command("git-commitAll '$UNDEFINED_VAR'") }
 
       it 'exits with a non-zero status' do
-        expect(@result[:status].exitstatus).to eq(1)
+        expect(result[:status].exitstatus).to eq(1)
       end
 
       it 'logs an error to stderr' do
-        expect(@result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
+        expect(result[:stderr]).to include("Environment variable '$UNDEFINED_VAR' is undefined.")
       end
     end
   end
