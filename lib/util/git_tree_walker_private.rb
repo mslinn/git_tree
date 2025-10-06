@@ -11,10 +11,7 @@ class GitTreeWalker
     if args.empty?
       # When no args are provided, use the default_roots from the configuration.
       # These are expected to be environment variable names.
-      @display_roots = @config.default_roots.map { |root_name| "$#{root_name}" }
-      @config.default_roots.each do |root_name|
-        @root_map["$#{root_name}"] = ENV[root_name].split.map { |p| File.expand_path(p) } if ENV.key?(root_name)
-      end
+      determine_roots(@config.default_roots)
     else
       processed_args = args.flat_map { |arg| arg.strip.split(/\s+/) }
       @display_roots = processed_args.dup
