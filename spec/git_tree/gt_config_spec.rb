@@ -33,8 +33,9 @@ describe GitTree::GTConfig, type: :config do
 
     context "with yaml configuration" do
       it "overrides defaults from a simulated YAML file" do
-        stub_config(default_roots: %w[c d])
-        expect(described_class.new.default_roots).to eq(%w[c d])
+        with_local_config("default_roots" => %w[c d]) do
+          expect(described_class.new.default_roots).to eq(%w[c d])
+        end
       end
 
       context "when loading from a specific file path" do
@@ -54,26 +55,31 @@ describe GitTree::GTConfig, type: :config do
 
     context "with environment variables" do
       it "loads configuration from environment variables" do
-        stub_env("GIT_TREE_DEFAULT_ROOTS" => "g h")
-        expect(described_class.new.default_roots).to eq(%w[g h])
+        with_env("GIT_TREE_DEFAULT_ROOTS" => "g h") do
+          expect(described_class.new.default_roots).to eq(%w[g h])
+        end
       end
 
       it "prefers environment variables over YAML configuration" do
-        stub_config(default_roots: %w[from file])
-        stub_env("GIT_TREE_DEFAULT_ROOTS" => "from env")
-        expect(described_class.new.default_roots).to eq(%w[from env])
+        with_local_config("default_roots" => %w[from file]) do
+          with_env("GIT_TREE_DEFAULT_ROOTS" => "from env") do
+            expect(described_class.new.default_roots).to eq(%w[from env])
+          end
+        end
       end
     end
 
     context "with source tracing" do
-      before { Anyway::Settings.enable_source_tracing! }
-      after { Anyway::Settings.disable_source_tracing! }
+      # Use the block-based helper for source tracing
+      around { |ex| Anyway::Settings.use_source_tracing { ex.run } }
 
       it "traces the source of the configuration" do
-        stub_config(git_timeout: 42)
-        trace = described_class.new.to_source_trace["git_timeout"]
-        expect(trace).to include(default: 300)
-        expect(trace).to include(test: { "git_timeout" => 42 })
+        with_local_config("git_timeout" => 42) do
+          trace = described_class.new.to_source_trace["git_timeout"]
+          expect(trace).to include(default: 300)
+          # The source name for with_local_config is :yml
+          expect(trace).to include(yml: { "local" => { "git_timeout" => 42 } })
+        end
       end
     end
 
@@ -83,15 +89,17 @@ describe GitTree::GTConfig, type: :config do
 
       context "when verbosity is high" do
         it "logs the environment" do
-          stub_config(verbosity: Logging::VERBOSE)
-          expect { init }.to output(/Current environment: test/).to_stdout
+          with_local_config("verbosity" => Logging::VERBOSE) do
+            expect { init }.to output(/Current environment: test/).to_stdout
+          end
         end
       end
 
       context "when verbosity is low" do
         it "does not log the environment" do
-          stub_config(verbosity: Logging::NORMAL)
-          expect { init }.not_to output.to_stdout
+          with_local_config("verbosity" => Logging::NORMAL) do
+            expect { init }.not_to output.to_stdout
+          end
         end
       end
     end
