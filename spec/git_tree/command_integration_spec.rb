@@ -1,7 +1,7 @@
-require 'tmpdir'
 require 'fileutils'
 require 'open3'
 require 'tempfile'
+require 'tmpdir'
 require_relative '../spec_helper'
 
 def dump_repo_history(repo_path, history_hash)

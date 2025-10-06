@@ -1,4 +1,4 @@
-require '../spec_helper'
+require_relative '../spec_helper'
 require_relative '../../lib/commands/abstract_command'
 require_relative '../../lib/util/log'
 

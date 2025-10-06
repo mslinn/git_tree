@@ -1,6 +1,7 @@
+require 'fileutils'
 require 'spec_helper'
 require 'tmpdir'
-require 'fileutils'
+require_relative '../spec_helper'
 require_relative '../../lib/util/log'
 require_relative '../../lib/commands/git_commit_all'
 
