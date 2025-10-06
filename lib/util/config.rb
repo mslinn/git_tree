@@ -33,6 +33,7 @@ module GitTree
     # See https://github.com/palkan/anyway_config?tab=readme-ov-file#source-tracing
     # Anyway::Settings.enable_source_tracing
 
+    # On_load validators must not accept any arguments
     on_load :validate_environment
     on_load :log_environment
 
@@ -44,7 +45,7 @@ module GitTree
     end
 
     def log_environment
-      $stdout.puts "Current environment: #{Anyway::Settings.current_environment}" # if Anyway::Settings.verbosity >= ::Logging::VERBOSE
+      $stdout.puts "Current environment: #{Anyway::Settings.current_environment}" if verbosity >= ::Logging::VERBOSE
     end
   end
 end

@@ -422,7 +422,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
     end
   end
 
-  fdescribe 'git-commitAll' do
+  describe 'git-commitAll' do
     context 'when committing changes' do
       it 'succeeds and commits all changes' do
         result = run_command('git-commitAll -m "Test commit"')

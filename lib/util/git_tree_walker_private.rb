@@ -8,9 +8,9 @@ class GitTreeWalker
   def determine_roots(args)
     raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
 
-    # If no args are provided, use the default_roots from the configuration.
-    args_to_process = args.empty? ? @config.default_roots : args
-    processed_args = args_to_process.flat_map { |arg| arg.strip.split(/\s+/) }
+    # If no args are provided on the command line, use the default_roots from the configuration.
+    processed_args = (args.empty? ? @config.default_roots : args).flat_map { |arg| arg.strip.split(/\s+/) }
+
     @display_roots = processed_args.dup
     processed_args.each { |arg| process_root_arg(arg) }
   end
