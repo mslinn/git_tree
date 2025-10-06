@@ -10,10 +10,7 @@ class GitTreeWalker
 
     if args.empty?
       # When no args are provided, use the default_roots from the configuration.
-      # The default_roots are expected to be strings like '$WORK', which we process here.
-      processed_args = @config.default_roots.flat_map { |arg| arg.strip.split(/\s+/) }
-      @display_roots = processed_args.dup
-      processed_args.each { |arg| process_root_arg(arg) }
+      determine_roots(@config.default_roots)
     else
       processed_args = args.flat_map { |arg| arg.strip.split(/\s+/) }
       @display_roots = processed_args.dup
