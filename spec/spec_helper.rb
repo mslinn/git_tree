@@ -1,6 +1,7 @@
 require 'rspec/expectations'
 
 require_relative '../lib/git_tree'
+require 'anyway/testing'
 
 Anyway::Settings.current_environment = "test"
 

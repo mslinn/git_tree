@@ -40,10 +40,10 @@ describe GitTree::GTConfig, type: :config do
       context "when loading from a specific file path" do
         # Use a context-level around hook to cleanly manage the config_path state for this specific test.
         around do |example|
-          original_path = described_class.config_path
-          described_class.config_path = "spec/fixtures/treeconfig.yml"
+          original_path = Anyway::Settings.default_config_path
+          Anyway::Settings.default_config_path = "spec/fixtures/treeconfig.yml"
           example.run
-          described_class.config_path = original_path
+          Anyway::Settings.default_config_path = original_path
         end
 
         it "loads configuration from that location" do
