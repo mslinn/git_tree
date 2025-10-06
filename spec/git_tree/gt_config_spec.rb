@@ -1,5 +1,5 @@
-require "spec_helper"
 require "anyway/testing"
+require_relative "../spec_helper"
 
 describe GitTree::GTConfig, type: :config do
   # include Anyway::Testing::Helpers # this is not necessary

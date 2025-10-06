@@ -1,8 +1,8 @@
-require 'spec_helper'
 require 'tmpdir'
 require 'fileutils'
 require 'open3'
 require 'tempfile'
+require_relative '../spec_helper'
 
 def dump_repo_history(repo_path, history_hash)
   return "No command history found for #{repo_path}.\n" unless history_hash.key?(repo_path)

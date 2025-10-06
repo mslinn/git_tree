@@ -4,7 +4,7 @@ require_relative "log"
 
 # See https://github.com/palkan/anyway_config?tab=readme-ov-file#usage
 module GitTree
-  # Enables loading config from `treeconfig.yml` and `treeconfig.local.yml` files.
+  # Enables loading config from `treeconfig.yml` (and `treeconfig.local.yml`?) files.
   # By default, Anyway! looks for yml files in
   # - `./config/treeconfig.yml`
   # - `./.treeconfig.yml`

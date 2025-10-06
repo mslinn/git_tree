@@ -1,8 +1,8 @@
 require 'spec_helper'
-require_relative '../../lib/commands/git_commit_all'
 require 'tmpdir'
 require 'fileutils'
 require_relative '../../lib/util/log'
+require_relative '../../lib/commands/git_commit_all'
 
 describe GitTree::CommitAllCommand do
   include Logging

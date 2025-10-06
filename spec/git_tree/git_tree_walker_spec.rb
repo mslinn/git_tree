@@ -1,4 +1,4 @@
-require 'spec_helper'
+require_relative '../spec_helper'
 require_relative '../../lib/util/git_tree_walker'
 require_relative '../../lib/util/config'
 

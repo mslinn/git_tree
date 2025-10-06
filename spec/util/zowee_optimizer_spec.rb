@@ -1,5 +1,5 @@
-require_relative 'spec_helper'
-require_relative '../lib/util/zowee_optimizer'
+require_relative '../spec_helper'
+require_relative '../../lib/util/zowee_optimizer'
 
 describe ZoweeOptimizer do
   context 'with no initial variables' do

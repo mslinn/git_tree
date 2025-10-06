@@ -1,4 +1,4 @@
-require 'spec_helper'
+require_relative '../spec_helper'
 require_relative '../../lib/util/thread_pool_manager'
 require_relative '../../lib/util/log'
 

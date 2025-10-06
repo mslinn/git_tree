@@ -1,5 +1,5 @@
-require 'spec_helper'
 require 'tmpdir'
+require_relative '../spec_helper'
 require_relative '../../lib/commands/git_update'
 require_relative '../../lib/util/log'
 require_relative '../../lib/util/git_tree_walker_private'

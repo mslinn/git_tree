@@ -1,4 +1,4 @@
-require_relative 'spec_helper'
+require_relative '../spec_helper'
 
 RSpec.describe(GemSupport) do
   it 'finds common prefix for one string with many slashes' do
