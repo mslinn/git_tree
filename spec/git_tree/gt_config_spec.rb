@@ -33,7 +33,7 @@ describe GitTree::GTConfig, type: :config do
 
     context "with yaml configuration" do
       it "overrides defaults from a simulated YAML file" do
-        with_local_config("default_roots" => %w[c d]) do
+        stub_config("default_roots" => %w[c d]) do
           expect(described_class.new.default_roots).to eq(%w[c d])
         end
       end
@@ -61,7 +61,7 @@ describe GitTree::GTConfig, type: :config do
       end
 
       it "prefers environment variables over YAML configuration" do
-        with_local_config("default_roots" => %w[from file]) do
+        stub_config("default_roots" => %w[from file]) do
           with_env("GIT_TREE_DEFAULT_ROOTS" => "from env") do
             expect(described_class.new.default_roots).to eq(%w[from env])
           end
@@ -74,7 +74,7 @@ describe GitTree::GTConfig, type: :config do
       around { |ex| Anyway::Settings.use_source_tracing { ex.run } }
 
       it "traces the source of the configuration" do
-        with_local_config("git_timeout" => 42) do
+        stub_config("git_timeout" => 42) do
           trace = described_class.new.to_source_trace["git_timeout"]
           expect(trace).to include(default: 300)
           # The source name for with_local_config is :yml
