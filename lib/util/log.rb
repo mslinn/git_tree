@@ -1,4 +1,5 @@
 require 'rainbow/refinement'
+require_relative 'log_queue'
 
 module Logging
   using Rainbow
@@ -50,10 +51,9 @@ module Logging
 
     multiline_string.to_s.each_line do |line|
       line_to_print = line.chomp
-      line_to_print = line_to_print.public_send(color) if color
-      STDAUX.puts line_to_print
+      colored_line = color ? line_to_print.public_send(color) : line_to_print
+      LogQueue.instance.log(colored_line)
     end
-    STDAUX.flush
   end
 
   # A thread-safe output method for uncolored text to STDOUT for pipes.
@@ -78,9 +78,8 @@ module Logging
     raise TypeError, "message must be a String, but got #{message.class}" unless message.is_a?(String)
     raise TypeError, "color must be a Symbol or nil, but got #{color.class}" unless color.is_a?(Symbol) || color.nil?
 
-    message = message.public_send(color) if color
-    STDAUX.print message
-    STDAUX.flush
+    colored_message = color ? message.public_send(color) : message
+    LogQueue.instance.log(colored_message)
   end
 
   # A thread-safe output method for printing messages to STDERR.
@@ -100,4 +99,9 @@ module Logging
 
   # Make log and log_stdout available as both instance and module methods
   module_function :log, :log_stdout, :log_stdaux, :log_stderr
+end
+
+# Ensure the log queue is shut down gracefully on exit
+at_exit do
+  LogQueue.instance.shutdown
 end

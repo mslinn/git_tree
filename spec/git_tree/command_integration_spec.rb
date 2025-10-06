@@ -451,6 +451,7 @@ RSpec.describe 'Command-line Integration' do # rubocop:disable RSpec/DescribeCla
       end
 
       it 'logs a skip message to stdaux' do
+        puts "result[:stdaux]=#{result[:stdaux]}}"
         expect(result[:stdaux]).to include("Skipping #{@repo_detached_path} because it is in a detached HEAD state")
       end
     end
