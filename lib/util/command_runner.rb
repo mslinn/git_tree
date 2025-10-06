@@ -10,6 +10,7 @@ class CommandRunner
     raise TypeError, "command must be a String, but got #{command.class}" unless command.is_a?(String)
     raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
 
+    # Why is Open3.capture2e used instead of Open3.capture3?
     Open3.capture2e(command, chdir: dir)
   end
 end
