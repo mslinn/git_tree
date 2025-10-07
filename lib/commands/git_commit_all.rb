@@ -31,9 +31,8 @@ module GitTree
       @options[:message] ||= '-'
 
       @runner ||= CommandRunner.new
-      # The arguments just contain roots for the walker.
-      command_args = @args
-      roots_to_walk = command_args.empty? ? @config.default_roots : command_args
+      # @args should just contain roots for the walker.
+      roots_to_walk = command_args.empty? ? @config.default_roots : @args
       @walker ||= GitTreeWalker.new(roots_to_walk, options: @options)
       @walker.process do |dir, thread_id, walker|
         raise "dir cannot be nil in process block" if dir.nil?
