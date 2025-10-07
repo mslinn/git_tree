@@ -1,3 +1,4 @@
+require 'erb'
 require_relative 'git_tree/version'
 
 module GitTree

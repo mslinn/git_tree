@@ -1,4 +1,5 @@
 require 'anyway_config'
+require 'erb'
 require_relative 'log'
 
 # See https://github.com/palkan/anyway_config?tab=readme-ov-file#usage
