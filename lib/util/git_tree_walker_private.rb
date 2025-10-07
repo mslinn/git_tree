@@ -20,8 +20,6 @@ class GitTreeWalker
   # @param args [Array<String>] The command-line arguments representing root directories.
   # @return [void]
   # @raise [TypeError] If +args+ is not an +Array+.
-  # @see #process_root_arg
-  # @see Config#default_roots
   # @example
   #   # With empty args (uses defaults)
   #   determine_roots([])  # processed_args = @config.default_roots (e.g., ["$HOME/project", "/tmp"])
@@ -68,9 +66,6 @@ class GitTreeWalker
   # @return [void]
   # @raise [TypeError] If +root_path+ is not a +String+ or +visited+ is not a +Set+.
   # @raise [ArgumentError] If no block is provided.
-  # @see File.directory?
-  # @see Dir.exist?
-  # @see File.join
   #
   # @example
   # visited = Set.new
