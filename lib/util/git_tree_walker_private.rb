@@ -162,6 +162,26 @@ class GitTreeWalker
     @root_map[arg] = File.expand_path(path) if path
   end
 
+  # Sorts the names of subdirectories within the specified directory path.
+  #
+  # This method retrieves the immediate children of +directory_path+ using +Dir.children+, filters
+  # them to include only subdirectories (via +File.directory?+ on the full path), and returns their
+  # names sorted lexicographically (case-sensitive, ascending order).
+  #
+  # Validates +directory_path+ as a non-nil +String+; raises +ArgumentError+ if unspecified (nil)
+  # or +TypeError+ if not a +String+. Does not validate if the path is a directory or accessible;
+  # invalid paths may raise +Errno::ENOENT+, +Errno::EACCES+, or similar exceptions from Ruby's
+  # file system calls.
+  #
+  # @param directory_path [String] The path to the directory whose subdirectories to list and sort.
+  # @return [Array<String>] The sorted names of subdirectories within +directory_path+.
+  # @raise [ArgumentError] If +directory_path+ is not provided (nil).
+  # @raise [TypeError] If +directory_path+ is not a +String+.
+  # @example
+  #   sort_directory_entries("/home/user")  # => ["docs", "projects", "tmp"] (sorted subdirectory names)
+  #   sort_directory_entries("/tmp")        # => [] (if no subdirectories)
+  #   sort_directory_entries(nil)           # Raises ArgumentError: directory_path was not provided
+  #   sort_directory_entries(123)           # Raises TypeError: directory_path must be a String, but it was Integer
   def sort_directory_entries(directory_path)
     raise ArgumentError, "directory_path was not provided" unless directory_path
     raise TypeError, "directory_path must be a String, but it was a #{directory_path.class}" unless directory_path.is_a?(String)
