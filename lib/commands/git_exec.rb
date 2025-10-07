@@ -115,15 +115,3 @@ module GitTree
     end
   end
 end
-
-if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-exec')
-  begin
-    GitTree::ExecCommand.new(ARGV).run
-  rescue Interrupt
-    Logging.log Logging::NORMAL, "\nInterrupted by user", :yellow
-    exit! 130
-  rescue StandardError => e
-    Logging.log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
-    exit 1
-  end
-end

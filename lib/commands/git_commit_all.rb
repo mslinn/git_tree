@@ -184,15 +184,3 @@ module GitTree
     end
   end
 end
-
-if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-commitAll') # Corrected from git-tree-commitAll
-  begin
-    GitTree::CommitAllCommand.new(ARGV).run
-  rescue Interrupt
-    Logging.log Logging::NORMAL, "\nInterrupted by user", :yellow
-    exit! 130 # Use exit! to prevent further exceptions on shutdown
-  rescue StandardError => e
-    Logging.log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
-    exit 1
-  end
-end

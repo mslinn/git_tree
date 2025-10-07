@@ -4,4 +4,6 @@ require 'anyway_config'
 
 Anyway::Settings.current_environment = "production" unless ENV['ANYWAY_ENV']
 
-require_relative '../lib/commands/git_evars'
+require_relative '../lib/git_tree'
+
+GitTree::EvarsCommand.new.run

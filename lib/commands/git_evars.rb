@@ -1,5 +1,3 @@
-require_relative '../git_tree'
-
 module GitTree
   class EvarsCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
@@ -166,17 +164,5 @@ module GitTree
         make_env_var(env_var_name(dir), dir)
       end
     end
-  end
-end
-
-if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-evars')
-  begin
-    GitTree::EvarsCommand.new(ARGV).run
-  rescue Interrupt
-    Logging.log Logging::NORMAL, "\nInterrupted by user", :yellow
-    exit! 130 # Use exit! to prevent further exceptions on shutdown
-  rescue StandardError => e
-    Logging.log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
-    exit! 1
   end
 end

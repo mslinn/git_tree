@@ -108,5 +108,3 @@ class GitTreeWalker
     end
   end
 end
-
-require_relative 'git_tree_walker_private'
