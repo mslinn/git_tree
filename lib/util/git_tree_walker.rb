@@ -91,6 +91,11 @@ class GitTreeWalker
 
     visited = Set.new
     @root_map.each do |root_arg, paths|
+      raise ArgumentError, "root_arg was not provided" unless root_arg
+      raise ArgumentError, "paths was not provided" unless paths
+      raise TypeError, "root_arg must be a String, but it was a #{root_arg.class}" unless root_arg.is_a?(String)
+      raise TypeError, "paths must be an Array<String>, but it was a #{paths.class}" unless paths.is_a?(Array)
+
       paths.sort.each do |root_path|
         find_git_repos_recursive(root_path, visited) do |dir|
           raise "dir cannot be nil in find_git_repos_recursive block" if dir.nil?
