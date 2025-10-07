@@ -7,10 +7,14 @@ class CommandRunner
   # @param dir [String] The directory to execute the command in.
   # @return [Array] A tuple containing the output and the status object.
   def run(command, dir)
+    raise ArgumentError, 'command was not specified' unless command
+    raise ArgumentError, 'dir was not specified' unless dir
     raise TypeError, "command must be a String, but got #{command.class}" unless command.is_a?(String)
     raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
 
     # Why is Open3.capture2e used instead of Open3.capture3?
-    Open3.capture2e(command, chdir: dir)
+    result = Open3.capture2e(command, chdir: dir)
+    @x = result.first
+    result
   end
 end

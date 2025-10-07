@@ -26,7 +26,7 @@
     },
     {
       "args": [
-        "'$sitesUbuntu'"
+        "$sitesUbuntu"
       ],
       "debugPort": "0",
       "name": "Debug git-commitAll",
@@ -35,9 +35,22 @@
       "script": "${workspaceRoot}/exe/git-commitAll"
     },
     {
-      "args": [ "\"$jekyll_img $jekyll_pre\"", "version" ],
+      "args": [
+        "pwd"
+      ],
       "debugPort": "0",
-      "name": "Debug git-exec",
+      "name": "Debug git-exec with no tree specified",
+      "type": "rdbg",
+      "request": "launch",
+      "script": "${workspaceRoot}/exe/git-exec"
+    },
+    {
+      "args": [
+        "$sitesUbuntu",
+        "pwd"
+      ],
+      "debugPort": "0",
+      "name": "Debug git-exec with tree specified",
       "type": "rdbg",
       "request": "launch",
       "script": "${workspaceRoot}/exe/git-exec"

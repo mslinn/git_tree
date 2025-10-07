@@ -1,6 +1,5 @@
-require "anyway"
-require "anyway/testing"
-require_relative "log"
+require 'anyway_config'
+require_relative 'log'
 
 # See https://github.com/palkan/anyway_config?tab=readme-ov-file#usage
 module GitTree

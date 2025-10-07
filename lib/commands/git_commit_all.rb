@@ -2,9 +2,9 @@ require 'optparse'
 require 'shellwords'
 require 'timeout'
 require 'rugged'
-
 require_relative 'abstract_command'
-require_relative '../util/git_tree_walker' # This is correct, no change needed here.
+require_relative '../util/command_runner'
+require_relative '../util/git_tree_walker'
 
 module GitTree
   class CommitAllCommand < AbstractCommand
@@ -21,13 +21,20 @@ module GitTree
       $PROGRAM_NAME = 'git-commitAll'
       super
       # Allow walker to be injected for testing
+      @runner = @options.delete(:runner)
       @walker = @options.delete(:walker)
     end
 
     def run
       setup
+
       @options[:message] ||= '-'
-      @walker ||= GitTreeWalker.new(@args, options: @options)
+
+      @runner ||= CommandRunner.new
+      # The arguments just contain roots for the walker.
+      command_args = @args
+      roots_to_walk = command_args.empty? ? @config.default_roots : command_args
+      @walker ||= GitTreeWalker.new(roots_to_walk, options: @options)
       @walker.process do |dir, thread_id, walker|
         raise "dir cannot be nil in process block" if dir.nil?
         raise "thread_id cannot be nil in process block" if thread_id.nil?
@@ -63,7 +70,10 @@ module GitTree
           -v, --verbose             Increase verbosity. Can be used multiple times (e.g., -v, -vv).
 
         Usage:
-          #{$PROGRAM_NAME} [OPTIONS] [DIRECTORY...]
+          #{$PROGRAM_NAME} [OPTIONS] [ROOTS...]
+
+        ROOTS can be directory names or environment variable references (e.g., '$work').
+        Multiple roots can be specified in a single quoted string.
 
         Usage examples:
           #{$PROGRAM_NAME}                                # Commit with default message "-"

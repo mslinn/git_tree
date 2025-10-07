@@ -26,8 +26,7 @@ module GitTree
       @runner ||= CommandRunner.new
       # The last argument is the command to execute, the rest are roots for the walker.
       command_args = @args.length > 1 ? @args[0..-2] : []
-
-      roots_to_walk = command_args.empty? ? [] : command_args
+      roots_to_walk = command_args.empty? ? @config.default_roots : command_args
       @walker ||= GitTreeWalker.new(roots_to_walk, options: @options)
 
       command = @args.last
