@@ -15,11 +15,12 @@ module Logging
   # warn "Logging module loaded. Default verbosity: #{@verbosity}" if @verbosity >= NORMAL
 
   # Define a custom I/O stream for auxiliary/informational messages. Defaults to STDERR.
-  STDAUX = begin
-    IO.for_fd(3, 'w')
-  rescue StandardError
-    $stderr
-  end
+  _reader, STDAUX = IO.pipe
+  # To read from the pipe (perhaps for testing), read from `_reader`
+  # puts _reader.gets
+  # TODO: Close the streams when done
+  # STDAUX.close
+  # _reader.close
 
   # @return [Integer] The current verbosity level.
   def self.verbosity

@@ -1,0 +1,24 @@
+{
+	"files": [
+		{
+			"path": "../../../../../home/mslinn/.rbenv/versions/3.4.6/lib/ruby/gems/3.4.0/gems/anyway_config-2.7.2/lib/anyway/config.rb",
+			"bookmarks": [
+				{
+					"line": 393,
+					"column": 0,
+					"label": "load_from_sources"
+				}
+			]
+		},
+		{
+			"path": "../../../../../home/mslinn/.rbenv/versions/3.4.6/lib/ruby/gems/3.4.0/gems/anyway_config-2.7.2/lib/anyway/loaders/yaml.rb",
+			"bookmarks": [
+				{
+					"line": 53,
+					"column": 0,
+					"label": "parse_yml"
+				}
+			]
+		}
+	]
+}

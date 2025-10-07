@@ -2,16 +2,10 @@ require "anyway/testing"
 require_relative "../spec_helper"
 
 describe GitTree::GTConfig, type: :config do
-  # include Anyway::Testing::Helpers # this is not necessary
   # See: https://github.com/palkan/anyway_config/blob/master/lib/anyway/testing.rb
 
-  before do
-    Anyway::Settings.current_environment = "test"
-  end
-
-  let(:config) { described_class.new }
-
   context "when the environment is not set" do
+    Anyway::Settings.current_environment = nil
     it "raises an error" do
       Anyway::Settings.current_environment = nil
       expect { config }.to raise_error(RuntimeError, /Anyway::Settings environment/)
@@ -19,14 +13,37 @@ describe GitTree::GTConfig, type: :config do
   end
 
   context "when the environment is set" do
+    Anyway::Settings.current_environment = "test"
     it "does not raise an error" do
       expect { config }.not_to raise_error
     end
   end
 
-  context "has attributes" do
+  context "with attributes" do
+    Anyway::Settings.current_environment = "test"
+    config = described_class.new
+    config.load_from_sources([
+                               { type: :yml }, # Loads from this YAML file
+                               { type: :env }  # Then overrides from ENV (e.g., MYAPP_HOST)
+                             ], config_path: 'config/treeconfig.yml')
+    puts "HERE WE ARE"
+
     it "#git_timeout" do
       expect(config).to respond_to(:git_timeout)
+
+      source = git_timeout[:source]
+      expect(source).to eq({
+                             type: :yml,
+                             key:  'production',
+                           })
+      expect(value).to eq({
+                            git_timeout:   300,
+                            verbosity:     1,
+                            default_roots: [sites, sitesUbuntu, work],
+                          })
+
+      git_timeout = config.to_source_trace['git_timeout']
+      expect(git_timeout).to eq?(7)
     end
 
     it "#verbosity" do

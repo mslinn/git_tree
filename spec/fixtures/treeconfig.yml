@@ -1,1 +1,18 @@
-default_roots: %w[e f]
+test:
+  git_timeout: 7
+  verbosity: 2
+  default_roots:
+    - my_gems
+    - my_plugins
+
+development:
+  git_timeout: 7
+  verbosity: 2
+  default_roots:
+    - my_gems
+    - my_plugins
+
+production:
+  git_timeout: 300
+  verbosity: 2
+  default_roots: [sites, sitesUbuntu, work]

@@ -1,14 +1,14 @@
 test:
   git_timeout: 7
-  verbosity: <%= ::Logging::NORMAL %>
+  verbosity: 2
   default_roots:
 
 development:
   git_timeout: 7
-  verbosity: <%= ::Logging::NORMAL %>
+  verbosity: 2
   default_roots:
 
 production:
   git_timeout: 300
-  verbosity: <%= ::Logging::NORMAL %>
+  verbosity: 2
   default_roots: [sites, sitesUbuntu, work]
