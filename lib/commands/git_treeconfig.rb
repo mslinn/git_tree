@@ -1,7 +1,6 @@
 require 'highline'
 require 'yaml'
-require_relative '../util/config'
-require_relative '../util/log'
+require_relative '../git_tree'
 
 module GitTree
   # A command to interactively create a user-level configuration file.

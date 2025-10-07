@@ -1,6 +1,4 @@
 require_relative '../git_tree'
-require_relative 'abstract_command'
-require_relative '../util/git_tree_walker'
 
 module GitTree
   class ReplicateCommand < GitTree::AbstractCommand

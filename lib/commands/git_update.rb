@@ -1,8 +1,6 @@
 require 'shellwords'
 require 'timeout'
-require_relative 'abstract_command'
-require_relative '../util/git_tree_walker'
-require_relative '../util/command_runner'
+require_relative '../git_tree'
 
 module GitTree
   class UpdateCommand < GitTree::AbstractCommand

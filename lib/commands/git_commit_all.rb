@@ -2,9 +2,7 @@ require 'optparse'
 require 'shellwords'
 require 'timeout'
 require 'rugged'
-require_relative 'abstract_command'
-require_relative '../util/command_runner'
-require_relative '../util/git_tree_walker'
+require_relative '../git_tree'
 
 module GitTree
   class CommitAllCommand < AbstractCommand

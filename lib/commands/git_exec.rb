@@ -1,16 +1,14 @@
 require 'pathname'
-require_relative 'abstract_command'
-require_relative '../util/git_tree_walker'
-require_relative '../util/thread_pool_manager'
-require_relative '../util/command_runner'
+require_relative '../git_tree'
 
 module GitTree
   class ExecCommand < GitTree::AbstractCommand
     attr_writer :walker, :runner
 
+    # @param args [Array<String>] optional command line options
     def initialize(args = ARGV, options: {})
-      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
-      raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
+      raise TypeError, "args must be an Array, but it was a #{args.class}" unless args.is_a?(Array)
+      raise TypeError, "options must be a Hash, but it was a #{options.class}" unless options.is_a?(Hash)
 
       $PROGRAM_NAME = 'git-exec'
       super
@@ -21,9 +19,8 @@ module GitTree
 
     def run
       setup
-      return help('A SHELL_COMMAND must be specified.') if @args.empty?
+      return help('A shell command must be specified.') if @args.empty?
 
-      @runner ||= CommandRunner.new
       # The last argument is the command to execute, the rest are roots for the walker.
       command_args = @args.length > 1 ? @args[0..-2] : []
       roots_to_walk = command_args.empty? ? @config.default_roots : command_args
@@ -45,9 +42,12 @@ module GitTree
     private
 
     def execute_and_log(dir, command)
+      raise ArgumentError, "dir was not specified" unless dir
+      raise ArgumentError, "command was not specified" unless command
       raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
       raise TypeError, "command must be a String, but got #{command.class}" unless command.is_a?(String)
 
+      @runner ||= CommandRunner.new
       output, status = @runner.run(command, dir)
       log_result(output, status.success?)
     rescue Errno::ENOENT
@@ -58,17 +58,19 @@ module GitTree
       log_result(error_message, false)
     end
 
+    # @param output [String] The output string to log
+    # @param success [Boolean] Indicates if the command executed successfully
+    # @return [nil]
     def log_result(output, success)
-      raise TypeError, "output must be a String, but got #{output.class}" unless output.is_a?(String)
-      raise TypeError, "success must be a Boolean, but got #{success.class}" unless [true, false].include?(success)
+      return unless output
+      raise TypeError, "output must be a String, but it was a #{output.class}" unless output.is_a?(String)
+      raise TypeError, "success must be a Boolean, but it was a #{success.class}" unless [true, false].include?(success)
 
       return if output.strip.empty?
 
       if success
-        # Successful command output should go to STDOUT.
         Logging.log_stdout output.strip
-      else
-        # Errors should go to STDERR. We use a dedicated method for this.
+      else # always output this message in red
         Logging.log_stderr Logging::QUIET, output.strip, :red
       end
     end
@@ -119,7 +121,7 @@ if $PROGRAM_NAME == __FILE__ || $PROGRAM_NAME.end_with?('git-exec')
     GitTree::ExecCommand.new(ARGV).run
   rescue Interrupt
     Logging.log Logging::NORMAL, "\nInterrupted by user", :yellow
-    exit! 130 # Use exit! to prevent further exceptions on shutdown
+    exit! 130
   rescue StandardError => e
     Logging.log Logging::QUIET, "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}", :red
     exit 1

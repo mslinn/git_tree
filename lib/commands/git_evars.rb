@@ -1,15 +1,12 @@
 require_relative '../git_tree'
-require_relative 'abstract_command'
-require_relative '../util/git_tree_walker'
-require_relative '../util/zowee_optimizer'
 
 module GitTree
   class EvarsCommand < GitTree::AbstractCommand
     self.allow_empty_args = true
 
     def initialize(args = ARGV, options: {})
-      raise ArgumentError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
-      raise ArgumentError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
+      raise TypeError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
+      raise TypeError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
 
       $PROGRAM_NAME = 'git-evars'
       super
@@ -23,7 +20,6 @@ module GitTree
         all_paths = []
         walker.find_and_process_repos do |dir, _root_arg|
           raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
-
           raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
 
           all_paths << dir
@@ -32,10 +28,10 @@ module GitTree
         result = optimizer.optimize(all_paths, walker.display_roots)
       else
         walker.find_and_process_repos do |dir, root_arg|
-          raise "dir cannot be nil in find_and_process_repos block" if dir.nil?
-          raise "root_arg cannot be nil in find_and_process_repos block" if root_arg.nil?
-
-          raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
+          raise ArgumentError, "dir cannot be nil in find_and_process_repos block" if dir.nil?
+          raise ArgumentError, "root_arg cannot be nil in find_and_process_repos block" if root_arg.nil?
+          raise TypeError, "dir must be a String in find_and_process_repos block, but it was a #{dir.class}" unless dir.is_a?(String)
+          raise TypeError, "root_arg must be a String in find_and_process_repos block, but it was a #{root_arg.class}" unless root_arg.is_a?(String)
 
           result << make_env_var_with_substitution(dir, [root_arg.tr("'$", '')])
         end
@@ -45,10 +41,11 @@ module GitTree
 
     private
 
+    # construct an environment variable name from a path
     # @param path [String] The path to convert to an environment variable name.
     # @return [String] The converted environment variable name.
     def env_var_name(path)
-      raise TypeError, "path must be a String, but got #{path.class}" unless path.is_a?(String)
+      raise TypeError, "path must be a String, but it was a #{path.class}" unless path.is_a?(String)
 
       name = path.include?('/') ? File.basename(path) : path
       name.tr(' ', '_').tr('-', '_')
@@ -105,11 +102,12 @@ module GitTree
     # @param root [String] The root environment variable reference (e.g., '$work').
     # @return [Array<String>] An array of environment variable definitions.
     def process_root(root)
+      raise ArgumentError, "root was not specified" unless root
       raise TypeError, "root must be a String, but got #{root.class}" unless root.is_a?(String)
 
       help("Environment variable reference must start with a dollar sign ($).") unless root.start_with? '$'
 
-      base = GemSupport.expand_env(root)
+      base = GemSupport.expand_env root
       help("Environment variable '#{root}' is undefined.") if base.nil? || base.strip.empty?
       help("Environment variable '#{root}' points to a non-existant directory (#{base}).") unless File.exist?(base)
       help("Environment variable '#{root}' points to a file (#{base}), not a directory.") unless Dir.exist?(base)
@@ -129,6 +127,8 @@ module GitTree
     # @param value [String] The value of the environment variable.
     # @return [String] The environment variable definition string.
     def make_env_var(name, value)
+      raise ArgumentError, "name was not specified" unless name
+      raise ArgumentError, "value was not specified" unless value
       raise TypeError, "name must be a String, but got #{name.class}" unless name.is_a?(String)
       raise TypeError, "value must be a String, but got #{value.class}" unless value.is_a?(String)
 
@@ -140,6 +140,8 @@ module GitTree
     # @param roots [Array<String>] An array of root environment variable names (e.g., ['work', 'sites']).
     # @return [String] The environment variable definition string, or nil if no root matches.
     def make_env_var_with_substitution(dir, roots)
+      raise ArgumentError, "dir was not specified" unless dir
+      raise ArgumentError, "roots was not specified" unless roots
       raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
       raise TypeError, "roots must be an Array, but got #{roots.class}" unless roots.is_a?(Array)
 
@@ -160,8 +162,7 @@ module GitTree
       if found_root_var
         relative_dir = dir.sub(found_root_path + '/', '')
         make_env_var(env_var_name(relative_dir), "#{found_root_var}/#{relative_dir}")
-      else
-        # Fallback to absolute path if no root matches (should be rare).
+      else # Fallback to absolute path if no root matches (should be rare).
         make_env_var(env_var_name(dir), dir)
       end
     end

@@ -14,7 +14,7 @@ class CommandRunner
 
     # Why is Open3.capture2e used instead of Open3.capture3?
     result = Open3.capture2e(command, chdir: dir)
-    @x = result.first
+    @x = result.first # TODO: examine this
     result
   end
 end
