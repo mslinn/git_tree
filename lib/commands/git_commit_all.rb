@@ -18,7 +18,7 @@ module GitTree
 
       $PROGRAM_NAME = 'git-commitAll'
       super
-      # Allow walker to be injected for testing
+      # Allow walker and runner mocks to be injected for testing
       @runner = @options.delete(:runner)
       @walker = @options.delete(:walker)
     end
@@ -54,7 +54,7 @@ module GitTree
     def run
       setup
       @options[:message] ||= '-'
-      @runner ||= CommandRunner.new
+      @runner ||= CommandRunner.new # Respect a previously set mock, or create a real runner
       # @args should just contain roots for the walker.
       roots_to_walk = command_args.empty? ? @config.default_roots : @args
       @walker ||= GitTreeWalker.new(roots_to_walk, options: @options)

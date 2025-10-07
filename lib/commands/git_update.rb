@@ -16,14 +16,14 @@ module GitTree
 
       $PROGRAM_NAME = 'git-update'
       super
-      # Allow walker and runner to be injected for testing
+      # Allow walker and runner mocks to be injected for testing
       @runner = @options.delete(:runner)
       @walker = @options.delete(:walker)
     end
 
     def run
       setup
-      @runner ||= CommandRunner.new
+      @runner ||= CommandRunner.new # Respect a previously set mock, or create a real runner
       @walker ||= GitTreeWalker.new(@args, options: @options)
       @walker.process do |dir, thread_id, walker|
         raise "dir cannot be nil in process block" if dir.nil?
@@ -82,7 +82,7 @@ module GitTree
     # @param dir [String] The path to the git repository.
     # @param thread_id [Integer] The ID of the current worker thread.
     # @return [nil]
-    def process_repo(git_walker, dir, thread_id)
+    def process_repo(git_walker, dir, thread_id) # rubocop:disable Metrics/AbcSize
       unless git_walker.respond_to?(:abbreviate_path) && git_walker.respond_to?(:config)
         raise ArgumentError,
               "git_walker must respond to :abbreviate_path and :config"
@@ -94,12 +94,13 @@ module GitTree
       Logging.log Logging::NORMAL, "Updating #{abbrev_dir}", :green
       Logging.log Logging::VERBOSE, "Thread #{thread_id}: git -C #{dir} pull", :yellow
 
-      output = nil
+      stdout = nil
+      stderr = nil
       status = nil
       begin
         Timeout.timeout(git_walker.config.git_timeout) do
           Logging.log Logging::VERBOSE, "Executing: git pull in #{dir}", :yellow
-          output, status_obj = @runner.run('git pull', dir)
+          stdout, stderr, status_obj = @runner.run('git pull', dir)
           status = status_obj.exitstatus
         end
       rescue Timeout::Error
@@ -112,10 +113,12 @@ module GitTree
 
       if !status.zero?
         Logging.log Logging::NORMAL, "[ERROR] git pull failed in #{abbrev_dir} (exit code #{status}):", :red
-        Logging.log Logging::NORMAL, output.strip, :red unless output.to_s.strip.empty?
+        Logging.log Logging::NORMAL, stdout.strip, :red unless stdout.to_s.strip.empty?
+        Logging.log Logging::NORMAL, stderr.strip, :red unless stderr.to_s.strip.empty?
       elsif Logging.verbosity >= Logging::VERBOSE
         # Output from a successful pull is considered NORMAL level
-        Logging.log Logging::NORMAL, output.strip, :green
+        Logging.log Logging::NORMAL, stdout.strip, :green unless stdout.strip.empty?
+        Logging.log Logging::NORMAL, stderr.strip, :green unless stderr.strip.empty?
       end
     end
   end

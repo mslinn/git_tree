@@ -12,7 +12,7 @@ module GitTree
 
       $PROGRAM_NAME = 'git-exec'
       super
-      # Allow walker and runner to be injected for testing
+      # Allow walker and runner mocks to be injected for testing
       @runner = @options.delete(:runner)
       @walker = @options.delete(:walker)
     end
@@ -47,9 +47,10 @@ module GitTree
       raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
       raise TypeError, "command must be a String, but got #{command.class}" unless command.is_a?(String)
 
-      @runner ||= CommandRunner.new
-      output, status = @runner.run(command, dir)
-      log_result(output, status.success?)
+      @runner ||= CommandRunner.new # Respect a previously set mock, or create a real runner
+      stdout, stderr, status = @runner.run(command, dir)
+      log_result(stdout, status.success?)
+      log_result(stderr, status.success?)
     rescue Errno::ENOENT
       error_message = "Error: Command '#{command}' not found"
       log_result(error_message, false)
