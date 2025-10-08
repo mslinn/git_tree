@@ -15,9 +15,6 @@ class GitTreeWalker
   IGNORED_DIRECTORIES = ['.', '..', '.venv'].freeze
 
   def initialize(args = ARGV, options: {})
-    raise TypeError, "args must be an Array, but got #{args.class}" unless args.is_a?(Array)
-    raise TypeError, "options must be a Hash, but got #{options.class}" unless options.is_a?(Hash)
-
     @config = GitTree::GTConfig.new
     @display_roots = []
     @options = options
@@ -34,23 +31,14 @@ class GitTreeWalker
   # display root and returns the abbreviated path immediately. If no matches are found across all entries,
   # the original +dir+ is returned unchanged.
   #
-  # Validates +dir+ as a non-nil +String+; raises +ArgumentError+ if unspecified (nil) or +TypeError+ if not a +String+.
-  #
   # @param dir [String] The directory path to abbreviate.
   # @return [String] The abbreviated path (with prefix replaced) or the original +dir+ if no match.
-  # @raise [ArgumentError] If +dir+ is not specified (nil).
-  # @raise [TypeError] If +dir+ is not a +String+.
   # @example
   #   # Assuming @root_map = {"$HOME" => ["/home/user"], "/tmp" => ["/tmp"]}
   #   abbreviate_path("/home/user/projects")  # => "$HOME/projects"
   #   abbreviate_path("/tmp/logs")            # => "/tmp/logs" (returns original if no abbreviable match)
   #   abbreviate_path("/other/path")          # => "/other/path" (no match)
-  #   abbreviate_path(nil)                    # Raises ArgumentError: dir was not specified
-  #   abbreviate_path(123)                    # Raises TypeError: dir must be a String, but got Integer
   def abbreviate_path(dir)
-    raise ArgumentError, 'dir was not specified' unless dir
-    raise TypeError, "dir must be a String, but got #{dir.class}" unless dir.is_a?(String)
-
     @root_map.each do |display_root, expanded_paths|
       expanded_paths.each do |expanded_path|
         return dir.sub(expanded_path, display_root) if dir.start_with?(expanded_path)
@@ -68,15 +56,10 @@ class GitTreeWalker
   # to the block. The search prunes at repository boundaries and skips ignored directories/files as defined
   # in +find_git_repos_recursive+.
   #
-  # Validates the block: requires it to be provided and to accept exactly two arguments (+dir+ as +String+,
-  # +root_arg+ as +String+); raises a +RuntimeError+ otherwise. Also raises if a yielded +dir+ is +nil+.
-  #
   # @yieldparam [String] dir The absolute path of a discovered git repository.
   # @yieldparam [String] root_arg The original root argument (e.g., "$HOME" or "'$HOME'") associated with the repository.
   # @yieldreturn [void]
   # @return [void]
-  # @raise [RuntimeError] If no block is provided or the block does not accept exactly 2 arguments.
-  # @raise [RuntimeError] If a yielded +dir+ is +nil+ during recursion.
   # @example
   #   find_and_process_repos do |dir, root_arg|
   #     puts "Processing repo '#{dir}' from root '#{root_arg}'"
@@ -91,15 +74,8 @@ class GitTreeWalker
 
     visited = Set.new
     @root_map.each do |root_arg, paths|
-      raise ArgumentError, "root_arg was not provided" unless root_arg
-      raise ArgumentError, "paths was not provided" unless paths
-      raise TypeError, "root_arg must be a String, but it was a #{root_arg.class}" unless root_arg.is_a?(String)
-      raise TypeError, "paths must be an Array<String>, but it was a #{paths.class}" unless paths.is_a?(Array)
-
       paths.sort.each do |root_path|
         find_git_repos_recursive(root_path, visited) do |dir|
-          raise "dir cannot be nil in find_git_repos_recursive block" if dir.nil?
-
           yield(dir, root_arg)
         end
       end
@@ -124,7 +100,6 @@ class GitTreeWalker
   # @yieldparam walker The processing context or walker object for the operation.
   # @yieldreturn [void]
   # @return [void]
-  # @raise [RuntimeError] If no block is provided or the block does not accept exactly 3 arguments.
   # @example
   #   process do |dir, thread_id, walker|
   #     puts "Thread #{thread_id} processing #{dir} with walker: #{walker}"
@@ -155,17 +130,13 @@ class GitTreeWalker
   # using +pool.add_task(dir)+. Worker threads consume these tasks in parallel. The method blocks until all tasks complete
   # via +pool.wait_for_completion+.
   #
-  # Note: This is invoked when +@options[:serial]+ is +false+ in the parent +#process+ method. Extensive argument validation
-  # occurs at multiple levels to ensure type safety and non-nil values.
+  # Note: This is invoked when +@options[:serial]+ is +false+ in the parent +#process+ method.
   #
   # @yieldparam [String] dir The absolute path of a git repository to process.
   # @yieldparam [Integer] thread_id The identifier of the current worker thread.
   # @yieldparam [Object] walker The instance (+self+) serving as the processing context or walker.
   # @yieldreturn [void]
   # @return [void]
-  # @raise [ArgumentError] If +worker+, +dir+, or +thread_id+ is +nil+ in the pool worker block, or +dir+ is +nil+ in the repo discovery block.
-  # @raise [TypeError] If +worker+ is not a +FixedThreadPoolManager+, +dir+ is not a +String+, or +thread_id+ is not an +Integer+ in the pool worker block; or +dir+ is not a +String+ in the repo discovery block.
-  # @raise [Interrupt] Re-raised after pool shutdown for external handling.
   # @example
   #   # Invoked via process with @options[:serial] = false
   #   process do |dir, thread_id, walker|
@@ -178,16 +149,7 @@ class GitTreeWalker
   #   # - Waits for all tasks to complete before returning
   def process_multithreaded(&)
     pool = FixedThreadPoolManager.new(0.75)
-    pool.start do |worker, dir, thread_id|
-      raise ArgumentError, "worker cannot be nil in pool.start block" if worker.nil?
-      raise ArgumentError, "dir cannot be nil in pool.start block" if dir.nil?
-      raise ArgumentError, "thread_id cannot be nil in pool.start block" if thread_id.nil?
-      unless worker.is_a?(FixedThreadPoolManager)
-        raise TypeError, "worker must be a FixedThreadPoolManager in pool.start block, but it was #{worker.class}"
-      end
-      raise TypeError, "dir must be a String in pool.start block, but it was #{dir.class}" unless dir.is_a?(String)
-      raise TypeError, "thread_id must be an Integer in pool.start block, but it was #{thread_id.class}" unless thread_id.is_a?(Integer)
-
+    pool.start do |_worker, dir, thread_id|
       yield(dir, thread_id, self)
     rescue Interrupt # ensure the pool is shut down. Let the main command handle the exit.
       pool&.shutdown
@@ -199,9 +161,6 @@ class GitTreeWalker
     # Find all repositories and add them to the work queue.
     # The worker threads will consume these tasks in parallel.
     find_and_process_repos do |dir, _root_arg|
-      raise ArgumentError, "dir cannot be nil in find_and_process_repos block" if dir.nil?
-      raise TypeError, "dir must be a String in find_and_process_repos block, but it was a #{dir.class}" unless dir.is_a?(String)
-
       pool.add_task(dir)
     end
     pool.wait_for_completion
@@ -215,16 +174,13 @@ class GitTreeWalker
   # threading consistency) and +self+ (the instance as the processing context or "walker"). Processing
   # occurs synchronously in discovery order.
   #
-  # Note: Invoked when +@options[:serial]+ is +true+ in the parent +#process+ method. Argument
-  # validation ensures type safety for +dir+.
+  # Note: Invoked when +@options[:serial]+ is +true+ in the parent +#process+ method.
   #
   # @yieldparam [String] dir The absolute path of a git repository to process.
   # @yieldparam [Integer] thread_id A fixed identifier of +0+ for serial processing.
   # @yieldparam [Object] walker The instance (+self+) serving as the processing context or walker.
   # @yieldreturn [void]
   # @return [void]
-  # @raise [ArgumentError] If +dir+ is +nil+ in the repo discovery block.
-  # @raise [TypeError] If +dir+ is not a +String+ in the repo discovery block.
   # @example
   #   # Invoked via process with @options[:serial] = true
   #   process do |dir, thread_id, walker|
@@ -238,9 +194,6 @@ class GitTreeWalker
   def process_serially(&)
     Logging.log Logging::VERBOSE, "Running in serial mode.", :yellow
     find_and_process_repos do |dir, _root_arg|
-      raise ArgumentError, "dir cannot be nil in find_and_process_repos block" if dir.nil?
-      raise TypeError, "dir must be a String in find_and_process_repos block, but got #{dir.class}" unless dir.is_a?(String)
-
       yield(dir, 0, self) # task, thread_id, walker
     end
   end

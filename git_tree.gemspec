@@ -55,6 +55,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.version               = GitUrlsVersion::VERSION
 
   spec.add_development_dependency 'anyway_config', '~> 2.0'
+  spec.add_dependency 'contracts'
   spec.add_dependency 'highline'
   spec.add_dependency 'rainbow'
   spec.add_dependency 'rugged'

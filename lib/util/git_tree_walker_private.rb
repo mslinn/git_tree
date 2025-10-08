@@ -5,10 +5,9 @@ class GitTreeWalker
 
   private
 
-  # # Determines and processes root directory arguments from the command line or configuration defaults.
+  # Determines and processes root directory arguments from the command line or configuration defaults.
   #
-  # This method validates +args+ as an +Array+ and raises a +TypeError+ if not. It then processes
-  # the arguments: if +args+ is empty, it falls back to the +default_roots+ from the instance's
+  # This method processes the arguments: if +args+ is empty, it falls back to the +default_roots+ from the instance's
   # +@config+; otherwise, it uses +args+ directly. Each argument is stripped of leading/trailing
   # whitespace and split on whitespace to create a flattened list of individual root paths.
   #
@@ -19,7 +18,6 @@ class GitTreeWalker
   #
   # @param args [Array<String>] The command-line arguments representing root directories.
   # @return [void]
-  # @raise [TypeError] If +args+ is not an +Array+.
   # @example
   #   # With empty args (uses defaults)
   #   determine_roots([])  # processed_args = @config.default_roots (e.g., ["$HOME/project", "/tmp"])
@@ -30,8 +28,6 @@ class GitTreeWalker
   #   determine_roots(["$HOME/project /tmp"])  # processed_args = ["$HOME/project", "/tmp"]
   #                                            # Same as above for @display_roots and @root_map
   def determine_roots(args)
-    raise TypeError, "args must be an Array, but it was a #{args.class}" unless args.is_a?(Array)
-
     # If no args are provided on the command line, use the default_roots from the configuration.
     processed_args = (args.empty? ? @config.default_roots : args).flat_map { |arg| arg.strip.split(/\s+/) }
     @display_roots = processed_args.dup
@@ -46,7 +42,6 @@ class GitTreeWalker
   # to avoid descending into sub-repositories. Cycles are prevented using the +visited+ set.
   #
   # Before scanning:
-  # * Validates +root_path+ as a +String+ and +visited+ as a +Set+; raises +TypeError+ otherwise.
   # * Requires a block; raises +ArgumentError+ if none provided.
   # * Skips non-existent or non-directory paths.
   # * Skips directories containing a +.ignore+ file (logs at +DEBUG+ level in green).
@@ -64,7 +59,6 @@ class GitTreeWalker
   # @yieldparam [String] repo_path The absolute path of a discovered git repository.
   # @yieldreturn [void]
   # @return [void]
-  # @raise [TypeError] If +root_path+ is not a +String+ or +visited+ is not a +Set+.
   # @raise [ArgumentError] If no block is provided.
   #
   # @example
@@ -81,8 +75,6 @@ class GitTreeWalker
   #   Skipping /path/to/root/subdir due to .ignore file
   # Error scanning /path/to/root/invalid: No such file or directory
   def find_git_repos_recursive(root_path, visited, &block)
-    raise TypeError, "root_path must be a String, but got #{root_path.class}" unless root_path.is_a?(String)
-    raise TypeError, "visited must be a Set, but got #{visited.class}" unless visited.is_a?(Set)
     raise ArgumentError, "A block must be provided to #find_git_repos_recursive" unless block_given?
 
     return unless File.directory?(root_path)
@@ -102,8 +94,6 @@ class GitTreeWalker
         return
       end
       unless visited.include?(root_path)
-        raise "root_path cannot be nil when yielding to find_git_repos_recursive block" if root_path.nil?
-
         visited.add(root_path)
         yield root_path
       end
@@ -149,7 +139,6 @@ class GitTreeWalker
     path = arg
     if (match = arg.match(/\A(?:'\$([a-zA-Z_]\w*)'|\$([a-zA-Z_]\w*))\z/)) # enforce consistent quoting (either 2 quotes or none)
       var_name = match[1] || match[2]
-      # puts "var_name=#{var_name}"
       if var_name
         path = ENV.fetch(var_name, nil)
         unless path
@@ -158,7 +147,6 @@ class GitTreeWalker
         end
       end
     end
-    # puts "arg=#{arg}; path=#{path}"
     @root_map[arg] = File.expand_path(path) if path
   end
 
@@ -168,24 +156,16 @@ class GitTreeWalker
   # them to include only subdirectories (via +File.directory?+ on the full path), and returns their
   # names sorted lexicographically (case-sensitive, ascending order).
   #
-  # Validates +directory_path+ as a non-nil +String+; raises +ArgumentError+ if unspecified (nil)
-  # or +TypeError+ if not a +String+. Does not validate if the path is a directory or accessible;
+  # Does not validate if the path is a directory or accessible;
   # invalid paths may raise +Errno::ENOENT+, +Errno::EACCES+, or similar exceptions from Ruby's
   # file system calls.
   #
   # @param directory_path [String] The path to the directory whose subdirectories to list and sort.
   # @return [Array<String>] The sorted names of subdirectories within +directory_path+.
-  # @raise [ArgumentError] If +directory_path+ is not provided (nil).
-  # @raise [TypeError] If +directory_path+ is not a +String+.
   # @example
   #   sort_directory_entries("/home/user")  # => ["docs", "projects", "tmp"] (sorted subdirectory names)
   #   sort_directory_entries("/tmp")        # => [] (if no subdirectories)
-  #   sort_directory_entries(nil)           # Raises ArgumentError: directory_path was not provided
-  #   sort_directory_entries(123)           # Raises TypeError: directory_path must be a String, but it was Integer
   def sort_directory_entries(directory_path)
-    raise ArgumentError, "directory_path was not provided" unless directory_path
-    raise TypeError, "directory_path must be a String, but it was a #{directory_path.class}" unless directory_path.is_a?(String)
-
     Dir.children(directory_path).select do |entry|
       File.directory?(File.join(directory_path, entry))
     end.sort
