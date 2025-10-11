@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//mnt/d/work/git/claude/**)",
+      "Bash(tree:*)",
+      "Bash(test:*)",
+      "Bash(make:*)",
+      "Bash(./bin/git-treeconfig:*)",
+      "Bash(./bin/git-update:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
